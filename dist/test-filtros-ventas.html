@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Filtros de Ventas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-2xl font-bold mb-6">🔍 Prueba de Filtros de Ventas</h1>
+        
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold mb-4">Filtros</h2>
+            <div class="flex gap-4 mb-4">
+                <select id="filtroTipo" class="border rounded-lg px-3 py-2">
+                    <option value="">Todos los tipos</option>
+                    <option value="inmediato">Pago Inmediato</option>
+                    <option value="credito">Crédito</option>
+                </select>
+                
+                <select id="filtroEstado" class="border rounded-lg px-3 py-2">
+                    <option value="">Todos los estados</option>
+                    <option value="pagado">Pagado</option>
+                    <option value="parcial">Parcial</option>
+                    <option value="pendiente">Pendiente</option>
+                </select>
+                
+                <button onclick="probarFiltros()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                    Probar Filtros
+                </button>
+            </div>
+        </div>
+        
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold mb-4">Resultados</h2>
+            <div id="resultados" class="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+                <p class="text-gray-500">Haz clic en "Probar Filtros" para ver los resultados</p>
+            </div>
+        </div>
+        
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold mb-4">Logs</h2>
+            <div id="logs" class="bg-gray-900 text-green-400 rounded-lg p-4 max-h-96 overflow-y-auto font-mono text-sm">
+                <div id="logs-content">
+                    <p>Los logs aparecerán aquí...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let todasLasVentas = [];
+        
+        function log(message, type = 'info') {
+            const logsDiv = document.getElementById('logs-content');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span class="text-gray-400">[${timestamp}]</span> <span class="${type === 'error' ? 'text-red-400' : type === 'warning' ? 'text-yellow-400' : 'text-green-400'}">[${type.toUpperCase()}]</span> ${message}`;
+            logsDiv.appendChild(logEntry);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+        
+        function mostrarResultados(ventas, filtro) {
+            const resultadosDiv = document.getElementById('resultados');
+            
+            if (ventas.length === 0) {
+                resultadosDiv.innerHTML = '<p class="text-gray-500">No hay ventas que coincidan con los filtros</p>';
+                return;
+            }
+            
+            let html = `<p class="text-sm text-gray-600 mb-2">Se encontraron ${ventas.length} ventas con el filtro: <strong>${filtro}</strong></p>`;
+            html += '<div class="space-y-2">';
+            
+            ventas.slice(0, 10).forEach((venta, index) => {
+                const tipoColor = venta.tipo_venta === 'credito' ? 'text-blue-600' : 'text-green-600';
+                const estadoColor = venta.estado_pago === 'pagado' ? 'text-green-600' : venta.estado_pago === 'parcial' ? 'text-yellow-600' : 'text-red-600';
+                
+                html += `
+                    <div class="border rounded-lg p-3 bg-white">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="font-medium">Venta #${venta.id}</span>
+                                <span class="ml-2 ${tipoColor}">${venta.tipo_venta === 'credito' ? 'Crédito' : 'Pago Inmediato'}</span>
+                                <span class="ml-2 ${estadoColor}">${venta.estado_pago}</span>
+                            </div>
+                            <div class="text-sm text-gray-600">
+                                ${venta.cliente_nombre} - $${venta.total}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (ventas.length > 10) {
+                html += `<p class="text-sm text-gray-500 text-center mt-2">... y ${ventas.length - 10} más</p>`;
+            }
+            
+            html += '</div>';
+            resultadosDiv.innerHTML = html;
+        }
+        
+        async function cargarVentas() {
+            try {
+                log('Cargando todas las ventas...');
+                const response = await fetch(`${API_URL}/ventas`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                todasLasVentas = await response.json();
+                log(`✅ Se cargaron ${todasLasVentas.length} ventas`);
+                
+                // Mostrar distribución de tipos
+                const tipos = {};
+                todasLasVentas.forEach(v => {
+                    tipos[v.tipo_venta] = (tipos[v.tipo_venta] || 0) + 1;
+                });
+                
+                log('📊 Distribución de tipos:');
+                Object.entries(tipos).forEach(([tipo, count]) => {
+                    log(`   ${tipo}: ${count} ventas`);
+                });
+                
+            } catch (error) {
+                log(`❌ Error al cargar ventas: ${error.message}`, 'error');
+            }
+        }
+        
+        function probarFiltros() {
+            const filtroTipo = document.getElementById('filtroTipo').value;
+            const filtroEstado = document.getElementById('filtroEstado').value;
+            
+            log(`🔍 Probando filtros - Tipo: "${filtroTipo || 'Todos'}", Estado: "${filtroEstado || 'Todos'}"`);
+            
+            // Filtrar ventas (simulación del frontend)
+            let ventasFiltradas = todasLasVentas.filter(v => {
+                let matchTipo = true;
+                let matchEstado = true;
+                
+                if (filtroTipo) {
+                    matchTipo = v.tipo_venta === filtroTipo;
+                    // Debug específico para el problema
+                    if (v.tipo_venta === 'credito' && filtroTipo === 'inmediato') {
+                        log(`❌ PROBLEMA: Venta de crédito (ID: ${v.id}) filtrada como inmediato`, 'error');
+                    }
+                }
+                
+                if (filtroEstado) {
+                    matchEstado = v.estado_pago === filtroEstado;
+                }
+                
+                return matchTipo && matchEstado;
+            });
+            
+            log(`📊 Ventas filtradas: ${ventasFiltradas.length} de ${todasLasVentas.length}`);
+            
+            // Mostrar resultados
+            const filtroDescripcion = [];
+            if (filtroTipo) filtroDescripcion.push(`Tipo: ${filtroTipo}`);
+            if (filtroEstado) filtroDescripcion.push(`Estado: ${filtroEstado}`);
+            
+            mostrarResultados(ventasFiltradas, filtroDescripcion.join(', ') || 'Todos');
+            
+            // Debug: mostrar primeros 5 resultados con sus tipos
+            log('🔍 Muestra de resultados filtrados:');
+            ventasFiltradas.slice(0, 5).forEach((venta, index) => {
+                log(`   ${index + 1}) ID: ${venta.id}, Tipo: "${venta.tipo_venta}", Estado: "${venta.estado_pago}"`);
+            });
+        }
+        
+        // Cargar ventas al iniciar
+        cargarVentas();
+    </script>
+</body>
+</html>
