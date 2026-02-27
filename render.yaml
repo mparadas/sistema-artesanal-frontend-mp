@@ -1,7 +1,7 @@
 services:
   # Servicio del Frontend
   - type: web
-    name: agromae-b-frontend
+    name: agromae-frontend
     env: static
     buildCommand: npm run build
     staticPublishPath: dist
@@ -16,6 +16,8 @@ services:
         value: http://localhost:10000/api
       - key: VITE_API_URL_RENDER
         value: https://agromae.onrender.com/api
+      - key: VITE_IMAGES_BASE_URL
+        value: https://agromae.onrender.com/uploads
     headers:
       - path: /*
         name: X-Frame-Options
