@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Errores de Conexión</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0.1);
+        }
+        .btn {
+            padding: 8px 16px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-danger { background: #ef4444; color: }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-success { background: #10b981; color: white; }
+        .btn:hover { transform: translateY(-1px); }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        .online { background: #d1fae5; color: #065f46; }
+        .offline { background: #fee2e2; color: #991b1e; }
+        .error { background: #fee2e2; color: #991b1e; }
+        .success { background: #d1fae5; color: #065f46; }
+        .warning { background: #fef3c7; color: #92400e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Prueba de Errores de Conexión</h1>
+        <p class="text-gray-600">Esta página simula diferentes tipos de errores de conexión para probar el sistema de manejo de errores del frontend.</p>
+        
+        <div class="status online">
+            🟢 Estado: Conectado a internet
+        </div>
+        
+        <h2>Pruebas de Errores</h2>
+        
+        <div class="grid grid-cols-2 gap-4">
+            <button class="btn btn-primary" onclick="testFetchSuccess()">
+                ✅ Fetch Exitoso
+            </button>
+            <button class="btn btn-danger" onclick="testFetchError()">
+                ❌ Fetch Error 404
+            </button>
+            <button class="btn btn-warning" onclick="testFetchServerError()">
+                ⚠️ Fetch Error 500
+            </button>
+            <button class="btn btn-danger" onclick="testNetworkError()">
+                🔌 Error de Red
+            </button>
+            <button class="btn btn-warning" onclick="testTimeoutError()">
+                ⏱️ Timeout Error
+            </button>
+        </div>
+        
+        <div id="resultado" class="status">
+            <div id="resultado-contenido">
+                <p>Espera una prueba...</p>
+            </div>
+        </div>
+        
+        <h2>Pruebas de Conexión</h2>
+        <button class="btn btn-warning" onclick="testOffline()">
+            🔌 Simular Desconexión
+        </button>
+        <button class="btn btn-success" onclick="testOnline()">
+            🟢 Restaurar Conexión
+        </button>
+        
+        <div id="resultado-conexion" class="status">
+            <div id="resultado-conexion-contenido">
+                <p>Conexión estable</p>
+            </div>
+        </div>
+        
+        <h2>Logs de Errores</h2>
+        <div id="logs" class="bg-gray-100 p-4 rounded-lg text-xs font-mono">
+            <div id="logs-contenido">
+                <p>Los errores aparecerán aquí...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let errorCount = 0;
+        
+        function log(message, type = 'info') {
+            const logsDiv = document.getElementById('logs-contenido');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> <span class="${type === 'error' ? 'text-red-600' : type === 'warning' ? 'text-yellow-600' : 'text-green-600'}">[${type.toUpperCase()}]</span> ${message}`;
+            logsDiv.appendChild(logEntry);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+            errorCount++;
+        }
+        
+        function updateResultado(mensaje, type = 'info') {
+            const resultadoDiv = document.getElementById('resultado-contenido');
+            resultadoDiv.innerHTML = `<p class="${type === 'error' ? 'text-red-600' : type === 'warning' ? 'text-yellow-600' : 'text-green-600'}">${mensaje}</p>`;
+            const resultado = document.getElementById('resultado');
+            resultado.className = `status ${type}`;
+        }
+        
+        function updateResultadoConexion(mensaje, type = 'info') {
+            const resultadoDiv = document.getElementById('resultado-conexion-contenido');
+            resultadoDiv.innerHTML = `<p class="${type === 'error' ? 'text-red-600' : type === 'warning' ? 'text-yellow-600' : 'text-green-600'}">${mensaje}</p>`;
+            const resultado = document.getElementById('resultado-conexion');
+            resultado.className = `status ${type}`;
+        }
+        
+        function testFetchSuccess() {
+            log('Iniciando prueba de fetch exitoso', 'info');
+            updateResultado('Conexión exitosa', 'success');
+            
+            fetch('http://localhost:3000/api/productos')
+                .then(response => response.json())
+                .then(data => {
+                    log(`✅ Fetch exitoso: ${data.length} productos cargados`, 'success');
+                    updateResultado(`✅ Conexión exitosa: ${data.length} productos cargados`, 'success');
+                })
+                .catch(error => {
+                    log(`❌ Error inesperado: ${error.message}`, 'error');
+                    updateResultado(`❌ Error inesperado: ${error.message}`, 'error');
+                });
+        }
+        
+        function testFetchError() {
+            log('Iniciando prueba de fetch error 404', 'warning');
+            updateResultado('Probando error 404...', 'warning');
+            
+            fetch('http://localhost:3000/api/no-existe')
+                .then(response => {
+                    log(`❌ Respuesta inesperada: ${response.status}`, 'error');
+                    updateResultado(`❌ Error 404: Recurso no encontrado`, 'error');
+                })
+                .catch(error => {
+                    log(`✅ Error capturado: ${error.message}`, 'success');
+                    updateResultado(`✅ Error 404: Recurso no encontrado`, 'error');
+                });
+        }
+        
+        function testFetchServerError() {
+            log('Iniciando prueba de fetch error 500', 'warning');
+            updateResultado('Probando error 500...', 'warning');
+            
+            fetch('http://localhost:3000/api/error-simulado')
+                .then(response => {
+                    log(`❌ Error del servidor: ${response.status}`, 'error');
+                    updateResultado(`❌ Error 500: Error interno del servidor`, 'error');
+                })
+                .catch(error => {
+                    log(`✅ Error capturado: ${error.message}`, 'success');
+                    updateResultado(`✅ Error 500: Error interno del servidor`, 'error');
+                });
+        }
+        
+        function testNetworkError() {
+            log('Iniciando prueba de error de red', 'error');
+            updateResultado('Probando error de red...', 'error');
+            
+            fetch('http://192.168.100.224:9999/api/productos')
+                .then(response => {
+                    log(`❌ Error de red: ${response.status}`, 'error');
+                    updateResultado(`❌ Error de red: Servidor no disponible`, 'error');
+                })
+                .catch(error => {
+                    log(`✅ Error de red capturado: ${error.message}`, 'success');
+                    updateResultado(`✅ Error de red: ${error.message}`, 'error');
+                });
+        }
+        
+        function testTimeoutError() {
+            log('Iniciando prueba de timeout', 'warning');
+            updateResultado('Probando timeout...', 'warning');
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 100);
+            
+            fetch('http://localhost:3000/api/productos', { signal: controller.signal })
+                .then(response => {
+                    log(`❌ Timeout no debería llegar aquí`, 'error');
+                    updateResultado(`❌ Error de timeout: La petición tardó demasiado`, 'error');
+                })
+                .catch(error => {
+                    log(`✅ Timeout capturado: ${error.name}: ${error.message}`, 'success');
+                    updateResultado(`✅ Timeout capturado: ${error.name}: ${error.message}`, 'success');
+                });
+        }
+        
+        function testOffline() {
+            log('Simulando desconexión...', 'warning');
+            updateResultado('🔌 Simulando desconexión...', 'warning');
+            
+            // Simular desconexión
+            Object.defineProperty(navigator, 'onLine', { get: () => false });
+            
+            // Intentar una petición
+            fetch('http://localhost:3000/api/productos')
+                .then(response => {
+                    log('❌ La conexión debería fallar', 'error');
+                    updateResultado('🔌 Error de conexión simulado', 'error');
+                })
+                .catch(error => {
+                    log(`✅ Error de conexión capturado: ${error.message}`, 'success');
+                    updateResultado(`✅ Error de conexión capturado: ${error.message}`, 'success');
+                })
+                .finally(() => {
+                    // Restaurar conexión
+                    Object.defineProperty(navigator, 'onLine', { get: () => true });
+                    updateResultado('🟢 Conexión restaurada', 'success');
+                });
+        }
+        
+        function testOnline() {
+            log('Restaurando conexión...', 'info');
+            updateResultado('🟢 Conexión restaurada', 'success');
+            
+            // Restaurar conexión
+            Object.defineProperty(navigator, 'onLine', { get: () => true });
+            updateResultado('🟢 Conexión restaurada', 'success');
+        }
+        
+        // Detectar cambios de conexión reales
+        window.addEventListener('online', () => {
+            log('🟢 Conexión restaurada automáticamente', 'success');
+            updateResultado('🟢 Conexión restaurada automáticamente', 'success');
+        });
+        
+        window.addEventListener('offline', () => {
+            log('🔴 Conexión perdida automáticamente', 'error');
+            updateResultado('🔴 Conexión perdida automáticamente', 'error');
+        });
+        
+        // Detectar errores de fetch no controlados
+        window.addEventListener('unhandledrejection', (event) => {
+            log(`❌ Error no controlado: ${event.reason}`, 'error');
+            updateResultado(`❌ Error no controlado: ${event.reason}`, 'error');
+        });
+    </script>
+</body>
+</html>

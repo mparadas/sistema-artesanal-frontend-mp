@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Conexión Móvil</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn {
+            padding: 8px 16px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn:hover { transform: translateY(-1px); }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        .online { background: #d1fae5; color: #065f46; }
+        .offline { background: #fee2e2; color: #991b1b; }
+        .success { background: #d1fae5; color: #065f46; }
+        .warning { background: #fef3c7; color: #92400e; }
+        .error { background: #fee2e2; color: #991b1b; }
+        .info { background: #dbeafe; color: #1e40af; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Prueba de Conexión Móvil</h1>
+        <p class="text-gray-600">Esta página prueba la conexión desde dispositivos móviles al servidor backend.</p>
+        
+        <div class="status info">
+            📱 Información del dispositivo
+        </div>
+        
+        <div class="grid grid-cols-1 gap-4">
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h3 class="font-semibold mb-2">Información de Conexión</h3>
+                <div id="device-info">
+                    <p><strong>URL actual:</strong> <span id="current-url"></span></p>
+                    <p><strong>Hostname:</strong> <span id="hostname"></span></p>
+                    <p><strong>User Agent:</strong> <span id="user-agent"></span></p>
+                    <p><strong>Conexión:</strong> <span id="connection-status">Verificando...</span></p>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h3 class="font-semibold mb-2">Pruebas de API</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <button class="btn btn-primary" onclick="testAPI('localhost')">
+                        🏠 Test Localhost
+                    </button>
+                    <button class="btn btn-success" onclick="testAPI('red')">
+                        🌐 Test Red (192.168.100.224)
+                    </button>
+                    <button class="btn btn-warning" onclick="testAPI('auditoria')">
+                        🗄️ Test Auditoría
+                    </button>
+                    <button class="btn btn-danger" onclick="testAPI('productos')">
+                        📦 Test Productos
+                    </button>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h3 class="font-semibold mb-2">Resultados</h3>
+                <div id="results">
+                    <p class="text-gray-500">Realiza una prueba para ver los resultados aquí...</p>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h3 class="font-semibold mb-2">Logs</h3>
+                <div id="logs" class="bg-gray-100 p-3 rounded-lg text-xs font-mono max-h-48 overflow-y-auto">
+                    <div id="logs-content">
+                        <p>Los logs aparecerán aquí...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mostrar información del dispositivo
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('hostname').textContent = window.location.hostname;
+        document.getElementById('user-agent').textContent = navigator.userAgent;
+        
+        // Detectar tipo de dispositivo
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isTablet = /iPad|Android/i.test(navigator.userAgent) && !/Mobile/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+            log('📱 Dispositivo móvil detectado', 'info');
+        } else if (isTablet) {
+            log('📱 Tablet detectado', 'info');
+        } else {
+            log('💻 Computadora de escritorio detectada', 'info');
+        }
+        
+        // Función para logs
+        function log(message, type = 'info') {
+            const logsDiv = document.getElementById('logs-content');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> <span class="${type === 'error' ? 'text-red-600' : type === 'warning' ? 'text-yellow-600' : type === 'success' ? 'text-green-600' : 'text-blue-600'}">[${type.toUpperCase()}]</span> ${message}`;
+            logsDiv.appendChild(logEntry);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+        
+        // Función para mostrar resultados
+        function showResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <div class="status ${type}">
+                    ${message}
+                </div>
+            `;
+        }
+        
+        // Función para actualizar estado de conexión
+        function updateConnectionStatus() {
+            const statusDiv = document.getElementById('connection-status');
+            if (navigator.onLine) {
+                statusDiv.innerHTML = '<span class="text-green-600">🟢 Conectado a internet</span>';
+            } else {
+                statusDiv.innerHTML = '<span class="text-red-600">🔴 Sin conexión a internet</span>';
+            }
+        }
+        
+        // Detectar cambios de conexión
+        window.addEventListener('online', () => {
+            log('🟢 Conexión restaurada', 'success');
+            updateConnectionStatus();
+        });
+        
+        window.addEventListener('offline', () => {
+            log('🔴 Conexión perdida', 'error');
+            updateConnectionStatus();
+        });
+        
+        // Inicializar estado de conexión
+        updateConnectionStatus();
+        
+        // Función para probar API
+        async function testAPI(type) {
+            let url;
+            let testName;
+            
+            switch(type) {
+                case 'localhost':
+                    url = 'http://localhost:3000/api/productos';
+                    testName = 'Localhost API';
+                    break;
+                case 'red':
+                    url = 'http://192.168.100.224:3000/api/productos';
+                    testName = 'Red API (192.168.100.224)';
+                    break;
+                case 'auditoria':
+                    url = 'http://192.168.100.224:3000/api/auditoria';
+                    testName = 'Auditoría API';
+                    break;
+                case 'productos':
+                    url = 'http://192.168.100.224:3000/api/productos';
+                    testName = 'Productos API';
+                    break;
+            }
+            
+            log(`🔄 Probando ${testName}...`, 'info');
+            showResult(`🔄 Probando ${testName}...`, 'info');
+            
+            try {
+                const startTime = Date.now();
+                const response = await fetch(url);
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ ${testName} - Status: ${response.status}, Tiempo: ${duration}ms, Registros: ${data.length}`, 'success');
+                    showResult(`✅ ${testName} - Conexión exitosa (${data.length} registros en ${duration}ms)`, 'success');
+                } else {
+                    log(`❌ ${testName} - Status: ${response.status}`, 'error');
+                    showResult(`❌ ${testName} - Error ${response.status}: ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ ${testName} - Error: ${error.message}`, 'error');
+                showResult(`❌ ${testName} - Error de conexión: ${error.message}`, 'error');
+            }
+        }
+        
+        // Probar conexión automáticamente al cargar
+        setTimeout(() => {
+            log('🚀 Iniciando pruebas automáticas...', 'info');
+            testAPI('red');
+        }, 1000);
+    </script>
+</body>
+</html>
