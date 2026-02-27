@@ -15,10 +15,10 @@ if (isDevelopment && isLocalhost) {
 }
 
 // Fallback si la conexión principal no funciona
-const API_BASE_URL_FALLBACK = 'https://agromae-b.onrender.com/api'
+const API_BASE_URL_FALLBACK = 'http://localhost:10000/api'
 
 // Conexión alternativa para desarrollo
-const API_BASE_URL_DEV = 'https://agromae-b.onrender.com/api'
+const API_BASE_URL_DEV = 'http://localhost:10000/api'
 
 console.log('🔍 Configuración API:', {
   isDevelopment,
