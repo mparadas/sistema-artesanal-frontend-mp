@@ -1,11 +1,11 @@
 // Configuración de la API - HARDCODE ABSOLUTO
-const API_BASE_URL = 'https://agromae.onrender.com/api'
-const IMAGES_BASE_URL = 'https://agromae.onrender.com/uploads'
+const API_BASE_URL = 'https://agromae-b.onrender.com/api'
+const IMAGES_BASE_URL = 'https://agromae-b.onrender.com/uploads'
 
 // Fallback si la conexión principal no funciona
 const API_BASE_URL_FALLBACK = 'http://localhost:10000/api'
 const API_BASE_URL_DEV = 'http://localhost:10000/api'
-const API_BASE_URL_RENDER = 'https://agromae.onrender.com/api'
+const API_BASE_URL_RENDER = 'https://agromae-b.onrender.com/api'
 
 // Forzar producción en Vercel/Render
 const isProduction = window.location.hostname.includes('vercel.app') || 
