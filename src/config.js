@@ -8,10 +8,10 @@ let API_BASE_URL
 
 if (isDevelopment && isLocalhost) {
   // Desarrollo en localhost
-  API_BASE_URL = 'http://http://localhost:10000'
+  API_BASE_URL = 'https://agromae.onrender.com/api'
 } else {
   // Producción - usar Render
-  API_BASE_URL = 'https://agromae.onrender.com/api'
+  API_BASE_URL = 'https://agromae_b.onrender.com/api'
 }
 
 // Fallback si la conexión principal no funciona
