@@ -8,7 +8,11 @@ const isRenderProduction = window.location.hostname.includes('onrender.com')
 let API_BASE_URL
 let IMAGES_BASE_URL
 
-if (isDevelopment && isLocalhost) {
+// FORZAR PRODUCCIÓN PARA AGROMAE.ONRENDER.COM
+if (window.location.hostname === 'agromae.onrender.com') {
+  API_BASE_URL = 'https://agromae.onrender.com/api'
+  IMAGES_BASE_URL = 'https://agromae.onrender.com/uploads'
+} else if (isDevelopment && isLocalhost) {
   // Desarrollo en localhost - backend en puerto 10000
   API_BASE_URL = 'http://localhost:10000/api'
   IMAGES_BASE_URL = 'http://localhost:10000/uploads'
