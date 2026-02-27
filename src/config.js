@@ -11,14 +11,14 @@ if (isDevelopment && isLocalhost) {
   API_BASE_URL = 'https://agromae.onrender.com/api'
 } else {
   // Producción - usar Render
-  API_BASE_URL = 'https://agromae_b.onrender.com/api'
+  API_BASE_URL = 'https://agromae-b.onrender.com/api'
 }
 
 // Fallback si la conexión principal no funciona
-const API_BASE_URL_FALLBACK = 'https://agromae_b.onrender.com/api'
+const API_BASE_URL_FALLBACK = 'https://agromae-b.onrender.com/api'
 
 // Conexión alternativa para desarrollo
-const API_BASE_URL_DEV = 'https://agromae_b.onrender.com/api'
+const API_BASE_URL_DEV = 'https://agromae-b.onrender.com/api'
 
 console.log('🔍 Configuración API:', {
   isDevelopment,
