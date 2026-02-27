@@ -30,8 +30,56 @@ services:
         value: "1; mode=block"
     routes:
       - type: rewrite
-        source: /(.*) 
-        destination: /index.html
-      - type: rewrite
         source: /api/(.*)
         destination: https://agromae.onrender.com/api/$1
+      - type: rewrite
+        source: /catalogo-publico
+        destination: /index.html
+      - type: rewrite
+        source: /login
+        destination: /index.html
+      - type: rewrite
+        source: /dashboard
+        destination: /index.html
+      - type: rewrite
+        source: /ventas
+        destination: /index.html
+      - type: rewrite
+        source: /clientes
+        destination: /index.html
+      - type: rewrite
+        source: /productos
+        destination: /index.html
+      - type: rewrite
+        source: /produccion
+        destination: /index.html
+      - type: rewrite
+        source: /estadisticas
+        destination: /index.html
+      - type: rewrite
+        source: /auditoria
+        destination: /index.html
+      - type: rewrite
+        source: /pedidos
+        destination: /index.html
+      - type: rewrite
+        source: /ingredientes
+        destination: /index.html
+      - type: rewrite
+        source: /tasas-cambio
+        destination: /index.html
+      - type: rewrite
+        source: /financiero
+        destination: /index.html
+      - type: rewrite
+        source: /usuarios
+        destination: /index.html
+      - type: rewrite
+        source: /lista-precios
+        destination: /index.html
+      - type: rewrite
+        source: /productos-disponibles
+        destination: /index.html
+      - type: rewrite
+        source: /(.*)
+        destination: /index.html
