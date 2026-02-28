@@ -745,7 +745,7 @@ export default function Productos() {
             <div className="border rounded-lg p-2 bg-slate-50">
               <p className="text-xs text-gray-500 mb-1">Vista previa de imagen</p>
               <img
-                src={nuevoProducto.imagen_url || imagenFallback}
+                src={getImageUrl(nuevoProducto.imagen_url) || imagenFallback}
                 alt="Vista previa nuevo producto"
                 className="w-full h-32 object-cover rounded border"
                 onError={(e) => { e.currentTarget.src = imagenFallback }}
@@ -840,9 +840,9 @@ export default function Productos() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <img
-                      src={p.imagen_url || imagenFallback}
-                      alt={p.nombre}
-                      className="w-12 h-12 rounded object-cover border shrink-0"
+                      src={getImageUrl(p?.imagen_url) || imagenFallback}
+                      alt={p?.nombre || 'Producto'}
+                      className="w-14 h-14 sm:w-16 sm:h-16 rounded object-cover border shrink-0"
                       onError={(e) => { e.currentTarget.src = imagenFallback }}
                     />
                     <p className="font-medium text-sm truncate">{p.nombre}</p>
@@ -934,7 +934,7 @@ export default function Productos() {
                 <td className="px-4 py-3 font-medium">
                   <div className="flex items-center gap-2">
                     <img
-                      src={p.imagen_url || imagenFallback}
+                      src={getImageUrl(p.imagen_url) || imagenFallback}
                       alt={p.nombre}
                       className="w-12 h-10 rounded object-cover border"
                       onError={(e) => { e.currentTarget.src = imagenFallback }}
@@ -1258,7 +1258,7 @@ export default function Productos() {
                 <div className="border rounded-lg p-2 bg-white">
                   <p className="text-xs text-gray-500 mb-1">Imagen actual</p>
                   <img
-                    src={productoMantenimientoSeleccionado?.imagen_url || imagenFallback}
+                    src={getImageUrl(productoMantenimientoSeleccionado?.imagen_url) || imagenFallback}
                     alt="Imagen actual"
                     className="w-full h-32 object-cover rounded border"
                     onError={(e) => { e.currentTarget.src = imagenFallback }}
@@ -1267,7 +1267,7 @@ export default function Productos() {
                 <div className="border rounded-lg p-2 bg-white">
                   <p className="text-xs text-gray-500 mb-1">Vista previa nueva URL</p>
                   <img
-                    src={mantenimientoForm.imagen_url || imagenFallback}
+                    src={getImageUrl(mantenimientoForm.imagen_url) || imagenFallback}
                     alt="Vista previa"
                     className="w-full h-32 object-cover rounded border"
                     onError={(e) => { e.currentTarget.src = imagenFallback }}
