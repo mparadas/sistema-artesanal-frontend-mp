@@ -1107,9 +1107,9 @@ export default function Productos() {
         </div>
       )}
       {mostrarMantenimiento && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-3">
-          <div className="bg-white w-full max-w-5xl rounded-xl shadow-xl p-4 space-y-4 max-h-[88vh] overflow-auto">
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3">
+          <div className="bg-white w-full max-w-5xl rounded-xl shadow-xl p-4 space-y-4 max-h-[88vh] overflow-auto relative">
+            <div className="flex items-center justify-between sticky top-0 bg-white pb-2 border-b">
               <h3 className="font-bold text-gray-800 text-sm sm:text-base">Mantenimiento de productos</h3>
               <button
                 type="button"
@@ -1120,7 +1120,11 @@ export default function Productos() {
               </button>
             </div>
 
-            <form onSubmit={aplicarMantenimiento} className="grid grid-cols-1 md:grid-cols-2 gap-3 border rounded-lg p-3 bg-slate-50">
+            <form 
+              onSubmit={aplicarMantenimiento} 
+              className="grid grid-cols-1 md:grid-cols-2 gap-3 border rounded-lg p-3 bg-slate-50"
+              id="mantenimiento-form"
+            >
               <select
                 value={productoMantenimientoId}
                 onChange={(e) => setProductoMantenimientoId(e.target.value)}
@@ -1200,11 +1204,8 @@ export default function Productos() {
               <div className="md:col-span-2 flex justify-end gap-2">
                 <button 
                   type="submit" 
+                  form="mantenimiento-form"
                   className="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-800"
-                  onClick={(e) => {
-                    console.log('Botón de aplicar mantenimiento clickeado');
-                    console.log('Estado actual:', { productoMantenimientoId, mantenimientoForm });
-                  }}
                 >
                   Aplicar mantenimiento
                 </button>
