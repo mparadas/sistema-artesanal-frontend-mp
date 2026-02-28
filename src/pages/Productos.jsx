@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Package, Plus, Trash2, AlertTriangle, Loader2, RefreshCw, Pencil, TrendingUp, Settings, Eye } from 'lucide-react'
 
+import { getImageUrl } from '../utils/imageUtils'
 import API_URL from '../config'
 
 const PESO_UNIDAD_HAMBURGUESA_KG = 0.15
@@ -1415,8 +1416,8 @@ export default function Productos() {
                           <td className="px-3 py-2">{new Date(h.fecha).toLocaleString('es-VE')}</td>
                           <td className="px-3 py-2">{h.producto_nombre || `ID ${h.producto_id}`}</td>
                           <td className="px-3 py-2">{h.tipo_modificacion}</td>
-                          <td className="px-3 py-2">{h.valor_anterior || '-'}</td>
-                          <td className="px-3 py-2">{h.valor_nuevo || '-'}</td>
+                          <td className="px-3 py-2">{h.valor_anterior ? (h.tipo_modificacion === 'imagen' ? getImageUrl(h.valor_anterior) : h.valor_anterior) : '-'}</td>
+                          <td className="px-3 py-2">{h.valor_nuevo ? (h.tipo_modificacion === 'imagen' ? getImageUrl(h.valor_nuevo) : h.valor_nuevo) : '-'}</td>
                           <td className="px-3 py-2">{h.usuario || 'sistema'}</td>
                         </tr>
                       )
