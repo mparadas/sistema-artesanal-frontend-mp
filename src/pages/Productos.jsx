@@ -395,11 +395,12 @@ export default function Productos() {
   }
   const aplicarMantenimiento = async (e) => {
     e.preventDefault()
-    console.log('Iniciando aplicación de mantenimiento...')
-    console.log('productoMantenimientoId:', productoMantenimientoId)
-    console.log('mantenimientoForm:', mantenimientoForm)
+    console.log('🔥 FUNCIÓN aplicarMantenimiento llamada!')
+    console.log('📋 productoMantenimientoId:', productoMantenimientoId)
+    console.log('📝 mantenimientoForm:', mantenimientoForm)
     
     if (!productoMantenimientoId) {
+      console.log('❌ No hay producto seleccionado')
       setMensaje('❌ Debes seleccionar un producto')
       return
     }
@@ -407,41 +408,54 @@ export default function Productos() {
     const precio_canal = mantenimientoForm.precio_canal !== '' ? parseFloat(mantenimientoForm.precio_canal) : null
     const imagen_url = (mantenimientoForm.imagen_url || '').trim()
     
-    console.log('Valores procesados:', { precio, precio_canal, imagen_url })
+    console.log('💰 Valores procesados:', { precio, precio_canal, imagen_url })
     
     if (precio === null && precio_canal === null && !imagen_url) {
+      console.log('❌ No hay cambios para aplicar')
       setMensaje('❌ Debes indicar al menos un cambio (precio, precio canal o imagen)')
       return
     }
+    
+    console.log('🚀 Iniciando petición al servidor...')
     try {
       const token = localStorage.getItem('token')
-      console.log('Enviando solicitud a:', `${API_URL}/productos/${productoMantenimientoId}/mantenimiento`)
+      const url = `${API_URL}/productos/${productoMantenimientoId}/mantenimiento`
+      console.log('🌐 Enviando a:', url)
+      console.log('🔑 Token:', token ? 'presente' : 'ausente')
       
-      const response = await fetch(`${API_URL}/productos/${productoMantenimientoId}/mantenimiento`, {
+      const requestBody = {
+        precio,
+        precio_canal,
+        imagen_url: imagen_url || null
+      }
+      console.log('📦 Body:', requestBody)
+      
+      const response = await fetch(url, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
-        body: JSON.stringify({
-          precio,
-          precio_canal,
-          imagen_url: imagen_url || null
-        })
+        body: JSON.stringify(requestBody)
       })
+      
+      console.log('📡 Respuesta status:', response.status)
       const data = await response.json()
-      console.log('Respuesta del servidor:', { status: response.status, data })
+      console.log('📄 Respuesta data:', data)
       
       if (!response.ok) {
+        console.log('❌ Error en respuesta:', data.error)
         setMensaje(`❌ ${data.error || 'No se pudo aplicar mantenimiento'}`)
         return
       }
+      
+      console.log('✅ Éxito en la aplicación')
       setMensaje('✅ Mantenimiento aplicado')
       setTimeout(() => setMensaje(''), 3000)
       await cargarProductos()
       await abrirMantenimiento()
     } catch (error) {
-      console.error('Error en aplicarMantenimiento:', error)
+      console.error('💥 Error catch:', error)
       setMensaje('❌ Error al aplicar mantenimiento')
     }
   }
@@ -1184,7 +1198,14 @@ export default function Productos() {
                 </div>
               </div>
               <div className="md:col-span-2 flex justify-end gap-2">
-                <button type="submit" className="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-800">
+                <button 
+                  type="submit" 
+                  className="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-800"
+                  onClick={(e) => {
+                    console.log('Botón de aplicar mantenimiento clickeado');
+                    console.log('Estado actual:', { productoMantenimientoId, mantenimientoForm });
+                  }}
+                >
                   Aplicar mantenimiento
                 </button>
               </div>
