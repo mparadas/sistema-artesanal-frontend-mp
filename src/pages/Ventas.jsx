@@ -1553,7 +1553,7 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
         <div className="p-4 sm:p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-start bg-gray-50/50 gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800 truncate">
+              <h3 className="text-base sm:text-xl font-bold text-gray-800 truncate">
                 Venta #{venta.id}
               </h3>
               <Badge variant={venta.tipo_venta === 'credito' ? 'warning' : 'success'} className="text-xs">
@@ -1572,10 +1572,10 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
                 </span>
               )}
             </div>
-            <p className="text-sm text-gray-600 line-clamp-2">
+            <p className="text-sm sm:text-base text-gray-600 line-clamp-2">
               {venta.cliente_nombre_completo || venta.cliente_nombre || 'Cliente general'}
             </p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">
               {formatDate(venta.fecha)}
             </p>
           </div>
@@ -1595,15 +1595,15 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 sm:p-4 text-center">
               <p className="text-xs text-blue-600 font-medium mb-1">Total Venta</p>
-              <p className="text-lg sm:text-xl font-bold text-blue-800">{formatearMonto(venta.total, moneda)}</p>
+              <p className="text-base sm:text-xl font-bold text-blue-800">{formatearMonto(venta.total, moneda)}</p>
             </div>
             <div className="bg-green-50 border border-green-100 rounded-xl p-3 sm:p-4 text-center">
               <p className="text-xs text-green-600 font-medium mb-1">Total Pagado</p>
-              <p className="text-lg sm:text-xl font-bold text-green-800">{formatearMonto(totalPagado, moneda)}</p>
+              <p className="text-base sm:text-xl font-bold text-green-800">{formatearMonto(totalPagado, moneda)}</p>
             </div>
             <div className={`border rounded-xl p-3 sm:p-4 text-center ${saldo > 0 ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-100'}`}>
               <p className={`text-xs font-medium mb-1 ${saldo > 0 ? 'text-red-600' : 'text-gray-500'}`}>Saldo Pendiente</p>
-              <p className={`text-lg sm:text-xl font-bold ${saldo > 0 ? 'text-red-800' : 'text-gray-500'}`}>
+              <p className={`text-base sm:text-xl font-bold ${saldo > 0 ? 'text-red-800' : 'text-gray-500'}`}>
                 {saldo > 0 ? formatearMonto(saldo, moneda) : '$0.00'}
               </p>
             </div>
@@ -1611,7 +1611,7 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
 
           {/* Tabla de productos - Optimizada para móvil */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <h4 className="text-sm sm:text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
               <Package className="w-4 h-4 text-gray-500" />
               Productos ({items.length})
             </h4>
@@ -1639,7 +1639,7 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
                   ))}
                   <div className="bg-gray-100 rounded-lg p-3 border border-gray-300">
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-700">Total:</span>
+                      <span className="font-semibold text-gray-700 text-sm">Total:</span>
                       <span className="font-bold text-gray-900 text-base">
                         {formatearMonto(venta.total, moneda)}
                       </span>
@@ -1692,7 +1692,7 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
 
           {/* Tabla de pagos - Optimizada para móvil */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <h4 className="text-sm sm:text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
               <DollarSign className="w-4 h-4 text-gray-500" />
               Historial de Pagos ({pagos.length})
             </h4>
@@ -1747,7 +1747,7 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
                     <div className="bg-green-50 rounded-lg p-3 border border-green-200">
                       <div className="flex justify-between items-center">
                         <span className="font-semibold text-green-700 text-sm">Total pagado:</span>
-                        <span className="font-bold text-green-800">
+                        <span className="font-bold text-green-800 text-base">
                           {formatearMonto(totalPagado, moneda)}
                         </span>
                       </div>
@@ -1756,7 +1756,7 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
                       <div className="bg-red-50 rounded-lg p-3 border border-red-200">
                         <div className="flex justify-between items-center">
                           <span className="font-semibold text-red-600 text-sm">Saldo restante:</span>
-                          <span className="font-bold text-red-700">
+                          <span className="font-bold text-red-700 text-base">
                             {formatearMonto(saldo, moneda)}
                           </span>
                         </div>
