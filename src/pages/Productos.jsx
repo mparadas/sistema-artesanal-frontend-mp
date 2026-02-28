@@ -1410,7 +1410,13 @@ export default function Productos() {
                   </thead>
                   <tbody className="divide-y">
                     {historialMantenimiento.map((h, index) => {
-                      console.log(`📄 Registro ${index}:`, h)
+                      // Log con URLs corregidas para mejor depuración
+                      const registroParaLog = {
+                        ...h,
+                        valor_anterior_corregido: h.valor_anterior && h.tipo_modificacion === 'imagen' ? getImageUrl(h.valor_anterior) : h.valor_anterior,
+                        valor_nuevo_corregido: h.valor_nuevo && h.tipo_modificacion === 'imagen' ? getImageUrl(h.valor_nuevo) : h.valor_nuevo
+                      };
+                      console.log(`📄 Registro ${index}:`, registroParaLog);
                       return (
                         <tr key={h.id}>
                           <td className="px-3 py-2">{new Date(h.fecha).toLocaleString('es-VE')}</td>
