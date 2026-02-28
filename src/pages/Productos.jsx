@@ -381,11 +381,6 @@ export default function Productos() {
     setMostrarMantenimiento(true)
     try {
       const token = localStorage.getItem('token')
-      console.log('🔍 Cargando historial de mantenimiento...')
-      console.log('🌐 API_URL:', API_URL)
-      console.log('🌐 URL completa:', `${API_URL}/productos/mantenimiento/historial?limit=200`)
-      console.log('🌍 Hostname actual:', window.location.hostname)
-      console.log('🌍 Origin:', window.location.origin)
       
       // Agregar timestamp para evitar cache
       const timestamp = new Date().getTime()
@@ -393,15 +388,6 @@ export default function Productos() {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       })
       const data = await response.json()
-      console.log('📊 Respuesta del historial:', { 
-        status: response.status, 
-        statusText: response.statusText,
-        url: response.url,
-        data: data,
-        isArray: Array.isArray(data),
-        length: Array.isArray(data) ? data.length : 'N/A',
-        timestamp: timestamp
-      })
       
       if (!response.ok) {
         console.log('❌ Error en respuesta:', data.error)
@@ -410,13 +396,6 @@ export default function Productos() {
       }
       
       const historialArray = Array.isArray(data) ? data : []
-      console.log('📋 Historial procesado:', {
-        isArray: Array.isArray(data),
-        length: historialArray.length,
-        firstItem: historialArray[0],
-        lastItem: historialArray[historialArray.length - 1],
-        sampleItems: historialArray.slice(0, 3)
-      })
       
       // Limpiar cache forzada
       setHistorialMantenimiento([])
@@ -427,9 +406,6 @@ export default function Productos() {
         console.log('ℹ️ La tabla de historial está vacía')
         setMensaje('ℹ️ No hay historial de modificaciones registrado')
         setTimeout(() => setMensaje(''), 3000)
-      } else {
-        console.log(`✅ Se cargaron ${historialArray.length} registros del historial`)
-        console.log('🔍 Primeros 3 registros:', historialArray.slice(0, 3))
       }
     } catch (error) {
       console.error('💥 Error al cargar historial:', error)
@@ -1309,9 +1285,6 @@ export default function Productos() {
                       const token = localStorage.getItem('token');
                       const usuario = (() => { try { return JSON.parse(localStorage.getItem('usuario') || '{}') } catch { return {} } })();
                       
-                      console.log('🔑 Token encontrado:', token ? 'SÍ' : 'NO');
-                      console.log('👤 Usuario actual:', usuario);
-                      
                       // Verificar si el usuario tiene permisos
                       if (!token) {
                         console.log('❌ No hay token de autenticación');
@@ -1326,12 +1299,9 @@ export default function Productos() {
                       }
                       
                       const url = `${API_URL}/productos/${productoMantenimientoId}/mantenimiento`;
-                      console.log('🌐 Enviando directamente a:', url);
                       
                       const requestBody = { precio, precio_canal, imagen_url: imagen_url || null };
-                      console.log('📦 Body directo:', requestBody);
                       
-                      console.log('🚀 Iniciando fetch...');
                       const response = await fetch(url, {
                         method: 'PUT',
                         headers: {
@@ -1341,9 +1311,6 @@ export default function Productos() {
                         body: JSON.stringify(requestBody)
                       });
                       
-                      console.log('📡 Respuesta status:', response.status);
-                      console.log('📡 Respuesta headers:', response.headers);
-                      
                       // Manejar diferentes tipos de respuesta
                       let data;
                       const contentType = response.headers.get('content-type');
@@ -1351,11 +1318,8 @@ export default function Productos() {
                         data = await response.json();
                       } else {
                         const text = await response.text();
-                        console.log('📄 Respuesta texto:', text);
                         data = { error: text || 'Error desconocido' };
                       }
-                      
-                      console.log('📄 Respuesta data:', data);
                       
                       if (!response.ok) {
                         console.log('❌ Error en respuesta:', data.error);
@@ -1375,7 +1339,6 @@ export default function Productos() {
                         return;
                       }
                       
-                      console.log('✅ Mantenimiento aplicado exitosamente');
                       setMensaje('✅ Mantenimiento aplicado correctamente');
                       setTimeout(() => setMensaje(''), 3000);
                       
@@ -1415,13 +1378,6 @@ export default function Productos() {
                   </thead>
                   <tbody className="divide-y">
                     {historialMantenimiento.map((h, index) => {
-                      // Log con URLs corregidas para mejor depuración
-                      const registroParaLog = {
-                        ...h,
-                        valor_anterior_corregido: h.valor_anterior && h.tipo_modificacion === 'imagen' ? getImageUrl(h.valor_anterior) : h.valor_anterior,
-                        valor_nuevo_corregido: h.valor_nuevo && h.tipo_modificacion === 'imagen' ? getImageUrl(h.valor_nuevo) : h.valor_nuevo
-                      };
-                      console.log(`📄 Registro ${index}:`, registroParaLog);
                       return (
                         <tr key={h.id}>
                           <td className="px-3 py-2">{new Date(h.fecha).toLocaleString('es-VE')}</td>
