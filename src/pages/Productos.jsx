@@ -1124,6 +1124,10 @@ export default function Productos() {
               onSubmit={aplicarMantenimiento} 
               className="grid grid-cols-1 md:grid-cols-2 gap-3 border rounded-lg p-3 bg-slate-50"
               id="mantenimiento-form"
+              onInvalid={(e) => {
+                console.log('❌ Formulario inválido:', e.target.name, e.target.validationMessage);
+                setMensaje('❌ Por favor completa todos los campos requeridos');
+              }}
             >
               <select
                 value={productoMantenimientoId}
@@ -1206,6 +1210,19 @@ export default function Productos() {
                   type="submit" 
                   form="mantenimiento-form"
                   className="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-800"
+                  onClick={(e) => {
+                    console.log('🔘 Botón clickeado - verificando formulario');
+                    const form = document.getElementById('mantenimiento-form');
+                    console.log('📋 Formulario encontrado:', !!form);
+                    console.log('📋 Estado actual:', { productoMantenimientoId, mantenimientoForm });
+                    
+                    if (!productoMantenimientoId) {
+                      console.log('❌ No hay producto seleccionado');
+                      e.preventDefault();
+                      setMensaje('❌ Debes seleccionar un producto');
+                      return;
+                    }
+                  }}
                 >
                   Aplicar mantenimiento
                 </button>
