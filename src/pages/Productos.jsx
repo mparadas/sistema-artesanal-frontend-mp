@@ -1350,16 +1350,19 @@ export default function Productos() {
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {historialMantenimiento.map((h) => (
-                      <tr key={h.id}>
-                        <td className="px-3 py-2">{new Date(h.fecha).toLocaleString('es-VE')}</td>
-                        <td className="px-3 py-2">{h.producto_nombre || `ID ${h.producto_id}`}</td>
-                        <td className="px-3 py-2">{h.tipo_modificacion}</td>
-                        <td className="px-3 py-2">{h.valor_anterior || '-'}</td>
-                        <td className="px-3 py-2">{h.valor_nuevo || '-'}</td>
-                        <td className="px-3 py-2">{h.usuario || 'sistema'}</td>
-                      </tr>
-                    ))}
+                    {historialMantenimiento.map((h, index) => {
+                      console.log(`📄 Registro ${index}:`, h)
+                      return (
+                        <tr key={h.id}>
+                          <td className="px-3 py-2">{new Date(h.fecha).toLocaleString('es-VE')}</td>
+                          <td className="px-3 py-2">{h.producto_nombre || `ID ${h.producto_id}`}</td>
+                          <td className="px-3 py-2">{h.tipo_modificacion}</td>
+                          <td className="px-3 py-2">{h.valor_anterior || '-'}</td>
+                          <td className="px-3 py-2">{h.valor_nuevo || '-'}</td>
+                          <td className="px-3 py-2">{h.usuario || 'sistema'}</td>
+                        </tr>
+                      )
+                    })}
                     {historialMantenimiento.length === 0 && (
                       <tr>
                         <td colSpan={6} className="text-center text-gray-500 py-5">Sin modificaciones registradas</td>
