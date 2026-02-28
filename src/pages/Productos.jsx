@@ -381,11 +381,21 @@ export default function Productos() {
     try {
       const token = localStorage.getItem('token')
       console.log('🔍 Cargando historial de mantenimiento...')
+      console.log('🌐 API_URL:', API_URL)
+      console.log('🌐 URL completa:', `${API_URL}/productos/mantenimiento/historial?limit=200`)
+      
       const response = await fetch(`${API_URL}/productos/mantenimiento/historial?limit=200`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       })
       const data = await response.json()
-      console.log('📊 Respuesta del historial:', { status: response.status, data })
+      console.log('📊 Respuesta del historial:', { 
+        status: response.status, 
+        statusText: response.statusText,
+        url: response.url,
+        data: data,
+        isArray: Array.isArray(data),
+        length: Array.isArray(data) ? data.length : 'N/A'
+      })
       
       if (!response.ok) {
         console.log('❌ Error en respuesta:', data.error)
@@ -398,9 +408,13 @@ export default function Productos() {
         isArray: Array.isArray(data),
         length: historialArray.length,
         firstItem: historialArray[0],
-        allItems: historialArray
+        lastItem: historialArray[historialArray.length - 1],
+        sampleItems: historialArray.slice(0, 3)
       })
       
+      // Limpiar cache forzada
+      setHistorialMantenimiento([])
+      await new Promise(resolve => setTimeout(resolve, 100))
       setHistorialMantenimiento(historialArray)
       
       if (historialArray.length === 0) {
@@ -409,6 +423,7 @@ export default function Productos() {
         setTimeout(() => setMensaje(''), 3000)
       } else {
         console.log(`✅ Se cargaron ${historialArray.length} registros del historial`)
+        console.log('🔍 Primeros 3 registros:', historialArray.slice(0, 3))
       }
     } catch (error) {
       console.error('💥 Error al cargar historial:', error)
