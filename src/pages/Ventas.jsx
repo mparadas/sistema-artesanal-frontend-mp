@@ -1840,17 +1840,17 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
 
         {/* Footer optimizado para móvil */}
         <div className="p-3 sm:p-4 border-t border-gray-100 bg-gray-50/50">
-          <div className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-3">
-            <Button variant="secondary" onClick={onClose} className="w-full sm:w-auto text-sm">
+          <div className="flex gap-2 sm:flex-row sm:justify-between sm:gap-3">
+            <Button variant="secondary" onClick={onClose} className="flex-1 text-sm min-h-9">
               Cerrar
             </Button>
             {!esPagada && (
               <Button 
                 variant="primary" 
                 onClick={() => { onClose(); onAbonar(venta); }} 
-                className="w-full sm:w-auto text-sm"
+                className="flex-1 text-sm min-h-9"
               >
-                <DollarSign className="w-4 h-4" />
+                <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
                 {venta.tipo_venta === 'credito' ? 'Registrar Abono' : 'Registrar Pago'}
               </Button>
             )}
