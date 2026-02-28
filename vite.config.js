@@ -11,7 +11,7 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
-    minify: 'terser',
+    minify: true,
     target: 'es2015',
     rollupOptions: {
       output: {
