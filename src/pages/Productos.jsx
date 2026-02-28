@@ -404,15 +404,41 @@ export default function Productos() {
       setMensaje('❌ Debes seleccionar un producto')
       return
     }
+    
+    // Validar que al menos un campo tenga cambios
     const precio = mantenimientoForm.precio !== '' ? parseFloat(mantenimientoForm.precio) : null
     const precio_canal = mantenimientoForm.precio_canal !== '' ? parseFloat(mantenimientoForm.precio_canal) : null
     const imagen_url = (mantenimientoForm.imagen_url || '').trim()
     
-    console.log('💰 Valores procesados:', { precio, precio_canal, imagen_url })
+    console.log('💰 Valores procesados:', { 
+      precio_original: mantenimientoForm.precio, 
+      precio_canal_original: mantenimientoForm.precio_canal,
+      precio: precio, 
+      precio_canal: precio_canal, 
+      imagen_url: imagen_url 
+    })
     
-    if (precio === null && precio_canal === null && !imagen_url) {
-      console.log('❌ No hay cambios para aplicar')
-      setMensaje('❌ Debes indicar al menos un cambio (precio, precio canal o imagen)')
+    // Validación más flexible - si el precio es diferente al actual, enviarlo
+    const productoActual = productos.find(p => String(p.id) === String(productoMantenimientoId))
+    console.log('📦 Producto actual:', productoActual)
+    
+    const precioCambiado = precio !== null && precio !== parseFloat(productoActual?.precio || 0)
+    const precioCanalCambiado = precio_canal !== null && precio_canal !== parseFloat(productoActual?.precio_canal || 0)
+    const imagenCambiada = imagen_url && imagen_url !== (productoActual?.imagen_url || '')
+    
+    console.log('🔄 Cambios detectados:', { 
+      precioCambiado, 
+      precioCanalCambiado, 
+      imagenCambiada,
+      precioActual: productoActual?.precio,
+      precioNuevo: precio,
+      precioCanalActual: productoActual?.precio_canal,
+      precioCanalNuevo: precio_canal
+    })
+    
+    if (!precioCambiado && !precioCanalCambiado && !imagenCambiada) {
+      console.log('❌ No hay cambios reales para aplicar')
+      setMensaje('❌ No se detectaron cambios. Modifica al menos un campo.')
       return
     }
     
@@ -424,9 +450,9 @@ export default function Productos() {
       console.log('🔑 Token:', token ? 'presente' : 'ausente')
       
       const requestBody = {
-        precio,
-        precio_canal,
-        imagen_url: imagen_url || null
+        precio: precioCambiado ? precio : null,
+        precio_canal: precioCanalCambiado ? precio_canal : null,
+        imagen_url: imagenCambiada ? imagen_url : null
       }
       console.log('📦 Body:', requestBody)
       
@@ -450,8 +476,13 @@ export default function Productos() {
       }
       
       console.log('✅ Éxito en la aplicación')
-      setMensaje('✅ Mantenimiento aplicado')
+      setMensaje('✅ Mantenimiento aplicado correctamente')
       setTimeout(() => setMensaje(''), 3000)
+      
+      // Limpiar formulario
+      setMantenimientoForm({ precio: '', precio_canal: '', imagen_url: '' })
+      setProductoMantenimientoId('')
+      
       await cargarProductos()
       await abrirMantenimiento()
     } catch (error) {
