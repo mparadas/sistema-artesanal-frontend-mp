@@ -253,14 +253,36 @@ export default function Productos() {
         })
       })
 
-      if (response.ok) {
-        setNuevoProducto({ nombre: '', categoria: 'Chorizos', tipo_producto: 'producido', animal_origen: '', precio: '', stock: '', cantidad_piezas: '', peso_total: '', precio_canal: '', imagen_url: '' })
-        setMostrarFormulario(false)
-        cargarProductos()
-        setMensaje('✅ Producto agregado')
-        setTimeout(() => setMensaje(''), 3000)
+      // Intentar obtener más detalles del error
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        console.error('❌ Respuesta no JSON:', text);
+        data = { error: text || 'Error desconocido' };
       }
+      
+      if (!response.ok) {
+        console.error('❌ Error detallado:', {
+          status: response.status,
+          statusText: response.statusText,
+          url: response.url,
+          headers: Object.fromEntries(response.headers.entries()),
+          data: data
+        });
+        setMensaje(`❌ ${data.error || 'No se pudo agregar producto'}`)
+        return
+      }
+      
+      setNuevoProducto({ nombre: '', categoria: 'Chorizos', tipo_producto: 'producido', animal_origen: '', precio: '', stock: '', cantidad_piezas: '', peso_total: '', precio_canal: '', imagen_url: '' })
+      setMostrarFormulario(false)
+      cargarProductos()
+      setMensaje('✅ Producto agregado')
+      setTimeout(() => setMensaje(''), 3000)
     } catch (error) {
+      console.error('💥 Error al agregar producto:', error)
       setMensaje('❌ Error al guardar')
     }
   }
