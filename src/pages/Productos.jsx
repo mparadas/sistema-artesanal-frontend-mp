@@ -380,16 +380,38 @@ export default function Productos() {
     setMostrarMantenimiento(true)
     try {
       const token = localStorage.getItem('token')
+      console.log('🔍 Cargando historial de mantenimiento...')
       const response = await fetch(`${API_URL}/productos/mantenimiento/historial?limit=200`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       })
       const data = await response.json()
+      console.log('📊 Respuesta del historial:', { status: response.status, data })
+      
       if (!response.ok) {
+        console.log('❌ Error en respuesta:', data.error)
         setMensaje(`❌ ${data.error || 'No se pudo cargar historial de mantenimiento'}`)
         return
       }
-      setHistorialMantenimiento(Array.isArray(data) ? data : [])
+      
+      const historialArray = Array.isArray(data) ? data : []
+      console.log('📋 Historial procesado:', {
+        isArray: Array.isArray(data),
+        length: historialArray.length,
+        firstItem: historialArray[0],
+        allItems: historialArray
+      })
+      
+      setHistorialMantenimiento(historialArray)
+      
+      if (historialArray.length === 0) {
+        console.log('ℹ️ La tabla de historial está vacía')
+        setMensaje('ℹ️ No hay historial de modificaciones registrado')
+        setTimeout(() => setMensaje(''), 3000)
+      } else {
+        console.log(`✅ Se cargaron ${historialArray.length} registros del historial`)
+      }
     } catch (error) {
+      console.error('💥 Error al cargar historial:', error)
       setMensaje('❌ Error al cargar historial de mantenimiento')
     }
   }
