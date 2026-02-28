@@ -13,17 +13,17 @@ if (isDevelopment && isLocalhost) {
   API_BASE_URL = 'http://localhost:10000/api'
   IMAGES_BASE_URL = 'http://localhost:10000/uploads'
 } else if (isRenderProduction && window.location.hostname.includes('agromae-b')) {
-  // Frontend en Render (agromae-b) - backend en agromae
-  API_BASE_URL = 'https://agromae.onrender.com/api'
-  IMAGES_BASE_URL = 'https://agromae.onrender.com/uploads'
+  // Frontend en Render (agromae-b) - backend en agromae-b
+  API_BASE_URL = 'https://agromae-b.onrender.com/api'
+  IMAGES_BASE_URL = 'https://agromae-b.onrender.com/uploads'
 } else if (isRenderProduction) {
   // Backend en Render - frontend local
-  API_BASE_URL = 'https://agromae.onrender.com/api'
-  IMAGES_BASE_URL = 'https://agromae.onrender.com/uploads'
+  API_BASE_URL = 'https://agromae-b.onrender.com/api'
+  IMAGES_BASE_URL = 'https://agromae-b.onrender.com/uploads'
 } else {
-  // Producción - solo usar Render
-  API_BASE_URL = 'https://agromae.onrender.com/api'
-  IMAGES_BASE_URL = 'https://agromae.onrender.com/uploads'
+  // Producción - usar agromae-b
+  API_BASE_URL = 'https://agromae-b.onrender.com/api'
+  IMAGES_BASE_URL = 'https://agromae-b.onrender.com/uploads'
 }
 
 // Fallback si la conexión principal no funciona
@@ -33,7 +33,7 @@ const API_BASE_URL_FALLBACK = 'http://localhost:10000/api'
 const API_BASE_URL_DEV = 'http://localhost:10000/api'
 
 // Conexión para producción en Render
-const API_BASE_URL_RENDER = 'https://agromae.onrender.com/api'
+const API_BASE_URL_RENDER = 'https://agromae-b.onrender.com/api'
 
 console.log('🔍 Configuración API:', {
   isDevelopment,
