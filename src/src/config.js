@@ -1,51 +1,23 @@
-// Configuración de la API
-// Detectar si estamos en desarrollo o producción
-const isDevelopment = process.env.NODE_ENV === 'development'
-const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-const isRenderProduction = window.location.hostname.includes('onrender.com')
+// Configuracion de la API - usa variables de entorno con fallback a Render
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://agromae-b.onrender.com/api'
+const IMAGES_BASE_URL = import.meta.env.VITE_IMAGES_BASE_URL || 'https://agromae-b.onrender.com/uploads'
 
-// Configuración para desarrollo y producción
-let API_BASE_URL
-let IMAGES_BASE_URL
-
-if (isDevelopment && isLocalhost) {
-  // Desarrollo en localhost - backend en puerto 10000
-  API_BASE_URL = 'http://localhost:10000/api'
-  IMAGES_BASE_URL = 'http://localhost:10000/uploads'
-} else if (isRenderProduction && window.location.hostname.includes('agromae-b')) {
-  // Frontend en Render (agromae-b) - backend en agromae-b
-  API_BASE_URL = 'https://agromae-b.onrender.com/api'
-  IMAGES_BASE_URL = 'https://agromae-b.onrender.com/uploads'
-} else if (isRenderProduction) {
-  // Backend en Render - frontend local
-  API_BASE_URL = 'https://agromae-b.onrender.com/api'
-  IMAGES_BASE_URL = 'https://agromae-b.onrender.com/uploads'
-} else {
-  // Producción - usar agromae-b
-  API_BASE_URL = 'https://agromae-b.onrender.com/api'
-  IMAGES_BASE_URL = 'https://agromae-b.onrender.com/uploads'
-}
-
-// Fallback si la conexión principal no funciona
 const API_BASE_URL_FALLBACK = 'http://localhost:10000/api'
-
-// Conexión alternativa para desarrollo
 const API_BASE_URL_DEV = 'http://localhost:10000/api'
+const API_BASE_URL_RENDER = import.meta.env.VITE_API_URL || 'https://agromae-b.onrender.com/api'
 
-// Conexión para producción en Render
-const API_BASE_URL_RENDER = 'https://agromae-b.onrender.com/api'
+const isProduction = window.location.hostname.includes('vercel.app') || 
+                   window.location.hostname.includes('onrender.com') ||
+                   window.location.hostname !== 'localhost'
 
-console.log('🔍 Configuración API:', {
-  isDevelopment,
-  isLocalhost,
-  isRenderProduction,
+const FINAL_API_URL = isProduction ? API_BASE_URL_RENDER : API_BASE_URL
+
+console.log('Configuracion API:', {
   hostname: window.location.hostname,
-  API_BASE_URL,
+  isProduction,
+  API_BASE_URL: FINAL_API_URL,
   IMAGES_BASE_URL,
-  API_BASE_URL_FALLBACK,
-  API_BASE_URL_DEV,
-  API_BASE_URL_RENDER
 })
 
-export default API_BASE_URL
+export default FINAL_API_URL
 export { API_BASE_URL_FALLBACK, API_BASE_URL_DEV, API_BASE_URL_RENDER, IMAGES_BASE_URL }
