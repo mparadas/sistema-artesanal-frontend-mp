@@ -395,6 +395,10 @@ export default function Productos() {
   }
   const aplicarMantenimiento = async (e) => {
     e.preventDefault()
+    console.log('Iniciando aplicación de mantenimiento...')
+    console.log('productoMantenimientoId:', productoMantenimientoId)
+    console.log('mantenimientoForm:', mantenimientoForm)
+    
     if (!productoMantenimientoId) {
       setMensaje('❌ Debes seleccionar un producto')
       return
@@ -402,12 +406,17 @@ export default function Productos() {
     const precio = mantenimientoForm.precio !== '' ? parseFloat(mantenimientoForm.precio) : null
     const precio_canal = mantenimientoForm.precio_canal !== '' ? parseFloat(mantenimientoForm.precio_canal) : null
     const imagen_url = (mantenimientoForm.imagen_url || '').trim()
+    
+    console.log('Valores procesados:', { precio, precio_canal, imagen_url })
+    
     if (precio === null && precio_canal === null && !imagen_url) {
       setMensaje('❌ Debes indicar al menos un cambio (precio, precio canal o imagen)')
       return
     }
     try {
       const token = localStorage.getItem('token')
+      console.log('Enviando solicitud a:', `${API_URL}/productos/${productoMantenimientoId}/mantenimiento`)
+      
       const response = await fetch(`${API_URL}/productos/${productoMantenimientoId}/mantenimiento`, {
         method: 'PUT',
         headers: {
@@ -421,6 +430,8 @@ export default function Productos() {
         })
       })
       const data = await response.json()
+      console.log('Respuesta del servidor:', { status: response.status, data })
+      
       if (!response.ok) {
         setMensaje(`❌ ${data.error || 'No se pudo aplicar mantenimiento'}`)
         return
@@ -430,6 +441,7 @@ export default function Productos() {
       await cargarProductos()
       await abrirMantenimiento()
     } catch (error) {
+      console.error('Error en aplicarMantenimiento:', error)
       setMensaje('❌ Error al aplicar mantenimiento')
     }
   }
