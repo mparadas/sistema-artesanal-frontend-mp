@@ -1,4 +1,4 @@
-import { IMAGES_BASE_URL } from '../config'
+import { IMAGES_BASE_URL } from '../src/config'
 
 // Función para obtener URL de imagen correcta
 export const getImageUrl = (imagePath) => {
@@ -20,5 +20,5 @@ export const getImageUrl = (imagePath) => {
 // Función para verificar si una imagen es válida
 export const isValidImageUrl = (url) => {
   if (!url) return false
-  return url.startsWith('https://agromae-b.onrender.com') || url.startsWith('/placeholder')
+  return url.startsWith('https://agromae.onrender.com') || url.startsWith('/placeholder')
 }
