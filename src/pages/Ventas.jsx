@@ -1550,62 +1550,62 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[95vh] overflow-hidden flex flex-col">
 
         {/* Header optimizado para móvil */}
-        <div className="p-4 sm:p-5 border-b border-gray-100 flex flex-col gap-3 bg-gray-50/50 relative">
+        <div className="p-3 sm:p-5 border-b border-gray-100 flex flex-col gap-2 sm:gap-3 bg-gray-50/50 relative">
           {/* Botón de cerrar en la esquina superior derecha */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 hover:bg-gray-200 rounded-full transition-colors flex-shrink-0 z-10"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 sm:p-2 hover:bg-gray-200 rounded-full transition-colors flex-shrink-0 z-10"
             aria-label="Cerrar"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
           </button>
           
-          <div className="flex-1 min-w-0 pr-12">
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              <h3 className="text-base sm:text-xl font-bold text-gray-800 truncate">
+          <div className="flex-1 min-w-0 pr-10 sm:pr-12">
+            <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+              <h3 className="text-sm sm:text-xl font-bold text-gray-800 truncate">
                 Detalle de la Venta #{venta.id}
               </h3>
               <Badge variant={venta.tipo_venta === 'credito' ? 'warning' : 'success'} className="text-xs">
                 {venta.tipo_venta === 'credito' ? 'Crédito' : 'Inmediato'}
               </Badge>
             </div>
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getEstadoColor(venta.estado_pago)}`}>
+            <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+              <span className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium border ${getEstadoColor(venta.estado_pago)}`}>
                 {esPagada
                   ? (venta.tipo_venta === 'credito' ? '✓ Liquidado' : '✓ Pagado')
                   : venta.estado_pago === 'parcial' ? '◑ Parcial' : '● Pendiente'}
               </span>
               {puedeEditar && (
-                <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-600 font-medium">
+                <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs bg-blue-100 text-blue-600 font-medium">
                   editable
                 </span>
               )}
             </div>
-            <p className="text-base sm:text-lg font-bold text-gray-800 line-clamp-2">
+            <p className="text-sm sm:text-lg font-bold text-gray-800 line-clamp-2">
               {venta.cliente_nombre_completo || venta.cliente_nombre || 'Cliente general'}
             </p>
-            <p className="text-xs sm:text-sm text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 mt-0.5 sm:mt-1">
               {formatDate(venta.fecha)}
             </p>
           </div>
         </div>
 
         {/* Contenido scrolleable optimizado */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 sm:space-y-5">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-3 sm:space-y-5">
 
           {/* Resumen financiero - Grid responsivo */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-2 sm:p-4 text-center">
-              <p className="text-xs text-blue-600 font-medium mb-1">Total</p>
-              <p className="text-sm sm:text-xl font-bold text-blue-800">{formatearMonto(venta.total, moneda)}</p>
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
+            <div className="bg-blue-50 border border-blue-100 rounded-lg sm:rounded-xl p-1.5 sm:p-4 text-center">
+              <p className="text-xs text-blue-600 font-medium mb-0.5 sm:mb-1">Total</p>
+              <p className="text-xs sm:text-xl font-bold text-blue-800">{formatearMonto(venta.total, moneda)}</p>
             </div>
-            <div className="bg-green-50 border border-green-100 rounded-xl p-2 sm:p-4 text-center">
-              <p className="text-xs text-green-600 font-medium mb-1">Pagado</p>
-              <p className="text-sm sm:text-xl font-bold text-green-800">{formatearMonto(totalPagado, moneda)}</p>
+            <div className="bg-green-50 border border-green-100 rounded-lg sm:rounded-xl p-1.5 sm:p-4 text-center">
+              <p className="text-xs text-green-600 font-medium mb-0.5 sm:mb-1">Pagado</p>
+              <p className="text-xs sm:text-xl font-bold text-green-800">{formatearMonto(totalPagado, moneda)}</p>
             </div>
-            <div className={`border rounded-xl p-2 sm:p-4 text-center ${saldo > 0 ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-100'}`}>
-              <p className={`text-xs font-medium mb-1 ${saldo > 0 ? 'text-red-600' : 'text-gray-500'}`}>Saldo</p>
-              <p className={`text-sm sm:text-xl font-bold ${saldo > 0 ? 'text-red-800' : 'text-gray-500'}`}>
+            <div className={`border rounded-lg sm:rounded-xl p-1.5 sm:p-4 text-center ${saldo > 0 ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-100'}`}>
+              <p className={`text-xs font-medium mb-0.5 sm:mb-1 ${saldo > 0 ? 'text-red-600' : 'text-gray-500'}`}>Saldo</p>
+              <p className={`text-xs sm:text-xl font-bold ${saldo > 0 ? 'text-red-800' : 'text-gray-500'}`}>
                 {saldo > 0 ? formatearMonto(saldo, moneda) : '$0.00'}
               </p>
             </div>
@@ -1613,23 +1613,23 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
 
           {/* Tabla de productos - Optimizada para móvil */}
           <div>
-            <h4 className="text-sm sm:text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
-              <Package className="w-4 h-4 text-gray-500" />
+            <h4 className="text-xs sm:text-base font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center gap-2">
+              <Package className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
               Productos ({items.length})
             </h4>
             {items.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-4 bg-gray-50 rounded-lg">Sin productos registrados</p>
+              <p className="text-xs text-gray-400 text-center py-3 sm:py-4 bg-gray-50 rounded-lg">Sin productos registrados</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1.5 sm:space-y-2">
                 {/* Cards para móvil, tabla para desktop */}
-                <div className="sm:hidden space-y-2">
+                <div className="sm:hidden space-y-1.5">
                   {items.map((item, idx) => (
-                    <div key={idx} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <div className="flex justify-between items-start mb-2">
-                        <p className="font-medium text-gray-900 text-sm flex-1 min-w-0">
+                    <div key={idx} className="bg-gray-50 rounded-lg p-2 border border-gray-200">
+                      <div className="flex justify-between items-start mb-1.5">
+                        <p className="font-medium text-gray-900 text-xs flex-1 min-w-0">
                           {item.producto_nombre || `Producto #${item.producto_id}`}
                         </p>
-                        <p className="font-bold text-gray-900 text-sm ml-2">
+                        <p className="font-bold text-gray-900 text-xs ml-2">
                           {formatearMonto(item.total_linea, moneda)}
                         </p>
                       </div>
@@ -1639,10 +1639,10 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
                       </div>
                     </div>
                   ))}
-                  <div className="bg-gray-100 rounded-lg p-3 border border-gray-300">
+                  <div className="bg-gray-100 rounded-lg p-2 border border-gray-300">
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-700 text-sm">Total:</span>
-                      <span className="font-bold text-gray-900 text-base">
+                      <span className="font-semibold text-gray-700 text-xs">Total:</span>
+                      <span className="font-bold text-gray-900 text-xs">
                         {formatearMonto(venta.total, moneda)}
                       </span>
                     </div>
@@ -1694,18 +1694,18 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
 
           {/* Tabla de pagos - Optimizada para móvil */}
           <div>
-            <h4 className="text-sm sm:text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-gray-500" />
+            <h4 className="text-xs sm:text-base font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center gap-2">
+              <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
               Historial de Pagos ({pagos.length})
             </h4>
             {pagos.length === 0 ? (
-              <div className="text-sm text-gray-400 text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+              <div className="text-xs text-gray-400 text-center py-3 sm:py-4 bg-gray-50 rounded-lg border border-dashed border-gray-200">
                 No hay pagos registrados
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1.5 sm:space-y-2">
                 {/* Cards para móvil */}
-                <div className="sm:hidden space-y-2">
+                <div className="sm:hidden space-y-1.5">
                   {pagos.map((pago, idx) => {
                     const metodoPagoLabel = {
                       efectivo: 'Efectivo',
@@ -1721,11 +1721,11 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
                     const monedaMostrar = pago.moneda_original || moneda;
 
                     return (
-                      <div key={pago.id || idx} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                        <div className="flex justify-between items-start mb-2">
+                      <div key={pago.id || idx} className="bg-gray-50 rounded-lg p-2 border border-gray-200">
+                        <div className="flex justify-between items-start mb-1.5">
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                            <div className="flex items-center gap-1 mb-1">
+                              <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${
                                 pago.metodo_pago === 'efectivo' ? 'bg-green-100 text-green-700' :
                                 pago.metodo_pago === 'transferencia' ? 'bg-blue-100 text-blue-700' :
                                 'bg-purple-100 text-purple-700'
@@ -1738,7 +1738,7 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
                               <p className="text-xs text-gray-500 truncate">Ref: {pago.referencia_pago}</p>
                             )}
                           </div>
-                          <p className="font-bold text-green-700 text-sm ml-2">
+                          <p className="font-bold text-green-700 text-xs ml-2">
                             {formatearMonto(montoMostrar, monedaMostrar)}
                           </p>
                         </div>
@@ -1746,19 +1746,19 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
                     );
                   })}
                   <div className="space-y-1">
-                    <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                    <div className="bg-green-50 rounded-lg p-2 border border-green-200">
                       <div className="flex justify-between items-center">
-                        <span className="font-semibold text-green-700 text-sm">Total pagado:</span>
-                        <span className="font-bold text-green-800 text-base">
+                        <span className="font-semibold text-green-700 text-xs">Total pagado:</span>
+                        <span className="font-bold text-green-800 text-xs">
                           {formatearMonto(totalPagado, moneda)}
                         </span>
                       </div>
                     </div>
                     {saldo > 0 && (
-                      <div className="bg-red-50 rounded-lg p-3 border border-red-200">
+                      <div className="bg-red-50 rounded-lg p-2 border border-red-200">
                         <div className="flex justify-between items-center">
-                          <span className="font-semibold text-red-600 text-sm">Saldo restante:</span>
-                          <span className="font-bold text-red-700 text-base">
+                          <span className="font-semibold text-red-600 text-xs">Saldo restante:</span>
+                          <span className="font-bold text-red-700 text-xs">
                             {formatearMonto(saldo, moneda)}
                           </span>
                         </div>
@@ -1839,16 +1839,16 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
         </div>
 
         {/* Footer optimizado para móvil */}
-        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-          <div className="flex flex-col sm:flex-row justify-between gap-3">
-            <Button variant="secondary" onClick={onClose} className="w-full sm:w-auto">
+        <div className="p-3 sm:p-4 border-t border-gray-100 bg-gray-50/50">
+          <div className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-3">
+            <Button variant="secondary" onClick={onClose} className="w-full sm:w-auto text-sm">
               Cerrar
             </Button>
             {!esPagada && (
               <Button 
                 variant="primary" 
                 onClick={() => { onClose(); onAbonar(venta); }} 
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto text-sm"
               >
                 <DollarSign className="w-4 h-4" />
                 {venta.tipo_venta === 'credito' ? 'Registrar Abono' : 'Registrar Pago'}
