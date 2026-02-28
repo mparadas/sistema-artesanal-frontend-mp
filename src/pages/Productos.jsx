@@ -384,8 +384,12 @@ export default function Productos() {
       console.log('🔍 Cargando historial de mantenimiento...')
       console.log('🌐 API_URL:', API_URL)
       console.log('🌐 URL completa:', `${API_URL}/productos/mantenimiento/historial?limit=200`)
+      console.log('🌍 Hostname actual:', window.location.hostname)
+      console.log('🌍 Origin:', window.location.origin)
       
-      const response = await fetch(`${API_URL}/productos/mantenimiento/historial?limit=200`, {
+      // Agregar timestamp para evitar cache
+      const timestamp = new Date().getTime()
+      const response = await fetch(`${API_URL}/productos/mantenimiento/historial?limit=200&timestamp=${timestamp}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       })
       const data = await response.json()
@@ -395,7 +399,8 @@ export default function Productos() {
         url: response.url,
         data: data,
         isArray: Array.isArray(data),
-        length: Array.isArray(data) ? data.length : 'N/A'
+        length: Array.isArray(data) ? data.length : 'N/A',
+        timestamp: timestamp
       })
       
       if (!response.ok) {
