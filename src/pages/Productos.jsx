@@ -1238,22 +1238,73 @@ export default function Productos() {
               </div>
               <div className="md:col-span-2 flex justify-end gap-2">
                 <button 
-                  type="submit" 
-                  form="mantenimiento-form"
-                  className="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-800"
-                  onClick={(e) => {
-                    console.log('🔘 Botón clickeado - verificando formulario');
-                    const form = document.getElementById('mantenimiento-form');
-                    console.log('📋 Formulario encontrado:', !!form);
-                    console.log('📋 Estado actual:', { productoMantenimientoId, mantenimientoForm });
+                  type="button"  // Cambiado a type="button" para evitar conflicto con form
+                  onClick={async (e) => {
+                    console.log('🔘 Botón clickeado - ejecutando mantenimiento directamente');
                     
                     if (!productoMantenimientoId) {
                       console.log('❌ No hay producto seleccionado');
-                      e.preventDefault();
                       setMensaje('❌ Debes seleccionar un producto');
                       return;
                     }
+                    
+                    // Validar cambios
+                    const precio = mantenimientoForm.precio !== '' ? parseFloat(mantenimientoForm.precio) : null;
+                    const precio_canal = mantenimientoForm.precio_canal !== '' ? parseFloat(mantenimientoForm.precio_canal) : null;
+                    const imagen_url = (mantenimientoForm.imagen_url || '').trim();
+                    
+                    console.log('💰 Valores a procesar:', { precio, precio_canal, imagen_url });
+                    
+                    if (precio === null && precio_canal === null && !imagen_url) {
+                      console.log('❌ No hay cambios para aplicar');
+                      setMensaje('❌ Debes indicar al menos un cambio (precio, precio canal o imagen)');
+                      return;
+                    }
+                    
+                    // Ejecutar la misma lógica que aplicarMantenimiento pero directamente
+                    try {
+                      const token = localStorage.getItem('token');
+                      const url = `${API_URL}/productos/${productoMantenimientoId}/mantenimiento`;
+                      console.log('🌐 Enviando directamente a:', url);
+                      
+                      const requestBody = { precio, precio_canal, imagen_url: imagen_url || null };
+                      console.log('� Body directo:', requestBody);
+                      
+                      const response = await fetch(url, {
+                        method: 'PUT',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          ...(token ? { Authorization: `Bearer ${token}` } : {})
+                        },
+                        body: JSON.stringify(requestBody)
+                      });
+                      
+                      console.log('📡 Respuesta status:', response.status);
+                      const data = await response.json();
+                      console.log('📄 Respuesta data:', data);
+                      
+                      if (!response.ok) {
+                        console.log('❌ Error en respuesta:', data.error);
+                        setMensaje(`❌ ${data.error || 'No se pudo aplicar mantenimiento'}`);
+                        return;
+                      }
+                      
+                      console.log('✅ Mantenimiento aplicado exitosamente');
+                      setMensaje('✅ Mantenimiento aplicado correctamente');
+                      setTimeout(() => setMensaje(''), 3000);
+                      
+                      // Limpiar y recargar
+                      setMantenimientoForm({ precio: '', precio_canal: '', imagen_url: '' });
+                      setProductoMantenimientoId('');
+                      await cargarProductos();
+                      await abrirMantenimiento();
+                      
+                    } catch (error) {
+                      console.error('💥 Error en ejecución directa:', error);
+                      setMensaje('❌ Error al aplicar mantenimiento');
+                    }
                   }}
+                  className="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-800"
                 >
                   Aplicar mantenimiento
                 </button>
