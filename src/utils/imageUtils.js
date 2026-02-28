@@ -8,7 +8,7 @@ export const getImageUrl = (imagePath) => {
   if (imagePath.startsWith('http')) {
     // Reemplazar URLs locales por URLs de producción
     if (imagePath.includes('192.168.100.224') || imagePath.includes('localhost')) {
-      return imagePath.replace(/http:\/\/(localhost|192\.168\.100\.224):\d+/, 'https://agromae.onrender.com')
+      return imagePath.replace(/http:\/\/(localhost|192\.168\.100\.224):\d+/, IMAGES_BASE_URL)
     }
     return imagePath
   }
@@ -20,5 +20,5 @@ export const getImageUrl = (imagePath) => {
 // Función para verificar si una imagen es válida
 export const isValidImageUrl = (url) => {
   if (!url) return false
-  return url.startsWith('https://agromae.onrender.com') || url.startsWith('/placeholder')
+  return url.startsWith('https://agromae-b.onrender.com') || url.startsWith('/placeholder')
 }
