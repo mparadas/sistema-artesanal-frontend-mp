@@ -523,19 +523,22 @@ const VentaCard = memo(({ venta, onVerDetalle, onAbonar, getEstadoTexto }) => {
   const origenCfg = getOrigenConfig(venta);
   
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
+      {/* Header con información principal */}
       <div className="flex justify-between items-start mb-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <span className="font-bold text-gray-900">#{venta.id || 'N/A'}</span>
-            <span className="text-xs text-gray-500">{formatDate(venta.fecha)}</span>
+            <span className="font-bold text-lg text-gray-900">#{venta.id || 'N/A'}</span>
+            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+              {formatDate(venta.fecha)}
+            </span>
           </div>
           <p className="text-sm text-gray-700 font-medium truncate">
             {venta.cliente_nombre || 'Cliente general'}
           </p>
         </div>
-        <div className="text-right ml-2">
-          <p className="font-bold text-lg text-gray-900">
+        <div className="text-right ml-3">
+          <p className="font-bold text-xl text-gray-900">
             {formatearMonto(venta.total, venta.moneda_original)}
           </p>
           <span className={`text-xs px-2 py-1 rounded-full font-medium border ${getEstadoColor(venta.estado_pago)}`}>
@@ -544,35 +547,41 @@ const VentaCard = memo(({ venta, onVerDetalle, onAbonar, getEstadoTexto }) => {
         </div>
       </div>
       
-      <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant={venta.tipo_venta === 'credito' ? 'warning' : 'success'}>
-            {venta.tipo_venta === 'credito' ? 'Crédito' : 'Inmediato'}
-          </Badge>
-          <span className={`px-2 py-1 rounded-full text-xs font-medium border ${origenCfg.className}`}>
-            {origenCfg.label}
-          </span>
-        </div>
+      {/* Badges de tipo y origen */}
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <Badge variant={venta.tipo_venta === 'credito' ? 'warning' : 'success'}>
+          {venta.tipo_venta === 'credito' ? 'Crédito' : 'Inmediato'}
+        </Badge>
+        <span className={`px-2 py-1 rounded-full text-xs font-medium border ${origenCfg.className}`}>
+          {origenCfg.label}
+        </span>
         {venta.tipo_venta === 'credito' && toNumber(venta.saldo_pendiente) > 0 && (
-          <p className="text-sm text-red-600 font-semibold">
+          <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 border border-red-200">
             Debe: {formatearMonto(venta.saldo_pendiente, venta.moneda_original)}
-          </p>
+          </span>
         )}
       </div>
 
-      <div className="flex gap-2 flex-col sm:flex-row">
-        <Button variant="outline" size="sm" onClick={() => onVerDetalle(venta)} className="flex-1">
-          <FileText className="w-4 h-4 mr-1" /> Ver
+      {/* Botones de acción optimizados para móvil */}
+      <div className="flex gap-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => onVerDetalle(venta)} 
+          className="flex-1 min-h-10 text-sm font-medium"
+        >
+          <FileText className="w-4 h-4 mr-2 flex-shrink-0" /> 
+          <span className="truncate">Ver Detalle</span>
         </Button>
         {!estaPagada(venta) && (
           <Button 
             variant={venta.tipo_venta === 'credito' ? 'primary' : 'success'} 
             size="sm" 
             onClick={() => onAbonar(venta)} 
-            className="flex-1"
+            className="flex-1 min-h-10 text-sm font-medium"
           >
-            <DollarSign className="w-4 h-4 mr-1" /> 
-            {venta.tipo_venta === 'credito' ? 'Abonar' : 'Pagar'}
+            <DollarSign className="w-4 h-4 mr-2 flex-shrink-0" /> 
+            <span className="truncate">{venta.tipo_venta === 'credito' ? 'Abonar' : 'Pagar'}</span>
           </Button>
         )}
       </div>
