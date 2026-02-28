@@ -1286,8 +1286,23 @@ export default function Productos() {
                     // Ejecutar la misma lógica que aplicarMantenimiento pero directamente
                     try {
                       const token = localStorage.getItem('token');
+                      const usuario = (() => { try { return JSON.parse(localStorage.getItem('usuario') || '{}') } catch { return {} } })();
+                      
                       console.log('🔑 Token encontrado:', token ? 'SÍ' : 'NO');
-                      console.log('👤 Usuario actual:', (() => { try { return JSON.parse(localStorage.getItem('usuario') || '{}') } catch { return {} } })());
+                      console.log('👤 Usuario actual:', usuario);
+                      
+                      // Verificar si el usuario tiene permisos
+                      if (!token) {
+                        console.log('❌ No hay token de autenticación');
+                        setMensaje('❌ Debes iniciar sesión para realizar cambios');
+                        return;
+                      }
+                      
+                      if (!usuario || usuario.rol !== 'admin') {
+                        console.log('❌ Usuario no tiene permisos de administrador');
+                        setMensaje('❌ Solo los administradores pueden realizar mantenimiento');
+                        return;
+                      }
                       
                       const url = `${API_URL}/productos/${productoMantenimientoId}/mantenimiento`;
                       console.log('🌐 Enviando directamente a:', url);
@@ -1300,7 +1315,7 @@ export default function Productos() {
                         method: 'PUT',
                         headers: {
                           'Content-Type': 'application/json',
-                          ...(token ? { Authorization: `Bearer ${token}` } : {})
+                          Authorization: `Bearer ${token}`
                         },
                         body: JSON.stringify(requestBody)
                       });
@@ -1308,12 +1323,34 @@ export default function Productos() {
                       console.log('📡 Respuesta status:', response.status);
                       console.log('📡 Respuesta headers:', response.headers);
                       
-                      const data = await response.json();
+                      // Manejar diferentes tipos de respuesta
+                      let data;
+                      const contentType = response.headers.get('content-type');
+                      if (contentType && contentType.includes('application/json')) {
+                        data = await response.json();
+                      } else {
+                        const text = await response.text();
+                        console.log('📄 Respuesta texto:', text);
+                        data = { error: text || 'Error desconocido' };
+                      }
+                      
                       console.log('📄 Respuesta data:', data);
                       
                       if (!response.ok) {
                         console.log('❌ Error en respuesta:', data.error);
-                        setMensaje(`❌ ${data.error || 'No se pudo aplicar mantenimiento'}`);
+                        
+                        // Mensajes específicos según el error
+                        if (response.status === 401) {
+                          setMensaje('❌ Sesión expirada. Por favor inicia sesión nuevamente');
+                        } else if (response.status === 403) {
+                          setMensaje('❌ No tienes permisos para realizar esta acción');
+                        } else if (response.status === 404) {
+                          setMensaje('❌ El endpoint de mantenimiento no existe. Contacta al administrador');
+                        } else if (response.status === 500) {
+                          setMensaje('❌ Error del servidor. Intenta nuevamente más tarde');
+                        } else {
+                          setMensaje(`❌ ${data.error || 'No se pudo aplicar mantenimiento'}`);
+                        }
                         return;
                       }
                       
@@ -1329,7 +1366,7 @@ export default function Productos() {
                       
                     } catch (error) {
                       console.error('💥 Error en ejecución directa:', error);
-                      setMensaje('❌ Error al aplicar mantenimiento');
+                      setMensaje('❌ Error de conexión. Verifica tu internet e intenta nuevamente');
                     }
                   }}
                   className="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-800"
