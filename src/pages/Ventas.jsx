@@ -1550,11 +1550,20 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[95vh] overflow-hidden flex flex-col">
 
         {/* Header optimizado para móvil */}
-        <div className="p-4 sm:p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-start bg-gray-50/50 gap-3">
-          <div className="flex-1 min-w-0">
+        <div className="p-4 sm:p-5 border-b border-gray-100 flex flex-col gap-3 bg-gray-50/50 relative">
+          {/* Botón de cerrar en la esquina superior derecha */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 hover:bg-gray-200 rounded-full transition-colors flex-shrink-0 z-10"
+            aria-label="Cerrar"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+          
+          <div className="flex-1 min-w-0 pr-12">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <h3 className="text-base sm:text-xl font-bold text-gray-800 truncate">
-                Venta #{venta.id}
+                Detalle de la Venta #{venta.id}
               </h3>
               <Badge variant={venta.tipo_venta === 'credito' ? 'warning' : 'success'} className="text-xs">
                 {venta.tipo_venta === 'credito' ? 'Crédito' : 'Inmediato'}
@@ -1572,20 +1581,13 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
                 </span>
               )}
             </div>
-            <p className="text-sm sm:text-base text-gray-600 line-clamp-2">
+            <p className="text-base sm:text-lg font-bold text-gray-800 line-clamp-2">
               {venta.cliente_nombre_completo || venta.cliente_nombre || 'Cliente general'}
             </p>
             <p className="text-xs sm:text-sm text-gray-500 mt-1">
               {formatDate(venta.fecha)}
             </p>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-200 rounded-full transition-colors flex-shrink-0"
-            aria-label="Cerrar"
-          >
-            <X className="w-5 h-5 text-gray-500" />
-          </button>
         </div>
 
         {/* Contenido scrolleable optimizado */}
