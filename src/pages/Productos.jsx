@@ -1286,12 +1286,16 @@ export default function Productos() {
                     // Ejecutar la misma lógica que aplicarMantenimiento pero directamente
                     try {
                       const token = localStorage.getItem('token');
+                      console.log('🔑 Token encontrado:', token ? 'SÍ' : 'NO');
+                      console.log('👤 Usuario actual:', (() => { try { return JSON.parse(localStorage.getItem('usuario') || '{}') } catch { return {} } })());
+                      
                       const url = `${API_URL}/productos/${productoMantenimientoId}/mantenimiento`;
                       console.log('🌐 Enviando directamente a:', url);
                       
                       const requestBody = { precio, precio_canal, imagen_url: imagen_url || null };
-                      console.log('� Body directo:', requestBody);
+                      console.log('📦 Body directo:', requestBody);
                       
+                      console.log('🚀 Iniciando fetch...');
                       const response = await fetch(url, {
                         method: 'PUT',
                         headers: {
@@ -1302,6 +1306,8 @@ export default function Productos() {
                       });
                       
                       console.log('📡 Respuesta status:', response.status);
+                      console.log('📡 Respuesta headers:', response.headers);
+                      
                       const data = await response.json();
                       console.log('📄 Respuesta data:', data);
                       
