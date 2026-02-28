@@ -1611,6 +1611,33 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
             </div>
           </div>
 
+          {/* Marcador de Abonos */}
+          {pagos.length > 0 && (
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg sm:rounded-xl p-2 sm:p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs sm:text-sm font-bold">{pagos.length}</span>
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm font-semibold text-green-800">
+                      {pagos.length === 1 ? '1 Abono' : `${pagos.length} Abonos`}
+                    </p>
+                    <p className="text-xs text-green-600">
+                      Total abonado: {formatearMonto(totalPagado, moneda)}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-500">Último:</p>
+                  <p className="text-xs font-medium text-gray-700">
+                    {pagos.length > 0 ? formatDate(pagos[pagos.length - 1].fecha) : 'N/A'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Tabla de productos - Optimizada para móvil */}
           <div>
             <h4 className="text-xs sm:text-base font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center gap-2">
