@@ -91,7 +91,7 @@ function Layout({ children, usuario, onLogout }) {
         <div className="h-full flex flex-col">
           <div className="p-4 border-b bg-transparent flex items-center justify-center">
             <img
-              src="/IMG_9805.png"
+              src="/agromae_transparent.png"
               alt="AgroMAE"
               className="h-14 w-auto object-contain bg-transparent"
               style={{ mixBlendMode: 'darken', backgroundColor: 'transparent' }}
@@ -150,7 +150,7 @@ function Layout({ children, usuario, onLogout }) {
                 <Menu className="w-6 h-6" />
               </button>
               <img
-                src="/IMG_9805.png"
+                src="/agromae_transparent.png"
                 alt="AgroMAE"
                 className="ml-3 h-8 w-auto object-contain bg-transparent"
                 style={{ mixBlendMode: 'darken', backgroundColor: 'transparent' }}
@@ -224,7 +224,7 @@ function Login({ onLogin }) {
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
           <div className="flex-1">
             <img
-              src="/IMG_9805.png"
+              src="/agromae_transparent.png"
               alt="AgroMAE"
               className="h-16 sm:h-20 w-auto object-contain mb-3 bg-transparent"
               style={{ mixBlendMode: 'darken', backgroundColor: 'transparent' }}
