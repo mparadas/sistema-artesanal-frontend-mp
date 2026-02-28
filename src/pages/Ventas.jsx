@@ -1592,18 +1592,18 @@ const ModalDetalle = memo(({ venta, onClose, onAbonar }) => {
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 sm:space-y-5">
 
           {/* Resumen financiero - Grid responsivo */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 sm:p-4 text-center">
-              <p className="text-xs text-blue-600 font-medium mb-1">Total Venta</p>
-              <p className="text-base sm:text-xl font-bold text-blue-800">{formatearMonto(venta.total, moneda)}</p>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="bg-blue-50 border border-blue-100 rounded-xl p-2 sm:p-4 text-center">
+              <p className="text-xs text-blue-600 font-medium mb-1">Total</p>
+              <p className="text-sm sm:text-xl font-bold text-blue-800">{formatearMonto(venta.total, moneda)}</p>
             </div>
-            <div className="bg-green-50 border border-green-100 rounded-xl p-3 sm:p-4 text-center">
-              <p className="text-xs text-green-600 font-medium mb-1">Total Pagado</p>
-              <p className="text-base sm:text-xl font-bold text-green-800">{formatearMonto(totalPagado, moneda)}</p>
+            <div className="bg-green-50 border border-green-100 rounded-xl p-2 sm:p-4 text-center">
+              <p className="text-xs text-green-600 font-medium mb-1">Pagado</p>
+              <p className="text-sm sm:text-xl font-bold text-green-800">{formatearMonto(totalPagado, moneda)}</p>
             </div>
-            <div className={`border rounded-xl p-3 sm:p-4 text-center ${saldo > 0 ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-100'}`}>
-              <p className={`text-xs font-medium mb-1 ${saldo > 0 ? 'text-red-600' : 'text-gray-500'}`}>Saldo Pendiente</p>
-              <p className={`text-base sm:text-xl font-bold ${saldo > 0 ? 'text-red-800' : 'text-gray-500'}`}>
+            <div className={`border rounded-xl p-2 sm:p-4 text-center ${saldo > 0 ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-100'}`}>
+              <p className={`text-xs font-medium mb-1 ${saldo > 0 ? 'text-red-600' : 'text-gray-500'}`}>Saldo</p>
+              <p className={`text-sm sm:text-xl font-bold ${saldo > 0 ? 'text-red-800' : 'text-gray-500'}`}>
                 {saldo > 0 ? formatearMonto(saldo, moneda) : '$0.00'}
               </p>
             </div>
