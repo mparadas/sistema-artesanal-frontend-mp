@@ -263,18 +263,10 @@ export default function Productos() {
         data = await response.json();
       } else {
         const text = await response.text();
-        console.error('❌ Respuesta no JSON:', text);
         data = { error: text || 'Error desconocido' };
       }
       
       if (!response.ok) {
-        console.error('❌ Error detallado:', {
-          status: response.status,
-          statusText: response.statusText,
-          url: response.url,
-          headers: Object.fromEntries(response.headers.entries()),
-          data: data
-        });
         setMensaje(`❌ ${data.error || 'No se pudo agregar producto'}`)
         return
       }
@@ -285,7 +277,6 @@ export default function Productos() {
       setMensaje('✅ Producto agregado')
       setTimeout(() => setMensaje(''), 3000)
     } catch (error) {
-      console.error('💥 Error al agregar producto:', error)
       setMensaje('❌ Error al guardar')
     }
   }
@@ -427,23 +418,17 @@ export default function Productos() {
       setHistorialMantenimiento(historialArray)
       
       if (historialArray.length === 0) {
-        console.log('ℹ️ La tabla de historial está vacía')
         setMensaje('ℹ️ No hay historial de modificaciones registrado')
         setTimeout(() => setMensaje(''), 3000)
       }
     } catch (error) {
-      console.error('💥 Error al cargar historial:', error)
       setMensaje('❌ Error al cargar historial de mantenimiento')
     }
   }
   const aplicarMantenimiento = async (e) => {
     e.preventDefault()
-    console.log('🔥 FUNCIÓN aplicarMantenimiento llamada!')
-    console.log('📋 productoMantenimientoId:', productoMantenimientoId)
-    console.log('📝 mantenimientoForm:', mantenimientoForm)
     
     if (!productoMantenimientoId) {
-      console.log('❌ No hay producto seleccionado')
       setMensaje('❌ Debes seleccionar un producto')
       return
     }
@@ -453,51 +438,28 @@ export default function Productos() {
     const precio_canal = mantenimientoForm.precio_canal !== '' ? parseFloat(mantenimientoForm.precio_canal) : null
     const imagen_url = (mantenimientoForm.imagen_url || '').trim()
     
-    console.log('💰 Valores procesados:', { 
-      precio_original: mantenimientoForm.precio, 
-      precio_canal_original: mantenimientoForm.precio_canal,
-      precio: precio, 
-      precio_canal: precio_canal, 
-      imagen_url: imagen_url 
-    })
     
     // Validación más flexible - si el precio es diferente al actual, enviarlo
     const productoActual = productos.find(p => String(p.id) === String(productoMantenimientoId))
-    console.log('📦 Producto actual:', productoActual)
     
     const precioCambiado = precio !== null && precio !== parseFloat(productoActual?.precio || 0)
     const precioCanalCambiado = precio_canal !== null && precio_canal !== parseFloat(productoActual?.precio_canal || 0)
     const imagenCambiada = imagen_url && imagen_url !== (productoActual?.imagen_url || '')
     
-    console.log('🔄 Cambios detectados:', { 
-      precioCambiado, 
-      precioCanalCambiado, 
-      imagenCambiada,
-      precioActual: productoActual?.precio,
-      precioNuevo: precio,
-      precioCanalActual: productoActual?.precio_canal,
-      precioCanalNuevo: precio_canal
-    })
-    
     if (!precioCambiado && !precioCanalCambiado && !imagenCambiada) {
-      console.log('❌ No hay cambios reales para aplicar')
       setMensaje('❌ No se detectaron cambios. Modifica al menos un campo.')
       return
     }
     
-    console.log('🚀 Iniciando petición al servidor...')
     try {
       const token = localStorage.getItem('token')
       const url = `${API_URL}/productos/${productoMantenimientoId}/mantenimiento`
-      console.log('🌐 Enviando a:', url)
-      console.log('🔑 Token:', token ? 'presente' : 'ausente')
       
       const requestBody = {
         precio: precioCambiado ? precio : null,
         precio_canal: precioCanalCambiado ? precio_canal : null,
         imagen_url: imagenCambiada ? imagen_url : null
       }
-      console.log('📦 Body:', requestBody)
       
       const response = await fetch(url, {
         method: 'PUT',
@@ -525,7 +487,6 @@ export default function Productos() {
       await cargarProductos()
       await abrirMantenimiento()
     } catch (error) {
-      console.error('💥 Error catch:', error)
       setMensaje('❌ Error al aplicar mantenimiento')
     }
   }
