@@ -137,18 +137,22 @@ function Login({ onLogin }) {
                     Misión
                   </h3>
                   <p className="text-gray-600 text-sm leading-relaxed">
-                    En nuestra finca criamos con respeto y dedicación, elaborando embutidos artesanales 
-                    naturales con la más alta calidad.
+                    En nuestra finca criamos con respeto y dedicación, convencidos de que la calidad comienza desde el origen. Elaboramos embutidos artesanales naturales cuidando cada detalle: la alimentación y bienestar de nuestros animales, la frescura de la carne, la selección de especias y condimentos naturales, y un proceso hecho con paciencia y pasión.
+                  </p>
+                  <p className="text-gray-600 text-sm leading-relaxed mt-2">
+                    Empacamos al vacío para conservar intacto el sabor y la calidad, llevando a cada hogar un producto auténtico, saludable y lleno de tradición.
                   </p>
                 </div>
                 <div className="bg-white/80 backdrop-blur p-4 rounded-2xl border border-amber-100 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                   <h3 className="text-lg font-bold text-amber-700 mb-2 flex items-center gap-2">
                     <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-                    Visión
+                    🟢 Visión
                   </h3>
                   <p className="text-gray-600 text-sm leading-relaxed">
-                    Convertirnos en tradición en la mesa de nuestros clientes, fortaleciendo 
-                    el vínculo entre el campo y la familia.
+                    Queremos ser más que una marca: aspiramos a convertirnos en una tradición en la mesa de nuestros clientes. Soñamos con crecer manteniendo nuestra esencia artesanal, el respeto por la naturaleza y el compromiso con la excelencia.
+                  </p>
+                  <p className="text-gray-600 text-sm leading-relaxed mt-2">
+                    Buscamos que cada embutido que elaboramos sea sinónimo de confianza, frescura y amor por lo que hacemos, fortaleciendo el vínculo entre el campo y la familia.
                   </p>
                 </div>
               </div>
