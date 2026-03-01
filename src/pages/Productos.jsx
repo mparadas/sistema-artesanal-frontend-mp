@@ -470,11 +470,30 @@ export default function Productos() {
         body: JSON.stringify(requestBody)
       })
       
-      const data = await response.json()
+      // Manejar diferentes tipos de respuesta
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        data = { error: text || 'Error del servidor al procesar la solicitud' };
+      }
       
       if (!response.ok) {
-        setMensaje(`❌ ${data.error || 'No se pudo aplicar mantenimiento'}`)
-        return
+        // Mensajes específicos según el error
+        if (response.status === 500) {
+          setMensaje('❌ Error interno del servidor. El equipo técnico ha sido notificado. Intenta más tarde.');
+        } else if (response.status === 401) {
+          setMensaje('❌ Sesión expirada. Por favor inicia sesión nuevamente.');
+        } else if (response.status === 403) {
+          setMensaje('❌ No tienes permisos para realizar esta acción.');
+        } else if (response.status === 404) {
+          setMensaje('❌ El producto no existe o el endpoint no está disponible.');
+        } else {
+          setMensaje(`❌ ${data.error || 'No se pudo aplicar mantenimiento'}`);
+        }
+        return;
       }
       
       setMensaje('✅ Mantenimiento aplicado correctamente')
@@ -487,7 +506,59 @@ export default function Productos() {
       await cargarProductos()
       await abrirMantenimiento()
     } catch (error) {
-      setMensaje('❌ Error al aplicar mantenimiento')
+      // Intentar método alternativo si el método principal falla
+      await intentarMantenimientoAlternativo(productoMantenimientoId, precio, precio_canal, imagen_url, precioCambiado, precioCanalCambiado, imagenCambiada);
+    }
+  }
+  
+  // Función alternativa para mantenimiento usando endpoint general
+  const intentarMantenimientoAlternativo = async (productoId, precio, precio_canal, imagen_url, precioCambiado, precioCanalCambiado, imagenCambiada) => {
+    try {
+      setMensaje('🔄 Intentando método alternativo de actualización...');
+      
+      const token = localStorage.getItem('token');
+      const productoActual = productos.find(p => String(p.id) === String(productoId));
+      
+      // Construir objeto de actualización con los campos que cambiaron
+      const updateData = {};
+      if (precioCambiado && precio !== null) {
+        updateData.precio = precio;
+      }
+      if (precioCanalCambiado && precio_canal !== null) {
+        updateData.precio_canal = precio_canal;
+      }
+      if (imagenCambiada && imagen_url) {
+        updateData.imagen_url = imagen_url;
+      }
+      
+      const response = await fetch(`${API_URL}/productos/${productoId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(updateData)
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        setMensaje(`❌ Error en método alternativo: ${data.error || 'No se pudo actualizar el producto'}`);
+        return;
+      }
+      
+      setMensaje('✅ Producto actualizado correctamente usando método alternativo');
+      setTimeout(() => setMensaje(''), 3000);
+      
+      // Limpiar formulario
+      setMantenimientoForm({ precio: '', precio_canal: '', imagen_url: '' });
+      setProductoMantenimientoId('');
+      
+      await cargarProductos();
+      await abrirMantenimiento();
+      
+    } catch (error) {
+      setMensaje('❌ Error de conexión. Verifica tu internet e intenta nuevamente.');
     }
   }
   const seleccionarArchivoMantenimiento = () => {
