@@ -233,6 +233,16 @@ const obtenerImagenProducto = (producto, idx) => {
     })
   }
   
+  // Debug especial para chistorra
+  if (nombre.includes('chistorra')) {
+    console.log('🥓 CHISTORRA DETECTADA:', {
+      nombre: producto?.nombre,
+      imagen_url: producto?.imagen_url,
+      animal_origen: producto?.animal_origen,
+      categoria: producto?.categoria
+    })
+  }
+  
   // Debug: Ver qué datos tenemos
   console.log('🔍 Producto:', {
     nombre: producto?.nombre,
@@ -244,8 +254,18 @@ const obtenerImagenProducto = (producto, idx) => {
   // Prioridad 1: Imagen personalizada del producto con procesamiento
   if (producto?.imagen_url) {
     const processedUrl = getImageUrl(producto.imagen_url)
-    console.log('🖼️ Imagen personalizada procesada:', processedUrl)
-    return processedUrl
+    console.log('🖼️ Imagen personalizada procesada:', {
+      original: producto.imagen_url,
+      procesada: processedUrl
+    })
+    
+    // Verificar si la URL es válida
+    if (processedUrl.includes('https://agromae-b.onrender.com')) {
+      console.log('✅ URL válida detectada:', processedUrl)
+      return processedUrl
+    } else {
+      console.log('⚠️ URL procesada no parece válida:', processedUrl)
+    }
   }
 
   // Prioridad 2: Imagen según animal de origen
@@ -354,6 +374,10 @@ const obtenerImagenProducto = (producto, idx) => {
     // Log especial para hamburguesas
     if (match.url.includes('1568901346408-3a254d4fd9f5')) {
       console.log('🍔 HAMBURGUESA: Usando imagen específica de hamburguesa')
+    }
+    // Log especial para chistorra
+    if (match.url.includes('1587513863556-992c39b90c1b')) {
+      console.log('🥓 CHISTORRA: Usando imagen de embutidos')
     }
     return match.url
   }
