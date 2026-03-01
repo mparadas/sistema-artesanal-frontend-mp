@@ -542,7 +542,7 @@ export default function Catalogo() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
         {catalogo.length === 0 && (
           <div className="col-span-full bg-white rounded-xl border border-gray-100 p-6 text-center text-gray-500">
             No hay productos activos para mostrar en el catálogo.
@@ -589,11 +589,11 @@ export default function Catalogo() {
                   izquierda - | derecha +
                 </div>
               </div>
-              <div className="p-4 space-y-3">
+              <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-800">{p.nombre}</p>
-                    <p className="text-orange-600 font-bold">${(parseFloat(p.precio) || 0).toFixed(2)}</p>
+                    <p className="font-semibold text-gray-800 text-sm sm:text-base">{p.nombre}</p>
+                    <p className="text-orange-600 font-bold text-sm sm:text-base">${(parseFloat(p.precio) || 0).toFixed(2)}</p>
                     <p className="text-xs text-gray-500 mt-1">{p.categoria}</p>
                     {p.animal_origen && (
                       <div className="flex items-center gap-1 mt-1">
@@ -602,26 +602,26 @@ export default function Catalogo() {
                       </div>
                     )}
                   </div>
-                  <div className="w-20 h-24 rounded-lg border-2 border-orange-200 shadow-md flex items-center justify-center bg-white">
-                    <IconoProducto producto={p} className="text-5xl" />
+                  <div className="w-16 h-20 sm:w-20 sm:h-24 rounded-lg border-2 border-orange-200 shadow-md flex items-center justify-center bg-white">
+                    <IconoProducto producto={p} className="text-3xl sm:text-5xl" />
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <button
                     type="button"
                     onClick={() => cambiarCantidad(p.id, -1)}
-                    className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200"
+                    className="p-1.5 sm:p-2 rounded-lg bg-gray-100 hover:bg-gray-200"
                   >
-                    <Minus className="w-4 h-4" />
+                    <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
                   </button>
-                  <span className="font-bold text-2xl min-w-12 text-center text-orange-700">{cantidad}</span>
+                  <span className="font-bold text-lg sm:text-2xl min-w-8 sm:min-w-12 text-center text-orange-700">{cantidad}</span>
                   <button
                     type="button"
                     onClick={() => cambiarCantidad(p.id, 1)}
-                    className="p-2 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200"
+                    className="p-1.5 sm:p-2 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200"
                     title="Aumentar cantidad"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                   </button>
                 </div>
               </div>
