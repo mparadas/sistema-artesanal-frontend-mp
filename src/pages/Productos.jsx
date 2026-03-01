@@ -415,7 +415,6 @@ export default function Productos() {
       const data = await response.json()
       
       if (!response.ok) {
-        console.log('❌ Error en respuesta:', data.error)
         setMensaje(`❌ ${data.error || 'No se pudo cargar historial de mantenimiento'}`)
         return
       }
@@ -509,17 +508,13 @@ export default function Productos() {
         body: JSON.stringify(requestBody)
       })
       
-      console.log('📡 Respuesta status:', response.status)
       const data = await response.json()
-      console.log('📄 Respuesta data:', data)
       
       if (!response.ok) {
-        console.log('❌ Error en respuesta:', data.error)
         setMensaje(`❌ ${data.error || 'No se pudo aplicar mantenimiento'}`)
         return
       }
       
-      console.log('✅ Éxito en la aplicación')
       setMensaje('✅ Mantenimiento aplicado correctamente')
       setTimeout(() => setMensaje(''), 3000)
       
@@ -1200,7 +1195,6 @@ export default function Productos() {
               className="grid grid-cols-1 md:grid-cols-2 gap-3 border rounded-lg p-3 bg-slate-50"
               id="mantenimiento-form"
               onInvalid={(e) => {
-                console.log('❌ Formulario inválido:', e.target.name, e.target.validationMessage);
                 setMensaje('❌ Por favor completa todos los campos requeridos');
               }}
             >
@@ -1282,43 +1276,33 @@ export default function Productos() {
               </div>
               <div className="md:col-span-2 flex justify-end gap-2">
                 <button 
-                  type="button"  // Cambiado a type="button" para evitar conflicto con form
+                  type="button"  
                   onClick={async (e) => {
-                    console.log('🔘 Botón clickeado - ejecutando mantenimiento directamente');
-                    
                     if (!productoMantenimientoId) {
-                      console.log('❌ No hay producto seleccionado');
-                      setMensaje('❌ Debes seleccionar un producto');
+                      setMensaje('❌ Por favor, selecciona un producto');
                       return;
                     }
-                    
-                    // Validar cambios
+
                     const precio = mantenimientoForm.precio !== '' ? parseFloat(mantenimientoForm.precio) : null;
                     const precio_canal = mantenimientoForm.precio_canal !== '' ? parseFloat(mantenimientoForm.precio_canal) : null;
                     const imagen_url = (mantenimientoForm.imagen_url || '').trim();
                     
-                    console.log('💰 Valores a procesar:', { precio, precio_canal, imagen_url });
-                    
                     if (precio === null && precio_canal === null && !imagen_url) {
-                      console.log('❌ No hay cambios para aplicar');
-                      setMensaje('❌ Debes indicar al menos un cambio (precio, precio canal o imagen)');
+                      setMensaje('❌ No hay cambios para aplicar');
                       return;
                     }
                     
-                    // Ejecutar la misma lógica que aplicarMantenimiento pero directamente
                     try {
                       const token = localStorage.getItem('token');
                       const usuario = (() => { try { return JSON.parse(localStorage.getItem('usuario') || '{}') } catch { return {} } })();
                       
                       // Verificar si el usuario tiene permisos
                       if (!token) {
-                        console.log('❌ No hay token de autenticación');
                         setMensaje('❌ Debes iniciar sesión para realizar cambios');
                         return;
                       }
                       
                       if (!usuario || usuario.rol !== 'admin') {
-                        console.log('❌ Usuario no tiene permisos de administrador');
                         setMensaje('❌ Solo los administradores pueden realizar mantenimiento');
                         return;
                       }
@@ -1347,8 +1331,6 @@ export default function Productos() {
                       }
                       
                       if (!response.ok) {
-                        console.log('❌ Error en respuesta:', data.error);
-                        
                         // Mensajes específicos según el error
                         if (response.status === 401) {
                           setMensaje('❌ Sesión expirada. Por favor inicia sesión nuevamente');
@@ -1374,7 +1356,6 @@ export default function Productos() {
                       await abrirMantenimiento();
                       
                     } catch (error) {
-                      console.error('💥 Error en ejecución directa:', error);
                       setMensaje('❌ Error de conexión. Verifica tu internet e intenta nuevamente');
                     }
                   }}
