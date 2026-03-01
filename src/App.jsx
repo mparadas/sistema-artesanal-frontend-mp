@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate, Navigate 
 import {
   LayoutDashboard, Package, ShoppingCart, Users,
   Factory, LogOut, Menu, X, BarChart2, Shield, Eye, EyeOff, ClipboardList,
-  TrendingUp, Database, BookOpen, KeyRound, Wallet
+  TrendingUp, Database, BookOpen, KeyRound, Wallet, AlertCircle, ArrowRight
 } from 'lucide-react'
 
 // Páginas
@@ -171,7 +171,7 @@ function Layout({ children, usuario, onLogout }) {
 }
 
 // ============================================
-// COMPONENTE LOGIN REAL
+// COMPONENTE LOGIN REAL - DISEÑO MODERNO
 // ============================================
 function Login({ onLogin }) {
   const navigate = useNavigate()
@@ -180,7 +180,7 @@ function Login({ onLogin }) {
   const [verPass, setVerPass] = useState(false)
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState('')
-  const [loginExpandido, setLoginExpandido] = useState(false)
+  const [mostrarLogin, setMostrarLogin] = useState(false)
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -195,7 +195,6 @@ function Login({ onLogin }) {
       })
       const data = await r.json()
       if (!r.ok) { setError(data.error || 'Error al iniciar sesión'); return }
-      // Guardar sesión
       localStorage.setItem('token', data.token)
       localStorage.setItem('usuario', JSON.stringify(data))
       onLogin(data)
@@ -208,156 +207,276 @@ function Login({ onLogin }) {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-orange-100 via-amber-50 to-white p-4 sm:p-6">
-      <div className="absolute -top-24 -left-20 w-72 h-72 bg-orange-300/25 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/3 -right-20 w-80 h-80 bg-amber-200/30 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <img
-          src="/IMG_9805.png"
-          alt="Marca de agua AgroMAE"
-          className="w-[70vw] max-w-[760px] opacity-[0.08] object-contain bg-transparent"
-          style={{ mixBlendMode: 'darken', backgroundColor: 'transparent' }}
-        />
-      </div>
+    <div className="min-h-screen bg-[#FAF8F5] relative overflow-hidden">
+      {/* Modal de Login */}
+      {mostrarLogin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMostrarLogin(false)} />
+          <div className="relative bg-[#FAF8F5] rounded-2xl shadow-2xl w-full max-w-md p-8 sm:p-10 animate-[fadeInUp_0.3s_ease-out]">
+            <button
+              onClick={() => setMostrarLogin(false)}
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-stone-200 transition-colors"
+            >
+              <X className="w-5 h-5 text-stone-500" />
+            </button>
 
-      <div className="max-w-7xl mx-auto space-y-6 relative z-10">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-          <div className="flex-1">
-            <img
-              src="/agromae_transparent.png"
-              alt="AgroMAE"
-              className="h-16 sm:h-20 w-auto object-contain mb-3 bg-transparent"
-              style={{ mixBlendMode: 'darken', backgroundColor: 'transparent' }}
-            />
-            <h1 className="text-3xl sm:text-5xl font-extrabold text-gray-800 leading-tight tracking-tight">
-              Sabor artesanal <span className="text-orange-600">que conecta tradición y frescura del campo</span> en casa
-            </h1>
-            <p className="text-gray-600 mt-3 max-w-2xl text-base sm:text-lg">
-              AgroMAE integra producción, inventario, ventas y pedidos para impulsar el crecimiento
-              de un negocio artesanal con procesos modernos.
-            </p>
-          </div>
-
-          <div className={`bg-white/95 backdrop-blur p-5 sm:p-6 rounded-2xl shadow-2xl w-full lg:sticky lg:top-6 border border-orange-100 transition-all duration-300 ${loginExpandido ? 'lg:w-[390px]' : 'lg:w-[300px]'}`}>
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-gray-500 text-sm">Acceso al sistema</p>
+            <div className="text-center mb-8">
+              <img
+                src="/agromae_transparent.png"
+                alt="AgroMAE"
+                className="h-12 w-auto object-contain mx-auto mb-4"
+                style={{ mixBlendMode: 'darken' }}
+              />
+              <h2 className="text-2xl font-bold text-stone-900 tracking-tight">Acceso al Sistema</h2>
+              <p className="text-stone-500 text-sm mt-1">Ingresa tus credenciales para continuar</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mt-3">
-              <button
-                type="button"
-                onClick={() => setLoginExpandido((prev) => !prev)}
-                className="group rounded-xl border border-orange-200 bg-orange-50 hover:bg-orange-100 transition-colors p-3 flex flex-col items-center justify-center"
-              >
-                <div className="w-12 h-12 rounded-full bg-white shadow-sm border border-orange-100 flex items-center justify-center">
-                  <KeyRound className="w-6 h-6 text-orange-700" />
-                </div>
-                <span className="mt-2 text-xs font-semibold text-orange-700">
-                  {loginExpandido ? 'Cerrar Login' : 'Abrir Login'}
-                </span>
-              </button>
-
-              <Link
-                to="/catalogo-publico"
-                className="group rounded-xl border border-amber-300 bg-gradient-to-br from-amber-100 to-orange-100 hover:from-amber-200 hover:to-orange-200 transition-colors p-3 flex flex-col items-center justify-center"
-              >
-                <div className="w-12 h-12 rounded-full bg-white shadow-sm border border-amber-200 flex items-center justify-center">
-                  <ShoppingCart className="w-6 h-6 text-orange-700" />
-                </div>
-                <span className="mt-2 text-xs font-semibold text-orange-700">Catálogo</span>
-              </Link>
-            </div>
-
-            <div className={`overflow-hidden transition-all duration-300 ${loginExpandido ? 'max-h-[520px] mt-4 opacity-100' : 'max-h-0 mt-0 opacity-0'}`}>
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
+                <label className="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-2">Usuario</label>
                 <input
                   type="text"
                   value={usuario}
                   onChange={e => setUsuario(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
+                  className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-600/30 focus:border-amber-600 transition-all"
                   placeholder="Ej: admin"
                   autoComplete="username"
                   autoFocus
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Contrasena</label>
+                <label className="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-2">{'Contraseña'}</label>
                 <div className="relative">
                   <input
                     type={verPass ? 'text' : 'password'}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className="w-full border rounded-lg px-3 py-2.5 pr-10 focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
-                    placeholder="••••••••"
+                    className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 pr-12 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-600/30 focus:border-amber-600 transition-all"
+                    placeholder={'••••••••'}
                     autoComplete="current-password"
                   />
-                  <button type="button" onClick={() => setVerPass(!verPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <button type="button" onClick={() => setVerPass(!verPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors">
                     {verPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg">{error}</div>
+                <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  {error}
+                </div>
               )}
 
               <button
                 type="submit"
                 disabled={cargando}
-                className="w-full bg-gradient-to-r from-orange-600 to-amber-500 text-white py-2.5 rounded-lg hover:from-orange-700 hover:to-amber-600 font-medium disabled:opacity-60 transition-all shadow-md"
+                className="w-full bg-stone-900 text-white py-3.5 rounded-xl hover:bg-stone-800 font-semibold disabled:opacity-50 transition-all text-sm tracking-wide"
               >
-                {cargando ? 'Ingresando...' : 'Ingresar'}
+                {cargando ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Ingresando...
+                  </span>
+                ) : 'Iniciar Sesión'}
               </button>
             </form>
-            </div>
           </div>
         </div>
+      )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white/95 rounded-2xl border border-orange-100 p-5 shadow-sm">
-            <h2 className="text-xl font-bold text-orange-700 mb-2">Misión</h2>
-            <p className="text-gray-600">
-              En nuestra finca criamos con respeto y dedicación, convencidos de que la calidad comienza desde el origen. Elaboramos embutidos artesanales naturales cuidando cada detalle: la alimentación y bienestar de nuestros animales, la frescura de la carne, la selección de especias y condimentos naturales, y un proceso hecho con paciencia y pasión.
-              <br /><br />
-              Empacamos al vacío para conservar intacto el sabor y la calidad, llevando a cada hogar un producto auténtico, saludable y lleno de tradición.
-            </p>
-          </div>
-          <div className="bg-white/95 rounded-2xl border border-orange-100 p-5 shadow-sm">
-            <h2 className="text-xl font-bold text-orange-700 mb-2">Visión</h2>
-            <p className="text-gray-600">
-              Queremos ser más que una marca: aspiramos a convertirnos en una tradición en la mesa de nuestros clientes. Soñamos con crecer manteniendo nuestra esencia artesanal, el respeto por la naturaleza y el compromiso con la excelencia.
-              <br /><br />
-              Buscamos que cada embutido que elaboramos sea sinónimo de confianza, frescura y amor por lo que hacemos, fortaleciendo el vínculo entre el campo y la familia.
-            </p>
-          </div>
+      {/* Navbar */}
+      <nav className="relative z-10 px-6 sm:px-10 lg:px-16 py-5 flex items-center justify-between">
+        <img
+          src="/agromae_transparent.png"
+          alt="AgroMAE"
+          className="h-10 sm:h-12 w-auto object-contain"
+          style={{ mixBlendMode: 'darken' }}
+        />
+        <div className="flex items-center gap-3">
+          <Link
+            to="/catalogo-publico"
+            className="hidden sm:flex items-center gap-2 text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors px-4 py-2 rounded-lg hover:bg-stone-100"
+          >
+            <BookOpen className="w-4 h-4" />
+            {'Catálogo'}
+          </Link>
+          <button
+            onClick={() => setMostrarLogin(true)}
+            className="flex items-center gap-2 bg-stone-900 text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-stone-800 transition-all shadow-sm"
+          >
+            <KeyRound className="w-4 h-4" />
+            Acceder
+          </button>
         </div>
+      </nav>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
-            <img src="https://images.unsplash.com/photo-1551782450-a2132b4ba21d?auto=format&fit=crop&w=1200&q=80" alt="Producto artesanal 1" className="w-full h-44 object-cover" />
-            <div className="p-4">
-              <p className="font-semibold text-gray-800">Embutidos artesanales</p>
-              <p className="text-sm text-gray-500 mt-1">Proceso tradicional con estandares modernos.</p>
+      {/* Hero */}
+      <section className="relative px-6 sm:px-10 lg:px-16 pt-8 sm:pt-16 pb-16 sm:pb-24">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+            <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200/60 text-amber-800 text-xs font-semibold uppercase tracking-widest px-4 py-2 rounded-full mb-6">
+              <span className="w-1.5 h-1.5 bg-amber-600 rounded-full" />
+              Del campo a tu mesa
+            </div>
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-stone-900 leading-[1.05] tracking-tight text-balance">
+              {'Sabor artesanal que conecta tradición y frescura'}
+            </h1>
+            <p className="text-stone-500 mt-6 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+              {'AgroMAE integra producción, inventario, ventas y pedidos para impulsar el crecimiento de un negocio artesanal con procesos modernos.'}
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
+              <button
+                onClick={() => setMostrarLogin(true)}
+                className="flex items-center gap-2 bg-stone-900 text-white font-semibold px-8 py-3.5 rounded-full hover:bg-stone-800 transition-all shadow-lg shadow-stone-900/10 text-sm"
+              >
+                Acceder al Sistema
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <Link
+                to="/catalogo-publico"
+                className="flex items-center gap-2 bg-white text-stone-700 font-semibold px-8 py-3.5 rounded-full hover:bg-stone-50 transition-all border border-stone-200 text-sm"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                Ver {'Catálogo'}
+              </Link>
             </div>
           </div>
-          <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
-            <img src="https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?auto=format&fit=crop&w=1200&q=80" alt="Producto artesanal 2" className="w-full h-44 object-cover" />
-            <div className="p-4">
-              <p className="font-semibold text-gray-800">Control de calidad</p>
-              <p className="text-sm text-gray-500 mt-1">Trazabilidad de inventario y produccion diaria.</p>
-            </div>
+
+          {/* Hero Image */}
+          <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl shadow-stone-900/10 aspect-[16/7] max-w-5xl mx-auto">
+            <img
+              src="/hero-artesanal.jpg"
+              alt="Embutidos artesanales AgroMAE"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-stone-900/40 via-transparent to-transparent" />
           </div>
-          <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
-            <img src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=1200&q=80" alt="Producto artesanal 3" className="w-full h-44 object-cover" />
-            <div className="p-4">
-              <p className="font-semibold text-gray-800">Atencion al cliente</p>
-              <p className="text-sm text-gray-500 mt-1">Pedidos faciles, seguimiento y respuesta oportuna.</p>
+        </div>
+      </section>
+
+      {/* Misión y Visión */}
+      <section className="px-6 sm:px-10 lg:px-16 pb-16 sm:pb-24">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10 sm:mb-14">
+            <p className="text-xs font-semibold uppercase tracking-widest text-amber-700 mb-3">Nuestro compromiso</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight text-balance">{'Tradición con propósito'}</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200/60 hover:border-stone-300 transition-colors group">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center border border-amber-100">
+                  <span className="text-2xl font-bold text-amber-700">1</span>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-stone-900">{'Misión'}</h3>
+              </div>
+              <p className="text-stone-500 leading-relaxed text-sm sm:text-base">
+                {'En nuestra finca criamos con respeto y dedicación, convencidos de que la calidad comienza desde el origen. Elaboramos embutidos artesanales naturales cuidando cada detalle: la alimentación y bienestar de nuestros animales, la frescura de la carne, la selección de especias y condimentos naturales, y un proceso hecho con paciencia y pasión.'}
+              </p>
+              <p className="text-stone-500 leading-relaxed text-sm sm:text-base mt-3">
+                {'Empacamos al vacío para conservar intacto el sabor y la calidad, llevando a cada hogar un producto auténtico, saludable y lleno de tradición.'}
+              </p>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200/60 hover:border-stone-300 transition-colors group">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center border border-amber-100">
+                  <span className="text-2xl font-bold text-amber-700">2</span>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-stone-900">{'Visión'}</h3>
+              </div>
+              <p className="text-stone-500 leading-relaxed text-sm sm:text-base">
+                {'Queremos ser más que una marca: aspiramos a convertirnos en una tradición en la mesa de nuestros clientes. Soñamos con crecer manteniendo nuestra esencia artesanal, el respeto por la naturaleza y el compromiso con la excelencia.'}
+              </p>
+              <p className="text-stone-500 leading-relaxed text-sm sm:text-base mt-3">
+                {'Buscamos que cada embutido que elaboramos sea sinónimo de confianza, frescura y amor por lo que hacemos, fortaleciendo el vínculo entre el campo y la familia.'}
+              </p>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Productos / Features */}
+      <section className="px-6 sm:px-10 lg:px-16 pb-16 sm:pb-24">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10 sm:mb-14">
+            <p className="text-xs font-semibold uppercase tracking-widest text-amber-700 mb-3">Lo que nos distingue</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight text-balance">{'Calidad en cada paso'}</h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {[
+              {
+                img: '/producto-embutidos.jpg',
+                title: 'Embutidos artesanales',
+                desc: 'Proceso tradicional con estándares modernos de calidad y frescura garantizada.',
+              },
+              {
+                img: '/producto-calidad.jpg',
+                title: 'Control de calidad',
+                desc: 'Trazabilidad completa del inventario y supervisión de la producción diaria.',
+              },
+              {
+                img: '/producto-delivery.jpg',
+                title: 'Atención al cliente',
+                desc: 'Pedidos fáciles, seguimiento en tiempo real y respuesta oportuna garantizada.',
+              },
+            ].map((item, i) => (
+              <div key={i} className="group bg-white rounded-2xl overflow-hidden border border-stone-200/60 hover:border-stone-300 hover:shadow-lg transition-all duration-300">
+                <div className="aspect-[4/3] overflow-hidden">
+                  <img
+                    src={item.img}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="p-5 sm:p-6">
+                  <h3 className="font-bold text-stone-900 text-base sm:text-lg">{item.title}</h3>
+                  <p className="text-stone-500 text-sm mt-2 leading-relaxed">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer CTA */}
+      <section className="px-6 sm:px-10 lg:px-16 pb-12 sm:pb-20">
+        <div className="max-w-4xl mx-auto text-center bg-stone-900 rounded-2xl sm:rounded-3xl p-8 sm:p-14">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight text-balance">{'¿Listo para gestionar tu negocio artesanal?'}</h2>
+          <p className="text-stone-400 mt-3 text-sm sm:text-base max-w-xl mx-auto">
+            {'Accede al sistema integrado de AgroMAE y lleva tu producción al siguiente nivel.'}
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
+            <button
+              onClick={() => setMostrarLogin(true)}
+              className="flex items-center gap-2 bg-white text-stone-900 font-semibold px-8 py-3.5 rounded-full hover:bg-stone-100 transition-all text-sm"
+            >
+              Iniciar Sesión
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <Link
+              to="/catalogo-publico"
+              className="flex items-center gap-2 text-stone-400 font-medium hover:text-white transition-colors text-sm px-4 py-3"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              Explorar {'Catálogo'}
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="px-6 sm:px-10 lg:px-16 py-6 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <img
+          src="/agromae_transparent.png"
+          alt="AgroMAE"
+          className="h-7 w-auto object-contain opacity-60"
+          style={{ mixBlendMode: 'darken' }}
+        />
+        <p className="text-xs text-stone-400">{'AgroMAE — Sabor artesanal, del campo a tu mesa.'}</p>
+      </footer>
     </div>
   )
 }
