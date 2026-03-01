@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, Link 
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { LayoutDashboard, ShoppingCart, Users, Package, Factory, ClipboardList, BookOpen, BarChart2, Wallet, TrendingUp, Database, Shield, LogOut, Menu } from 'lucide-react'
-import LayoutComponent from './components/Layout'
 import Login from './components/Login'
 import Dashboard from './pages/Dashboard'
 import Ventas from './pages/Ventas'
@@ -41,7 +40,7 @@ const tieneAcceso = (rol, path) => {
 // ============================================
 // COMPONENTE LAYOUT
 // ============================================
-function LayoutWrapper({ children, usuario, onLogout }) {
+function Layout({ children, usuario, onLogout }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
@@ -213,7 +212,7 @@ function App() {
         } />
         <Route path="*" element={
           !usuario ? <Navigate to="/login" replace /> : (
-            <LayoutComponent usuario={usuario} onLogout={handleLogout}>
+            <Layout usuario={usuario} onLogout={handleLogout}>
               <Routes>
                 <Route path="/"             element={<RutaProtegida usuario={usuario} path="/"><Dashboard /></RutaProtegida>} />
                 <Route path="/ventas"       element={<RutaProtegida usuario={usuario} path="/ventas"><Ventas /></RutaProtegida>} />
@@ -231,7 +230,7 @@ function App() {
                 <Route path="/usuarios"     element={<RutaProtegida usuario={usuario} path="/usuarios"><Usuarios /></RutaProtegida>} />
                 <Route path="/lista-precios" element={<RutaProtegida usuario={usuario} path="/lista-precios"><ListaPrecios /></RutaProtegida>} />
               </Routes>
-            </LayoutComponent>
+            </Layout>
           )
         } />
       </Routes>
