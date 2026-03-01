@@ -6,7 +6,7 @@ export const getImageUrl = (imagePath) => {
   
   if (!imagePath) {
     console.log('❌ imagePath vacío, usando placeholder')
-    return '/placeholder-product.jpg'
+    return 'https://placehold.co/320x220/F97316/FFFFFF?text=Producto'
   }
   
   // Si ya es una URL completa, verificar si necesita corrección
