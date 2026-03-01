@@ -222,6 +222,17 @@ const obtenerImagenAnimal = (producto) => {
 }
 
 const obtenerImagenProducto = (producto, idx) => {
+  // Debug especial para hamburguesas
+  const nombre = String(producto?.nombre || '').toLowerCase()
+  if (nombre.includes('hamburguesa') || nombre.includes('hamburgues')) {
+    console.log('🍔 HAMBURGUESA DETECTADA:', {
+      nombre: producto?.nombre,
+      imagen_url: producto?.imagen_url,
+      animal_origen: producto?.animal_origen,
+      categoria: producto?.categoria
+    })
+  }
+  
   // Debug: Ver qué datos tenemos
   console.log('🔍 Producto:', {
     nombre: producto?.nombre,
@@ -239,10 +250,10 @@ const obtenerImagenProducto = (producto, idx) => {
 
   // Prioridad 2: Imagen según animal de origen
   const animal = String(producto?.animal_origen || '').toLowerCase()
-  const nombre = String(producto?.nombre || '').toLowerCase()
+  const nombreLower = String(producto?.nombre || '').toLowerCase()
   const categoria = String(producto?.categoria || '').toLowerCase()
   
-  console.log('🔍 Buscando imagen para:', { nombre, animal, categoria })
+  console.log('🔍 Buscando imagen para:', { nombre: nombreLower, animal, categoria })
   
   // Imágenes específicas por animal de origen
   const imagenesAnimales = {
@@ -262,48 +273,48 @@ const obtenerImagenProducto = (producto, idx) => {
   }
   
   // Detectar animal por nombre si no está en animal_origen
-  if (nombre.includes('pollo') || nombre.includes('chicken')) {
+  if (nombreLower.includes('pollo') || nombreLower.includes('chicken')) {
     console.log('🐔 Detectado pollo por nombre')
     return imagenesAnimales['pollo']
   }
   
   // Cortes específicos de cerdo
-  if (nombre.includes('lomo') || nombre.includes('costilla') || nombre.includes('chuleta') || 
-      nombre.includes('panceta') || nombre.includes('tocino') || nombre.includes('matambre') ||
-      nombre.includes('bondiola') || nombre.includes('paleta')) {
+  if (nombreLower.includes('lomo') || nombreLower.includes('costilla') || nombreLower.includes('chuleta') || 
+      nombreLower.includes('panceta') || nombreLower.includes('tocino') || nombreLower.includes('matambre') ||
+      nombreLower.includes('bondiola') || nombreLower.includes('paleta')) {
     console.log('🐷 Detectado corte de cerdo')
     return imagenesAnimales['cerdo']
   }
   
   // Cortes específicos de res
-  if (nombre.includes('bife') || nombre.includes('cuadril') || nombre.includes('picaña') || 
-      nombre.includes('vacío') || nombre.includes('ojo de bife') || nombre.includes('tapa de cuadril') ||
-      nombre.includes('lomo') || nombre.includes('carne') || nombre.includes('beef')) {
+  if (nombreLower.includes('bife') || nombreLower.includes('cuadril') || nombreLower.includes('picaña') || 
+      nombreLower.includes('vacío') || nombreLower.includes('ojo de bife') || nombreLower.includes('tapa de cuadril') ||
+      nombreLower.includes('lomo') || nombreLower.includes('carne') || nombreLower.includes('beef')) {
     console.log('🐄 Detectado corte de res')
     return imagenesAnimales['res']
   }
   
   // General de cerdo
-  if (nombre.includes('cerdo') || nombre.includes('cochino') || nombre.includes('puerco') || nombre.includes('chancho')) {
+  if (nombreLower.includes('cerdo') || nombreLower.includes('cochino') || nombreLower.includes('puerco') || nombreLower.includes('chancho')) {
     console.log('🐷 Detectado cerdo general')
     return imagenesAnimales['cerdo']
   }
   
   // General de res
-  if (nombre.includes('res') || nombre.includes('vaca')) {
+  if (nombreLower.includes('res') || nombreLower.includes('vaca')) {
     console.log('🐄 Detectado res general')
     return imagenesAnimales['res']
   }
   
-  if (nombre.includes('cordero') || nombre.includes('oveja') || nombre.includes('lamb')) {
+  if (nombreLower.includes('cordero') || nombreLower.includes('oveja') || nombreLower.includes('lamb')) {
     console.log('🐑 Detectado cordero')
     return imagenesAnimales['cordero']
   }
-  if (nombre.includes('pescado') || nombre.includes('fish')) {
+  if (nombreLower.includes('pescado') || nombreLower.includes('fish')) {
     console.log('🐟 Detectado pescado')
     return imagenesAnimales['pescado']
   }
-  if (nombre.includes('camarón') || nombre.includes('shrimp')) {
+  if (nombreLower.includes('camarón') || nombreLower.includes('shrimp')) {
     console.log('🦐 Detectado camarón')
     return imagenesAnimales['camarón']
   }
@@ -315,12 +326,12 @@ const obtenerImagenProducto = (producto, idx) => {
       url: 'https://images.unsplash.com/photo-1587513863556-992c39b90c1b?w=600&h=400&fit=crop&crop=center'
     },
     {
-      test: /queso|lacteo|lácteo|mantequilla/,
-      url: 'https://images.unsplash.com/photo-1586441379954-f2126101b354?w=600&h=400&fit=crop&crop=center'
-    },
-    {
       test: /hamburguesa|hamburgues/,
       url: 'https://images.unsplash.com/photo-1568901346408-3a254d4fd9f5?w=600&h=400&fit=crop&crop=center'
+    },
+    {
+      test: /queso|lacteo|lácteo|mantequilla/,
+      url: 'https://images.unsplash.com/photo-1586441379954-f2126101b354?w=600&h=400&fit=crop&crop=center'
     },
     {
       test: /jamón|jamon|ham/,
@@ -336,10 +347,14 @@ const obtenerImagenProducto = (producto, idx) => {
     }
   ]
 
-  const texto = `${nombre} ${categoria}`
+  const texto = `${nombreLower} ${categoria}`
   const match = referencias.find((r) => r.test.test(texto))
   if (match?.url) {
     console.log('🥩 Imagen por referencia:', match.url)
+    // Log especial para hamburguesas
+    if (match.url.includes('1568901346408-3a254d4fd9f5')) {
+      console.log('🍔 HAMBURGUESA: Usando imagen específica de hamburguesa')
+    }
     return match.url
   }
 
