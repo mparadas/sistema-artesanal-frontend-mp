@@ -780,7 +780,7 @@ export default function Productos() {
               <img
                 src={getImageUrl(nuevoProducto.imagen_url) || imagenFallback}
                 alt="Vista previa nuevo producto"
-                className="w-full h-32 object-cover rounded border"
+                className="w-full h-40 sm:h-48 object-cover rounded-lg border-2 border-gray-200"
                 onError={(e) => { e.currentTarget.src = imagenFallback }}
               />
             </div>
@@ -871,14 +871,17 @@ export default function Productos() {
             <div key={p.id} className="p-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <img
                       src={getImageUrl(p?.imagen_url) || imagenFallback}
                       alt={p?.nombre || 'Producto'}
-                      className="w-14 h-14 sm:w-16 sm:h-16 rounded object-cover border shrink-0"
+                      className="w-14 h-14 sm:w-20 sm:h-20 rounded-lg object-cover border-2 border-gray-200 shadow-sm shrink-0"
                       onError={(e) => { e.currentTarget.src = imagenFallback }}
                     />
-                    <p className="font-medium text-sm truncate">{p.nombre}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm sm:text-base truncate">{p.nombre}</p>
+                      <p className="text-xs text-gray-500 hidden sm:block mt-0.5">{p.categoria}</p>
+                    </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5 mt-1">
                     <span className={`px-2 py-0.5 rounded text-[11px] ${esCorte(p) ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
@@ -965,14 +968,17 @@ export default function Productos() {
             {productos.map((p) => (
               <tr key={p.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 font-medium">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <img
                       src={getImageUrl(p.imagen_url) || imagenFallback}
                       alt={p.nombre}
-                      className="w-12 h-10 rounded object-cover border"
+                      className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-cover border-2 border-gray-200 shadow-sm flex-shrink-0"
                       onError={(e) => { e.currentTarget.src = imagenFallback }}
                     />
-                    <span>{p.nombre}</span>
+                    <div className="min-w-0 flex-1">
+                      <span className="block text-sm sm:text-base font-medium truncate">{p.nombre}</span>
+                      <span className="block text-xs text-gray-500 hidden sm:inline">{p.categoria}</span>
+                    </div>
                   </div>
                 </td>
                 <td className="px-4 py-3">
