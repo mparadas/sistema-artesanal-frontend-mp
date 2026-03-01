@@ -627,13 +627,27 @@ export default function Catalogo() {
                   onLoad={() => console.log('✅ Imagen cargada:', p.imagen)}
                   onError={(e) => {
                     console.log('❌ Error cargando imagen:', p.imagen)
-                    console.log('🔄 Intentando con getImageUrl...')
+                    
+                    // Evitar bucles infinitos
+                    if (e.currentTarget.dataset.fallbackUsed === 'true') {
+                      console.log('🔄 Fallback ya usado, usando placeholder final')
+                      e.currentTarget.src = 'https://placehold.co/600x400/F97316/FFFFFF?text=Producto'
+                      e.currentTarget.dataset.fallbackUsed = 'final'
+                      return
+                    }
+                    
+                    // Intentar con getImageUrl solo si la URL original es diferente
                     const processedUrl = getImageUrl(p.imagen)
                     console.log('🖼️ URL procesada:', processedUrl)
-                    if (processedUrl !== p.imagen) {
+                    
+                    if (processedUrl !== p.imagen && processedUrl !== p.imagen) {
+                      console.log('🔄 Intentando con URL procesada...')
                       e.currentTarget.src = processedUrl
+                      e.currentTarget.dataset.fallbackUsed = 'true'
                     } else {
+                      console.log('📦 Usando placeholder directamente')
                       e.currentTarget.src = 'https://placehold.co/600x400/F97316/FFFFFF?text=Producto'
+                      e.currentTarget.dataset.fallbackUsed = 'final'
                     }
                   }}
                 />
