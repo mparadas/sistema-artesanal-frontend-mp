@@ -80,26 +80,26 @@ function Layout({ children, usuario, onLogout }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <aside className={`fixed lg:static inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-200 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`fixed lg:static inset-y-0 left-0 z-30 w-72 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="h-full flex flex-col">
-          <div className="p-4 border-b bg-transparent flex items-center justify-center">
+          <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-orange-50 to-amber-50 flex items-center justify-center">
             <img
               src="/agromae_transparent.png"
               alt="AgroMAE"
-              className="h-14 w-auto object-contain bg-transparent"
+              className="h-16 w-auto object-contain bg-transparent"
               style={{ mixBlendMode: 'darken', backgroundColor: 'transparent' }}
             />
           </div>
 
           {/* Info usuario */}
-          <div className="px-4 py-2 border-b bg-gray-50">
-            <p className="text-sm font-medium text-gray-800 truncate">{usuario?.nombre}</p>
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${rolColors[usuario?.rol] || 'bg-gray-100 text-gray-600'}`}>
+          <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+            <p className="text-sm font-semibold text-gray-800 truncate mb-2">{usuario?.nombre}</p>
+            <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${rolColors[usuario?.rol] || 'bg-gray-100 text-gray-600'}`}>
               {usuario?.rol === 'admin' ? 'Administrador' :
                usuario?.rol === 'vendedor' ? 'Vendedor' :
                usuario?.rol === 'produccion' ? 'Producción' :
@@ -108,7 +108,7 @@ function Layout({ children, usuario, onLogout }) {
             </span>
           </div>
 
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             {menuItems.map((item) => {
               const Icon = item.icon
               const isActive = location.pathname === item.path
@@ -117,23 +117,25 @@ function Layout({ children, usuario, onLogout }) {
                   key={item.path}
                   to={item.path}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
-                    isActive ? 'bg-orange-50 text-orange-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
+                  className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
+                    isActive 
+                      ? 'bg-gradient-to-r from-orange-100 to-amber-100 text-orange-700 font-semibold shadow-sm border border-orange-200' 
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
                   }`}
                 >
-                  <Icon className="w-5 h-5 mr-3" />
-                  {item.label}
+                  <Icon className="w-5 h-5 mr-3 flex-shrink-0" />
+                  <span className="truncate">{item.label}</span>
                 </Link>
               )
             })}
           </nav>
 
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-gray-100">
             <button
               onClick={handleLogout}
-              className="flex items-center w-full px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className="flex items-center w-full px-4 py-3 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-xl transition-all duration-200 font-medium"
             >
-              <LogOut className="w-5 h-5 mr-3" />
+              <LogOut className="w-5 h-5 mr-3 flex-shrink-0" />
               Cerrar Sesión
             </button>
           </div>
@@ -142,26 +144,28 @@ function Layout({ children, usuario, onLogout }) {
 
       <div className="flex-1 flex flex-col min-w-0">
         <header className="bg-white shadow-sm lg:hidden">
-          <div className="px-4 py-3 flex items-center justify-between">
+          <div className="px-4 py-4 flex items-center justify-between">
             <div className="flex items-center">
-              <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-lg hover:bg-gray-100">
+              <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl hover:bg-gray-100 transition-colors">
                 <Menu className="w-6 h-6" />
               </button>
               <img
                 src="/agromae_transparent.png"
                 alt="AgroMAE"
-                className="ml-3 h-8 w-auto object-contain bg-transparent"
+                className="ml-3 h-10 w-auto object-contain bg-transparent"
                 style={{ mixBlendMode: 'darken', backgroundColor: 'transparent' }}
               />
             </div>
-            <span className={`text-xs px-2 py-1 rounded-full font-medium ${rolColors[usuario?.rol] || ''}`}>
+            <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${rolColors[usuario?.rol] || ''}`}>
               {usuario?.nombre?.split(' ')[0]}
             </span>
           </div>
         </header>
 
-        <main className="flex-1 p-2 sm:p-4 lg:p-6 overflow-auto pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
-          {children}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
         </main>
       </div>
     </div>
