@@ -583,17 +583,17 @@ export default function Catalogo() {
                     +
                   </span>
                 </button>
-                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-black/55 text-white px-2 py-0.5 rounded-full text-xs font-medium">
+                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-black/55 text-white px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap">
                   <span className="hidden sm:inline">Haz clic </span>
                   <span className="sm:hidden">Toca </span>
-                  <span className="text-xs">izq - | der +</span>
+                  <span className="text-xs">izq-|der+</span>
                 </div>
               </div>
               <div className="p-4 sm:p-4 space-y-3 sm:space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3">
                   <div className="flex-1 order-2 sm:order-1">
                     <p className="font-bold text-gray-800 text-xs sm:text-sm leading-tight">{p.nombre}</p>
-                    <p className="text-orange-600 font-bold text-xs sm:text-sm mt-1">${(parseFloat(p.precio) || 0).toFixed(2)}</p>
+                    <p className="text-orange-600 font-bold text-xs sm:text-sm mt-1">${(parseFloat(p.precio) || 0).toFixed(2)} x Kg</p>
                     <p className="text-xs text-gray-500 mt-1">{p.categoria}</p>
                     {p.animal_origen && (
                       <div className="flex items-center gap-1 mt-1">
