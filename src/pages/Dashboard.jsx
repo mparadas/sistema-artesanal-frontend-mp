@@ -158,7 +158,13 @@ export default function Dashboard() {
       })
 
       setProductosStockBajo(bajoStock.slice(0, 5))
-      setUltimasVentas(ventas.slice(0, 5))
+      
+      // Ordenar ventas por fecha (más recientes primero) y tomar las primeras 5
+      const ventasOrdenadas = ventas
+        .filter(v => v.fecha) // Filtrar ventas con fecha válida
+        .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+        .slice(0, 5)
+      setUltimasVentas(ventasOrdenadas)
       
     } catch (error) {
       console.log('Error cargando datos:', error)
