@@ -35,17 +35,5 @@ const API_BASE_URL_DEV = 'http://localhost:10000/api'
 // Conexión para producción en Render
 const API_BASE_URL_RENDER = 'https://agromae-b.onrender.com/api'
 
-console.log('🔍 Configuración API:', {
-  isDevelopment,
-  isLocalhost,
-  isRenderProduction,
-  hostname: window.location.hostname,
-  API_BASE_URL,
-  IMAGES_BASE_URL,
-  API_BASE_URL_FALLBACK,
-  API_BASE_URL_DEV,
-  API_BASE_URL_RENDER
-})
-
 export default API_BASE_URL
 export { API_BASE_URL_FALLBACK, API_BASE_URL_DEV, API_BASE_URL_RENDER, IMAGES_BASE_URL }
