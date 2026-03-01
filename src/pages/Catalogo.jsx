@@ -583,17 +583,17 @@ export default function Catalogo() {
                     +
                   </span>
                 </button>
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/55 text-white px-3 py-1 rounded-full text-xs font-medium">
+                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-black/55 text-white px-2 py-0.5 rounded-full text-xs font-medium">
                   <span className="hidden sm:inline">Haz clic </span>
                   <span className="sm:hidden">Toca </span>
-                  izquierda - | derecha +
+                  <span className="text-xs">izq - | der +</span>
                 </div>
               </div>
               <div className="p-4 sm:p-4 space-y-3 sm:space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3">
                   <div className="flex-1 order-2 sm:order-1">
-                    <p className="font-semibold text-gray-800 text-base sm:text-base leading-tight">{p.nombre}</p>
-                    <p className="text-orange-600 font-bold text-base sm:text-base mt-1">${(parseFloat(p.precio) || 0).toFixed(2)}</p>
+                    <p className="font-semibold text-gray-800 text-sm sm:text-base leading-tight">{p.nombre}</p>
+                    <p className="text-orange-600 font-bold text-sm sm:text-base mt-1">${(parseFloat(p.precio) || 0).toFixed(2)}</p>
                     <p className="text-xs text-gray-500 mt-1">{p.categoria}</p>
                     {p.animal_origen && (
                       <div className="flex items-center gap-1 mt-1">
@@ -606,22 +606,22 @@ export default function Catalogo() {
                     <IconoProducto producto={p} className="text-2xl sm:text-5xl" />
                   </div>
                 </div>
-                <div className="flex items-center justify-between pt-2 sm:pt-0">
+                <div className="flex items-center justify-between pt-1 sm:pt-0">
                   <button
                     type="button"
                     onClick={() => cambiarCantidad(p.id, -1)}
-                    className="p-2 sm:p-2 rounded-lg bg-gray-100 hover:bg-gray-200"
+                    className="p-1.5 sm:p-2 rounded-lg bg-gray-100 hover:bg-gray-200"
                   >
-                    <Minus className="w-4 h-4 sm:w-4 sm:h-4" />
+                    <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
                   </button>
-                  <span className="font-bold text-xl sm:text-2xl min-w-10 sm:min-w-12 text-center text-orange-700">{cantidad}</span>
+                  <span className="font-bold text-lg sm:text-2xl min-w-8 sm:min-w-12 text-center text-orange-700">{cantidad}</span>
                   <button
                     type="button"
                     onClick={() => cambiarCantidad(p.id, 1)}
-                    className="p-2 sm:p-2 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200"
+                    className="p-1.5 sm:p-2 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200"
                     title="Aumentar cantidad"
                   >
-                    <Plus className="w-4 h-4 sm:w-4 sm:h-4" />
+                    <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                   </button>
                 </div>
               </div>
