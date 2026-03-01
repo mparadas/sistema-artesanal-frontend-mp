@@ -592,8 +592,8 @@ export default function Catalogo() {
               <div className="p-4 sm:p-4 space-y-3 sm:space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3">
                   <div className="flex-1 order-2 sm:order-1">
-                    <p className="font-semibold text-gray-800 text-sm sm:text-base leading-tight">{p.nombre}</p>
-                    <p className="text-orange-600 font-bold text-sm sm:text-base mt-1">${(parseFloat(p.precio) || 0).toFixed(2)}</p>
+                    <p className="font-bold text-gray-800 text-xs sm:text-sm leading-tight">{p.nombre}</p>
+                    <p className="text-orange-600 font-bold text-xs sm:text-sm mt-1">${(parseFloat(p.precio) || 0).toFixed(2)}</p>
                     <p className="text-xs text-gray-500 mt-1">{p.categoria}</p>
                     {p.animal_origen && (
                       <div className="flex items-center gap-1 mt-1">
@@ -610,18 +610,18 @@ export default function Catalogo() {
                   <button
                     type="button"
                     onClick={() => cambiarCantidad(p.id, -1)}
-                    className="p-1.5 sm:p-2 rounded-lg bg-gray-100 hover:bg-gray-200"
+                    className="p-1 sm:p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200"
                   >
-                    <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <Minus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                   </button>
-                  <span className="font-bold text-lg sm:text-2xl min-w-8 sm:min-w-12 text-center text-orange-700">{cantidad}</span>
+                  <span className="font-bold text-base sm:text-lg min-w-6 sm:min-w-8 text-center text-orange-700">{cantidad}</span>
                   <button
                     type="button"
                     onClick={() => cambiarCantidad(p.id, 1)}
-                    className="p-1.5 sm:p-2 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200"
+                    className="p-1 sm:p-1.5 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200"
                     title="Aumentar cantidad"
                   >
-                    <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <Plus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                   </button>
                 </div>
               </div>
