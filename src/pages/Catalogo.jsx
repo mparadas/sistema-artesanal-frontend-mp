@@ -222,15 +222,27 @@ const obtenerImagenAnimal = (producto) => {
 }
 
 const obtenerImagenProducto = (producto, idx) => {
+  // Debug: Ver qué datos tenemos
+  console.log('🔍 Producto:', {
+    nombre: producto?.nombre,
+    imagen_url: producto?.imagen_url,
+    animal_origen: producto?.animal_origen,
+    categoria: producto?.categoria
+  })
+  
   // Prioridad 1: Imagen personalizada del producto con procesamiento
   if (producto?.imagen_url) {
-    return getImageUrl(producto.imagen_url)
+    const processedUrl = getImageUrl(producto.imagen_url)
+    console.log('🖼️ Imagen personalizada procesada:', processedUrl)
+    return processedUrl
   }
 
   // Prioridad 2: Imagen según animal de origen
   const animal = String(producto?.animal_origen || '').toLowerCase()
   const nombre = String(producto?.nombre || '').toLowerCase()
   const categoria = String(producto?.categoria || '').toLowerCase()
+  
+  console.log('🔍 Buscando imagen para:', { nombre, animal, categoria })
   
   // Imágenes específicas por animal de origen
   const imagenesAnimales = {
@@ -245,11 +257,13 @@ const obtenerImagenProducto = (producto, idx) => {
   
   // Verificar si hay animal de origen específico
   if (imagenesAnimales[animal]) {
+    console.log('🐾 Imagen por animal:', imagenesAnimales[animal])
     return imagenesAnimales[animal]
   }
   
   // Detectar animal por nombre si no está en animal_origen
   if (nombre.includes('pollo') || nombre.includes('chicken')) {
+    console.log('🐔 Detectado pollo por nombre')
     return imagenesAnimales['pollo']
   }
   
@@ -257,6 +271,7 @@ const obtenerImagenProducto = (producto, idx) => {
   if (nombre.includes('lomo') || nombre.includes('costilla') || nombre.includes('chuleta') || 
       nombre.includes('panceta') || nombre.includes('tocino') || nombre.includes('matambre') ||
       nombre.includes('bondiola') || nombre.includes('paleta')) {
+    console.log('🐷 Detectado corte de cerdo')
     return imagenesAnimales['cerdo']
   }
   
@@ -264,26 +279,32 @@ const obtenerImagenProducto = (producto, idx) => {
   if (nombre.includes('bife') || nombre.includes('cuadril') || nombre.includes('picaña') || 
       nombre.includes('vacío') || nombre.includes('ojo de bife') || nombre.includes('tapa de cuadril') ||
       nombre.includes('lomo') || nombre.includes('carne') || nombre.includes('beef')) {
+    console.log('🐄 Detectado corte de res')
     return imagenesAnimales['res']
   }
   
   // General de cerdo
   if (nombre.includes('cerdo') || nombre.includes('cochino') || nombre.includes('puerco') || nombre.includes('chancho')) {
+    console.log('🐷 Detectado cerdo general')
     return imagenesAnimales['cerdo']
   }
   
   // General de res
   if (nombre.includes('res') || nombre.includes('vaca')) {
+    console.log('🐄 Detectado res general')
     return imagenesAnimales['res']
   }
   
   if (nombre.includes('cordero') || nombre.includes('oveja') || nombre.includes('lamb')) {
+    console.log('🐑 Detectado cordero')
     return imagenesAnimales['cordero']
   }
   if (nombre.includes('pescado') || nombre.includes('fish')) {
+    console.log('🐟 Detectado pescado')
     return imagenesAnimales['pescado']
   }
   if (nombre.includes('camarón') || nombre.includes('shrimp')) {
+    console.log('🦐 Detectado camarón')
     return imagenesAnimales['camarón']
   }
 
@@ -317,9 +338,13 @@ const obtenerImagenProducto = (producto, idx) => {
 
   const texto = `${nombre} ${categoria}`
   const match = referencias.find((r) => r.test.test(texto))
-  if (match?.url) return match.url
+  if (match?.url) {
+    console.log('🥩 Imagen por referencia:', match.url)
+    return match.url
+  }
 
   // Prioridad 4: Imagen genérica de comida
+  console.log('🍽️ Usando imagen genérica')
   return `https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop&crop=center`
 }
 
