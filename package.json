@@ -4,13 +4,12 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node_modules/.bin/vite --host",
-    "dev-local": "node_modules/.bin/vite --host 192.168.100.224",
-    "build": "node_modules/.bin/vite build",
+    "dev": "vite --host",
+    "dev-local": "vite --host 192.168.100.224",
+    "build": "vite build",
     "lint": "eslint .",
-    "preview": "node_modules/.bin/vite preview",
-    "start": "npm run dev",
-    "postinstall": "chmod +x node_modules/.bin/*"
+    "preview": "vite preview",
+    "start": "npm run dev"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.1.4",
