@@ -42,7 +42,7 @@ const obtenerIconoProducto = (producto) => {
   
   // Hamburguesa
   if (nombre.includes('hamburguesa') || nombre.includes('hamburgues') || categoria.includes('hamburgues')) {
-    return '🥩'
+    return '🍔'
   }
   
   // Default genérico
