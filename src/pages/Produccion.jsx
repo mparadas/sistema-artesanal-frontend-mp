@@ -132,7 +132,7 @@ export default function Produccion() {
       }
       
     } catch (e) { 
-      console.error('Error en cargarDatos:', e)
+      // console.error('Error en cargarDatos:', e)
       setMensaje('❌ Error al sincronizar datos') 
       setTimeout(() => setMensaje(''), 3000)
     }

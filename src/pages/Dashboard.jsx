@@ -24,7 +24,6 @@ import API_URL from '../config'
 import { useNavigate } from 'react-router-dom'
 
 export default function Dashboard() {
-  console.log('Dashboard: Componente montado')
   const navigate = useNavigate()
   const [stats, setStats] = useState({
     // Productos
@@ -167,7 +166,7 @@ export default function Dashboard() {
       setUltimasVentas(ventasOrdenadas)
       
     } catch (error) {
-      console.log('Error cargando datos:', error)
+      setMensaje('❌ Error al cargar datos')
     } finally {
       setCargando(false)
     }

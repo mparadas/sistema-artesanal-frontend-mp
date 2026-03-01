@@ -17,7 +17,6 @@ const getRolBadge = (rol) => {
 }
 
 export default function Usuarios() {
-  console.log('Usuarios: Componente montado')
   const [usuarios, setUsuarios] = useState([])
   const [cargando, setCargando] = useState(false)
   const [mensaje, setMensaje] = useState('')
