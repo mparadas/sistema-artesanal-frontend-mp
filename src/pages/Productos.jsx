@@ -238,7 +238,10 @@ export default function Productos() {
 
       const response = await fetch(`${API_URL}/productos`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({
           nombre: nuevoProducto.nombre,
           categoria: nuevoProducto.categoria,
