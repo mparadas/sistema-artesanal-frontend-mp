@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { BookOpen, Minus, Plus, User, Send, Search, ListFilter, Trash2, Phone, Mail, ShieldCheck } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import API_URL from '../config'
+import { getImageUrl } from '../utils/imageUtils'
 
 // Función para obtener icono según tipo de producto
 const obtenerIconoProducto = (producto) => {
@@ -221,8 +222,10 @@ const obtenerImagenAnimal = (producto) => {
 }
 
 const obtenerImagenProducto = (producto, idx) => {
-  // Prioridad 1: Imagen personalizada del producto
-  if (producto?.imagen_url) return producto.imagen_url
+  // Prioridad 1: Imagen personalizada del producto con procesamiento
+  if (producto?.imagen_url) {
+    return getImageUrl(producto.imagen_url)
+  }
 
   // Prioridad 2: Imagen según animal de origen
   const animal = String(producto?.animal_origen || '').toLowerCase()
