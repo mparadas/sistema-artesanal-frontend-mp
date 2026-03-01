@@ -70,35 +70,20 @@ export default function Ingredientes() {
   })
 
   const cargarIngredientes = async () => {
-    setCargando(true)
     try {
       const response = await fetch(`${API_URL}/ingredientes`)
       const data = await response.json()
-      console.log('🔍 Datos recibidos de API:', data)
       
       // Convertir strings a números
-      const datosConvertidos = data.map(ing => {
-        console.log(`🔍 Ingrediente ${ing.id}:`, {
-          nombre: ing.nombre,
-          categoria: ing.categoria,
-          unidad: ing.unidad,
-          stock: ing.stock,
-          stock_minimo: ing.stock_minimo,
-          costo: ing.costo
-        })
-        
-        return {
-          ...ing,
-          stock: parseFloat(ing.stock) || 0,
-          stock_minimo: parseFloat(ing.stock_minimo) || 0,
-          costo: parseFloat(ing.costo) || 0
-        }
-      })
-      console.log('🔍 Datos convertidos:', datosConvertidos)
+      const datosConvertidos = data.map(ing => ({
+        ...ing,
+        stock: parseFloat(ing.stock) || 0,
+        stock_minimo: parseFloat(ing.stock_minimo) || 0,
+        costo: parseFloat(ing.costo) || 0
+      }))
       
       setIngredientes(datosConvertidos)
     } catch (error) {
-      console.error('🔍 Error al cargar ingredientes:', error)
       setMensaje('❌ Error al cargar ingredientes')
     } finally {
       setCargando(false)
@@ -124,7 +109,6 @@ export default function Ingredientes() {
   }
 
   const abrirFormularioEdicion = (ingrediente) => {
-    console.log('🔍 Editando ingrediente:', ingrediente)
     setModoEdicion(true)
     setIngredienteEditando(ingrediente)
     const formDataActualizado = {
@@ -139,9 +123,6 @@ export default function Ingredientes() {
             ? ''
             : (ingrediente.cava_cuarto || '')
     }
-    console.log('🔍 FormData para edición:', formDataActualizado)
-    console.log('🔍 Categoría del ingrediente:', ingrediente.categoria)
-    console.log('🔍 Categoría en formData:', formDataActualizado.categoria)
     setFormData(formDataActualizado)
     setMostrarForm(true)
   }
@@ -188,8 +169,6 @@ export default function Ingredientes() {
           : 'Anaquel'
       }
       
-      console.log('🔍 Guardando ingrediente:', { modoEdicion, url, method, bodyData })
-      
       const response = await fetch(url, {
         method,
         headers: construirHeaders(true),
@@ -216,11 +195,9 @@ export default function Ingredientes() {
         setTimeout(() => setMensaje(''), 3000)
       } else {
         const errorData = await response.json()
-        console.error('🔍 Error al guardar:', errorData)
         setMensaje('❌ ' + (errorData.error || 'Error al guardar'))
       }
     } catch (error) {
-      console.error('🔍 Error en guardar:', error)
       setMensaje('❌ Error al guardar')
     }
   }
