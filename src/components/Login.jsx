@@ -4,6 +4,12 @@ import { KeyRound, ShoppingCart, Eye, EyeOff, User, Lock, ArrowRight, Sparkles }
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://agromae-b.onrender.com/api'
 
+const API_URLS = [
+  'https://agromae-b.onrender.com/api',
+  'http://localhost:3001/api',
+  'https://agromae-backend.onrender.com/api'
+]
+
 // ============================================
 // COMPONENTE LOGIN MEJORADO
 // ============================================
@@ -24,24 +30,38 @@ function Login({ onLogin }) {
     }
     setCargando(true)
     setError('')
+    
     try {
-      const r = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuario: usuario.trim(), password })
-      })
-      const data = await r.json()
-      if (!r.ok) { 
-        setError(data.error || 'Error al iniciar sesión'); 
-        return 
+      // Try multiple API URLs
+      for (const apiUrl of API_URLS) {
+        try {
+          const r = await fetch(`${apiUrl}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario: usuario.trim(), password })
+          })
+          
+          if (r.ok) {
+            const data = await r.json()
+            // Guardar sesión
+            localStorage.setItem('token', data.token)
+            localStorage.setItem('usuario', JSON.stringify(data))
+            onLogin(data)
+            navigate('/')
+            return
+          } else {
+            const data = await r.json()
+            setError(data.error || 'Error al iniciar sesión')
+            return
+          }
+        } catch (error) {
+          console.log(`Intentando con ${apiUrl}...`)
+          continue // Try next URL
+        }
       }
-      // Guardar sesión
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('usuario', JSON.stringify(data))
-      onLogin(data)
-      navigate('/')
-    } catch {
-      setError('No se pudo conectar con el servidor')
+      
+      // If all URLs failed
+      setError('No se pudo conectar con el servidor. Por favor, verifica tu conexión o intenta más tarde.')
     } finally {
       setCargando(false)
     }
