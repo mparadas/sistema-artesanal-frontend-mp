@@ -14,16 +14,5 @@ const isProduction = window.location.hostname.includes('vercel.app') ||
 
 const FINAL_API_URL = isProduction ? API_BASE_URL_RENDER : API_BASE_URL
 
-console.log('🔍 Configuración API - HARDCODE:', {
-  hostname: window.location.hostname,
-  isProduction,
-  API_BASE_URL: FINAL_API_URL,
-  IMAGES_BASE_URL,
-  API_BASE_URL_FALLBACK,
-  API_BASE_URL_DEV,
-  API_BASE_URL_RENDER,
-  timestamp: new Date().toISOString()
-})
-
 export default FINAL_API_URL
 export { API_BASE_URL_FALLBACK, API_BASE_URL_DEV, API_BASE_URL_RENDER, IMAGES_BASE_URL }
