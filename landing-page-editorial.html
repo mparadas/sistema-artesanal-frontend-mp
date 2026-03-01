@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGROMAE - Edición 01 | Otoño 2024</title>
+    <meta name="description" content="El almanaque del carnicero moderno. Embutidos artesanales de la matanza al vacío.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Space+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS Variables */
+        :root {
+            --papel: #F7F5F0;
+            --tinta: #1A1A1A;
+            --rojo-oxido: #8B2635;
+            --gris-claro: #E8E6E0;
+            --gris-medio: #A8A5A0;
+            --gris-oscuro: #4A4845;
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Reset y Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            background: var(--papel);
+        }
+
+        body {
+            font-family: 'Crimson Text', serif;
+            line-height: 1.6;
+            color: var(--tinta);
+            background: var(--papel);
+            cursor: none;
+            overflow-x: hidden;
+        }
+
+        /* Cursor personalizado */
+        .cursor {
+            position: fixed;
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--tinta);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transition: transform 0.2s ease;
+            mix-blend-mode: difference;
+        }
+
+        .cursor.hover {
+            transform: scale(2);
+            background: var(--rojo-oxido);
+            border-color: var(--rojo-oxido);
+        }
+
+        /* Skip to Content */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--rojo-oxido);
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            border-radius: 0 0 4px 0;
+            z-index: 100;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        /* Sección 1: Portada de Revista */
+        .portada {
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(45deg, var(--papel) 0%, var(--gris-claro) 100%);
+            overflow: hidden;
+        }
+
+        .portada::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(26, 26, 26, 0.03) 2px,
+                    rgba(26, 26, 26, 0.03) 4px
+                );
+            pointer-events: none;
+        }
+
+        .masthead {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            font-size: clamp(3rem, 8vw, 6rem);
+            letter-spacing: -0.02em;
+            color: var(--tinta);
+            z-index: 10;
+        }
+
+        .edicion {
+            position: absolute;
+            top: 120px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--gris-medio);
+            letter-spacing: 0.1em;
+        }
+
+        .imagen-principal {
+            width: 80%;
+            max-width: 800px;
+            height: 60vh;
+            background: url('https://images.unsplash.com/photo-1603052076575-1e1f6e3e0a9b?auto=format&fit=crop&w=1200&q=80') center/cover;
+            position: relative;
+            border-radius: 2px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            transform: rotate(-1deg);
+        }
+
+        .imagen-principal::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, 
+                transparent 0%, 
+                transparent 60%, 
+                var(--rojo-oxido) 61%, 
+                var(--rojo-oxido) 65%, 
+                transparent 66%);
+            mix-blend-mode: multiply;
+        }
+
+        .headline-vertical {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%) rotate(-90deg);
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--rojo-oxido);
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--gris-medio);
+            animation: bounce 2s infinite;
+        }
+
+        .scroll-indicator::after {
+            content: '↓';
+            display: block;
+            margin-top: 10px;
+            font-size: 1.2rem;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+            40% { transform: translateX(-50%) translateY(-10px); }
+            60% { transform: translateX(-50%) translateY(-5px); }
+        }
+
+        /* Sección 2: Editorial */
+        .editorial {
+            min-height: 100vh;
+            padding: 120px 60px;
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .editorial::before {
+            content: '';
+            position: absolute;
+            left: 33%;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: var(--gris-medio);
+            opacity: 0.3;
+        }
+
+        .editorial::after {
+            content: '';
+            position: absolute;
+            left: 66%;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: var(--gris-medio);
+            opacity: 0.3;
+        }
+
+        .columna {
+            position: relative;
+        }
+
+        .columna h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--tinta);
+        }
+
+        .columna p {
+            text-align: justify;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--gris-oscuro);
+        }
+
+        .columna p:first-of-type::first-letter {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem;
+            font-weight: 700;
+            float: left;
+            line-height: 0.8;
+            margin-right: 8px;
+            margin-top: -4px;
+            color: var(--rojo-oxido);
+        }
+
+        .foto-central {
+            width: 100%;
+            height: 400px;
+            background: url('https://images.unsplash.com/photo-1589483717202-0416962161f0?auto=format&fit=crop&w=600&q=80&sat=0') center/cover;
+            filter: grayscale(100%);
+            border-radius: 2px;
+            margin: 40px 0;
+            transform: rotate(1deg);
+        }
+
+        /* Sección 3: Ficha Técnica */
+        .ficha-tecnica {
+            min-height: 100vh;
+            padding: 80px 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gris-claro);
+        }
+
+        .ficha-contenido {
+            max-width: 800px;
+            width: 100%;
+            background: var(--papel);
+            padding: 60px;
+            border: 1px solid var(--gris-medio);
+            position: relative;
+        }
+
+        .ficha-contenido::before {
+            content: '';
+            position: absolute;
+            inset: 20px;
+            border: 1px solid var(--gris-medio);
+            opacity: 0.3;
+        }
+
+        .ficha-titulo {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 40px;
+            color: var(--tinta);
+        }
+
+        .ficha-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .ficha-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--gris-medio);
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .ficha-item:nth-child(1) { animation-delay: 0.1s; }
+        .ficha-item:nth-child(2) { animation-delay: 0.2s; }
+        .ficha-item:nth-child(3) { animation-delay: 0.3s; }
+        .ficha-item:nth-child(4) { animation-delay: 0.4s; }
+        .ficha-item:nth-child(5) { animation-delay: 0.5s; }
+        .ficha-item:nth-child(6) { animation-delay: 0.6s; }
+
+        .ficha-label {
+            color: var(--gris-medio);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .ficha-valor {
+            color: var(--tinta);
+            font-weight: 600;
+        }
+
+        /* Sección 4: Galería */
+        .galeria {
+            min-height: 100vh;
+            padding: 80px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .galeria-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            height: 80vh;
+        }
+
+        .galeria-item {
+            position: absolute;
+            border-radius: 2px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: var(--transition);
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .galeria-item:hover {
+            transform: rotate(0deg) scale(1.1) !important;
+            z-index: 100;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+        }
+
+        .galeria-item:hover img {
+            filter: grayscale(0%);
+        }
+
+        .galeria-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%);
+            transition: var(--transition);
+        }
+
+        .galeria-caption {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 0.9rem;
+            color: white;
+            background: rgba(0,0,0,0.7);
+            padding: 5px 10px;
+            border-radius: 2px;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .galeria-item:hover .galeria-caption {
+            opacity: 1;
+        }
+
+        /* Posiciones aleatorias para galería */
+        .galeria-item:nth-child(1) {
+            width: 300px;
+            height: 200px;
+            top: 10%;
+            left: 5%;
+            transform: rotate(-3deg);
+            z-index: 3;
+        }
+
+        .galeria-item:nth-child(2) {
+            width: 250px;
+            height: 350px;
+            top: 5%;
+            right: 10%;
+            transform: rotate(2deg);
+            z-index: 2;
+        }
+
+        .galeria-item:nth-child(3) {
+            width: 400px;
+            height: 250px;
+            top: 40%;
+            left: 30%;
+            transform: rotate(-1deg);
+            z-index: 4;
+        }
+
+        .galeria-item:nth-child(4) {
+            width: 200px;
+            height: 200px;
+            bottom: 15%;
+            left: 8%;
+            transform: rotate(1deg);
+            z-index: 5;
+        }
+
+        .galeria-item:nth-child(5) {
+            width: 350px;
+            height: 220px;
+            bottom: 20%;
+            right: 5%;
+            transform: rotate(-2deg);
+            z-index: 3;
+        }
+
+        /* Sección 5: Acceso */
+        .acceso {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: linear-gradient(135deg, var(--papel) 0%, var(--gris-claro) 100%);
+        }
+
+        .circulo-acceso {
+            width: 80px;
+            height: 80px;
+            border: 2px solid var(--tinta);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            z-index: 10;
+        }
+
+        .circulo-acceso:hover {
+            transform: scale(1.1);
+            background: var(--rojo-oxido);
+            border-color: var(--rojo-oxido);
+            color: white;
+        }
+
+        .circulo-acceso::after {
+            content: '→';
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .menu-circular {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            pointer-events: none;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .menu-circular.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .menu-item {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--papel);
+            border: 1px solid var(--tinta);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            color: var(--tinta);
+        }
+
+        .menu-item:hover {
+            background: var(--rojo-oxido);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .menu-item:nth-child(1) {
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(-150px);
+        }
+
+        .menu-circular.active .menu-item:nth-child(1) {
+            transform: translateX(-50%) translateY(-150px) scale(1);
+        }
+
+        .menu-item:nth-child(2) {
+            top: 50%;
+            right: 0;
+            transform: translateX(150px) translateY(-50%);
+        }
+
+        .menu-circular.active .menu-item:nth-child(2) {
+            transform: translateX(150px) translateY(-50%) scale(1);
+        }
+
+        .menu-item:nth-child(3) {
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(150px);
+        }
+
+        .menu-circular.active .menu-item:nth-child(3) {
+            transform: translateX(-50%) translateY(150px) scale(1);
+        }
+
+        .menu-item:nth-child(4) {
+            top: 50%;
+            left: 0;
+            transform: translateX(-150px) translateY(-50%);
+        }
+
+        .menu-circular.active .menu-item:nth-child(4) {
+            transform: translateX(-150px) translateY(-50%) scale(1);
+        }
+
+        /* Animaciones */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Modo Impresión */
+        .modo-impresion {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--tinta);
+            color: var(--papel);
+            border: none;
+            padding: 10px 15px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            cursor: pointer;
+            z-index: 1000;
+            border-radius: 2px;
+        }
+
+        body.print-mode {
+            background: white !important;
+            color: black !important;
+        }
+
+        body.print-mode * {
+            animation: none !important;
+            transition: none !important;
+            filter: none !important;
+        }
+
+        body.print-mode .galeria-item {
+            position: static !important;
+            transform: none !important;
+            display: inline-block;
+            margin: 10px;
+        }
+
+        body.print-mode .menu-circular {
+            display: none !important;
+        }
+
+        body.print-mode .circulo-acceso {
+            display: none !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .editorial {
+                grid-template-columns: 1fr;
+                padding: 60px 30px;
+                gap: 30px;
+            }
+
+            .editorial::before,
+            .editorial::after {
+                display: none;
+            }
+
+            .masthead {
+                font-size: clamp(2rem, 6vw, 4rem);
+            }
+
+            .imagen-principal {
+                width: 90%;
+                height: 40vh;
+            }
+
+            .ficha-contenido {
+                padding: 30px;
+            }
+
+            .ficha-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .galeria-item {
+                position: static !important;
+                transform: none !important;
+                width: 100% !important;
+                height: 200px !important;
+                margin: 10px 0;
+            }
+
+            .menu-circular {
+                width: 250px;
+                height: 250px;
+            }
+
+            .menu-item {
+                width: 80px;
+                height: 80px;
+                font-size: 0.7rem;
+            }
+        }
+
+        /* Accesibilidad */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        .focus-visible {
+            outline: 3px solid var(--rojo-oxido);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Skip to Content -->
+    <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
+
+    <!-- Cursor Personalizado -->
+    <div class="cursor" id="cursor"></div>
+
+    <!-- Botón Modo Impresión -->
+    <button class="modo-impresion" onclick="togglePrintMode()">Modo Impresión</button>
+
+    <!-- Sección 1: Portada de Revista -->
+    <section class="portada" aria-labelledby="masthead">
+        <div class="masthead" id="masthead">AGROMAE</div>
+        <div class="edicion">EDICIÓN 01 | OTOÑO 2024</div>
+        <div class="imagen-principal" role="img" aria-label="Manos trabajando carne artesanalmente"></div>
+        <div class="headline-vertical">De la matanza al vacío</div>
+        <div class="scroll-indicator">Abrir revista</div>
+    </section>
+
+    <!-- Sección 2: Editorial -->
+    <section class="editorial" id="main-content" aria-labelledby="editorial-title">
+        <div class="columna">
+            <h2 id="mision-title">Misión</h2>
+            <p>
+                En nuestra finca criamos con respeto y dedicación, convencidos de que la calidad comienza desde el origen. Elaboramos embutidos artesanales naturales cuidando cada detalle: la alimentación y bienestar de nuestros animales, la frescura de la carne, la selección de especias y condimentos naturales, y un proceso hecho con paciencia y pasión.
+            </p>
+            <p>
+                Empacamos al vacío para conservar intacto el sabor y la calidad, llevando a cada hogar un producto auténtico, saludable y lleno de tradición.
+            </p>
+        </div>
+        
+        <div class="columna">
+            <div class="foto-central" role="img" aria-label="Cerdos en pastoreo natural"></div>
+        </div>
+        
+        <div class="columna">
+            <h2 id="vision-title">Visión</h2>
+            <p>
+                Queremos ser más que una marca: aspiramos a convertirnos en una tradición en la mesa de nuestros clientes. Soñamos con crecer manteniendo nuestra esencia artesanal, el respeto por la naturaleza y el compromiso con la excelencia.
+            </p>
+            <p>
+                Buscamos que cada embutido que elaboramos sea sinónimo de confianza, frescura y amor por lo que hacemos, fortaleciendo el vínculo entre el campo y la familia.
+            </p>
+        </div>
+    </section>
+
+    <!-- Sección 3: Ficha Técnica -->
+    <section class="ficha-tecnica" aria-labelledby="ficha-title">
+        <div class="ficha-contenido">
+            <h2 class="ficha-titulo" id="ficha-title">ESPECIFICACIONES</h2>
+            <div class="ficha-grid">
+                <div class="ficha-item">
+                    <span class="ficha-label">Origen</span>
+                    <span class="ficha-valor">Finca Santa María</span>
+                </div>
+                <div class="ficha-item">
+                    <span class="ficha-label">Raza</span>
+                    <span class="ficha-valor">Duroc x Ibérico</span>
+                </div>
+                <div class="ficha-item">
+                    <span class="ficha-label">Alimentación</span>
+                    <span class="ficha-valor">Pasto y bellota</span>
+                </div>
+                <div class="ficha-item">
+                    <span class="ficha-label">Proceso</span>
+                    <span class="ficha-valor">Curación natural 45 días</span>
+                </div>
+                <div class="ficha-item">
+                    <span class="ficha-label">Envasado</span>
+                    <span class="ficha-valor">Vacio al vacío</span>
+                </div>
+                <div class="ficha-item">
+                    <span class="ficha-label">Vida útil</span>
+                    <span class="ficha-valor">90 días</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección 4: Galería -->
+    <section class="galeria" aria-labelledby="galeria-title">
+        <h2 id="galeria-title" class="sr-only">Galería de Productos</h2>
+        <div class="galeria-container">
+            <div class="galeria-item">
+                <img src="https://images.unsplash.com/photo-1603052076575-1e1f6e3e0a9b?auto=format&fit=crop&w=400&q=80" alt="Embutido artesanal">
+                <div class="galeria-caption">Chorizo tradicional</div>
+            </div>
+            <div class="galeria-item">
+                <img src="https://images.unsplash.com/photo-1589483717202-0416962161f0?auto=format&fit=crop&w=400&q=80" alt="Proceso de curación">
+                <div class="galeria-caption">Curación natural</div>
+            </div>
+            <div class="galeria-item">
+                <img src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=400&q=80" alt="Tabla de embutidos">
+                <div class="galeria-caption">Selección artesanal</div>
+            </div>
+            <div class="galeria-item">
+                <img src="https://images.unsplash.com/photo-1551782450-a2132b4ba21d?auto=format&fit=crop&w=400&q=80" alt="Jamón artesanal">
+                <div class="galeria-caption">Jamón de campo</div>
+            </div>
+            <div class="galeria-item">
+                <img src="https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?auto=format&fit=crop&w=400&q=80" alt="Especias naturales">
+                <div class="galeria-caption">Especias seleccionadas</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección 5: Acceso -->
+    <section class="acceso" aria-labelledby="acceso-title">
+        <h2 id="acceso-title" class="sr-only">Menú de Acceso</h2>
+        <div class="circulo-acceso" onclick="toggleMenu()" aria-label="Abrir menú de acceso"></div>
+        <div class="menu-circular" id="menuCircular">
+            <a href="#catalogo" class="menu-item">Catálogo</a>
+            <a href="#login" class="menu-item">Login Mayoristas</a>
+            <a href="#rastrear" class="menu-item">Rastrear Pedido</a>
+            <a href="#contacto" class="menu-item">Contacto</a>
+        </div>
+    </section>
+
+    <!-- JavaScript -->
+    <script>
+        // Cursor personalizado
+        const cursor = document.getElementById('cursor');
+        let mouseX = 0, mouseY = 0;
+        let cursorX = 0, cursorY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        function animateCursor() {
+            const speed = 0.1;
+            cursorX += (mouseX - cursorX) * speed;
+            cursorY += (mouseY - cursorY) * speed;
+            
+            cursor.style.left = cursorX - 12 + 'px';
+            cursor.style.top = cursorY - 12 + 'px';
+            
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        // Hover effect para cursor
+        document.querySelectorAll('a, button, .galeria-item').forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+        });
+
+        // Menú circular
+        let menuOpen = false;
+        function toggleMenu() {
+            const menu = document.getElementById('menuCircular');
+            menuOpen = !menuOpen;
+            menu.classList.toggle('active');
+        }
+
+        // Cerrar menú al hacer click fuera
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.circulo-acceso') && !e.target.closest('.menu-circular')) {
+                document.getElementById('menuCircular').classList.remove('active');
+                menuOpen = false;
+            }
+        });
+
+        // Modo impresión
+        function togglePrintMode() {
+            document.body.classList.toggle('print-mode');
+            const btn = document.querySelector('.modo-impresion');
+            btn.textContent = document.body.classList.contains('print-mode') ? 'Modo Normal' : 'Modo Impresión';
+        }
+
+        // Scroll suave con parallax
+        let lastScroll = 0;
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+            const delta = currentScroll - lastScroll;
+            
+            // Parallax effect para imágenes
+            document.querySelectorAll('.imagen-principal, .foto-central').forEach(img => {
+                const speed = 0.5;
+                const yPos = -(currentScroll * speed);
+                img.style.transform = `translateY(${yPos}px)`;
+            });
+            
+            lastScroll = currentScroll;
+        });
+
+        // Intersection Observer para animaciones
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observar elementos para animación
+        document.addEventListener('DOMContentLoaded', () => {
+            const fadeElements = document.querySelectorAll('.ficha-item');
+            fadeElements.forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(30px)';
+                observer.observe(el);
+            });
+        });
+
+        // Navegación por teclado
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                document.body.classList.add('keyboard-nav');
+            }
+        });
+
+        document.addEventListener('mousedown', () => {
+            document.body.classList.remove('keyboard-nav');
+        });
+
+        // Prevenir scroll hijacking en mobile
+        if (window.innerWidth <= 768) {
+            document.documentElement.style.scrollBehavior = 'auto';
+        }
+
+        // Lazy loading para imágenes
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src || img.src;
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+
+            document.querySelectorAll('img').forEach(img => {
+                imageObserver.observe(img);
+            });
+        }
+    </script>
+</body>
+</html>
