@@ -84,7 +84,10 @@ export default function Produccion() {
       }
       return await res.json()
     } catch (error) {
-      console.warn(`Error fetching ${url}:`, error)
+      // Solo mostrar error si no es un 404 (que es esperado para config-proteinas)
+      if (!error.message.includes('404')) {
+        console.warn(`Error fetching ${url}:`, error)
+      }
       return null
     }
   }
@@ -118,7 +121,6 @@ export default function Produccion() {
       
       // Extraer categorías únicas de los productos
       const categoriasUnicas = [...new Set(productosData.map(p => p.categoria))].sort()
-      console.log('🔍 Categorías únicas encontradas:', categoriasUnicas)
       
       setRecetas(recetasData)
       setIngredientes(ingredientesData)
@@ -127,9 +129,9 @@ export default function Produccion() {
       setConfigProteinas(configData || []) // Si es null, usa array vacío
       setCategorias(categoriasUnicas)
       
-      // Si config-proteinas no existe, mostrar mensaje informativo una sola vez
+      // Si config-proteinas no existe, no mostrar mensaje en consola (es normal)
       if (configData === null && esAdmin) {
-        console.info('ℹ️ Endpoint config-proteinas no disponible (404). Usando valores por defecto.')
+        // El endpoint no existe, pero eso es normal - usar valores por defecto
       }
       
     } catch (e) { 
