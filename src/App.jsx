@@ -317,17 +317,19 @@ function Login({ onLogin }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white/95 rounded-2xl border border-orange-100 p-5 shadow-sm">
-            <h2 className="text-xl font-bold text-orange-700 mb-2">Mision</h2>
+            <h2 className="text-xl font-bold text-orange-700 mb-2">Misión</h2>
             <p className="text-gray-600">
-              Ofrecer productos artesanales frescos y de alta calidad, gestionando cada etapa con
-              eficiencia para brindar una experiencia confiable a clientes y aliados.
+              En nuestra finca criamos con respeto y dedicación, convencidos de que la calidad comienza desde el origen. Elaboramos embutidos artesanales naturales cuidando cada detalle: la alimentación y bienestar de nuestros animales, la frescura de la carne, la selección de especias y condimentos naturales, y un proceso hecho con paciencia y pasión.
+              <br /><br />
+              Empacamos al vacío para conservar intacto el sabor y la calidad, llevando a cada hogar un producto auténtico, saludable y lleno de tradición.
             </p>
           </div>
           <div className="bg-white/95 rounded-2xl border border-orange-100 p-5 shadow-sm">
-            <h2 className="text-xl font-bold text-orange-700 mb-2">Vision</h2>
+            <h2 className="text-xl font-bold text-orange-700 mb-2">Visión</h2>
             <p className="text-gray-600">
-              Ser referencia regional en produccion y comercializacion artesanal, combinando
-              tradicion, tecnologia y servicio para crecer de forma sostenible.
+              Queremos ser más que una marca: aspiramos a convertirnos en una tradición en la mesa de nuestros clientes. Soñamos con crecer manteniendo nuestra esencia artesanal, el respeto por la naturaleza y el compromiso con la excelencia.
+              <br /><br />
+              Buscamos que cada embutido que elaboramos sea sinónimo de confianza, frescura y amor por lo que hacemos, fortaleciendo el vínculo entre el campo y la familia.
             </p>
           </div>
         </div>
