@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Package, RefreshCw, AlertTriangle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import API_URL from '../config'
+import { getImageUrl } from '../utils/imageUtils'
 
 const imagenFallback = 'https://placehold.co/320x220/F97316/FFFFFF?text=Producto'
 
@@ -149,7 +150,7 @@ export default function ProductosDisponibles() {
               return (
                 <div key={p.id} className="bg-white rounded-xl border border-gray-100 shadow p-3 sm:p-4 flex items-center gap-3">
                   <img
-                    src={p?.imagen_url || imagenFallback}
+                    src={getImageUrl(p?.imagen_url) || imagenFallback}
                     alt={p?.nombre || 'Producto'}
                     className="w-14 h-14 sm:w-16 sm:h-16 rounded object-cover border shrink-0"
                     onError={(e) => { e.currentTarget.src = imagenFallback }}
