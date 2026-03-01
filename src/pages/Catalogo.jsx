@@ -584,7 +584,9 @@ export default function Catalogo() {
                   </span>
                 </button>
                 <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/55 text-white px-3 py-1 rounded-full text-xs font-medium">
-                  Toca izquierda - | derecha +
+                  <span className="hidden sm:inline">Haz clic </span>
+                  <span className="sm:hidden">Toca </span>
+                  izquierda - | derecha +
                 </div>
               </div>
               <div className="p-4 space-y-3">
