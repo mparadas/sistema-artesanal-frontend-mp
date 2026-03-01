@@ -32,14 +32,27 @@ function Login({ onLogin }) {
     setError('')
     
     try {
-      // Try multiple API URLs
+      // Configurar timeout de 8 segundos por intento
+      const TIMEOUT = 8000 // 8 segundos en lugar de 30
+      
+      // Try multiple API URLs con timeout personalizado
       for (const apiUrl of API_URLS) {
         try {
-          const r = await fetch(`${apiUrl}/auth/login`, {
+          console.log(`Intentando con ${apiUrl}...`)
+          
+          // Crear Promise con timeout
+          const fetchPromise = fetch(`${apiUrl}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ usuario: usuario.trim(), password })
           })
+          
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Timeout')), TIMEOUT)
+          })
+          
+          // Race entre fetch y timeout
+          const r = await Promise.race([fetchPromise, timeoutPromise])
           
           if (r.ok) {
             const data = await r.json()
@@ -55,7 +68,10 @@ function Login({ onLogin }) {
             return
           }
         } catch (error) {
-          console.log(`Intentando con ${apiUrl}...`)
+          console.log(`Error con ${apiUrl}: ${error.message}`)
+          if (error.message === 'Timeout') {
+            console.log(`Timeout de ${TIMEOUT/1000}s para ${apiUrl}`)
+          }
           continue // Try next URL
         }
       }
