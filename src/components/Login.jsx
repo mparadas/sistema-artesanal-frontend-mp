@@ -177,7 +177,7 @@ function Login({ onLogin }) {
                   <div className="bg-white/80 backdrop-blur p-4 rounded-2xl border border-orange-100 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                     <h3 className="text-lg font-bold text-orange-700 mb-2 flex items-center gap-2">
                       <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
-                      Misión
+                    Misión
                     </h3>
                     <p className="text-gray-600 text-sm leading-relaxed">
                       En nuestra finca criamos animales con respeto y dedicación, convencidos de que la calidad de nuestros productos comienza desde su origen. Realizamos los más ricos cortes y elaboramos una variedad de embutidos naturales de forma artesanal cuidando cada detalle en su proceso hechos con paciencia y pasión.
@@ -189,7 +189,7 @@ function Login({ onLogin }) {
                   <div className="bg-white/80 backdrop-blur p-4 rounded-2xl border border-amber-100 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                     <h3 className="text-lg font-bold text-amber-700 mb-2 flex items-center gap-2">
                       <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-                      Visión
+                    Visión
                     </h3>
                     <p className="text-gray-600 text-sm leading-relaxed">
                       Aspiramos a convertirnos en una tradición en la mesa de nuestros clientes. Soñamos con crecer manteniendo nuestra esencia artesanal, el respeto por la naturaleza y el compromiso con lo natural.
