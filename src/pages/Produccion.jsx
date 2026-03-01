@@ -117,10 +117,8 @@ export default function Produccion() {
       // Cargar config de proteínas (opcional - si falla, usa array vacío)
       const configData = await fetchConManejo(`${API_URL}/produccion/config-proteinas`)
       
-      
       // Extraer categorías únicas de los productos
       const categoriasUnicas = [...new Set(productosData.map(p => p.categoria))].sort()
-      
       setRecetas(recetasData)
       setIngredientes(ingredientesData)
       setProductos(productosData)

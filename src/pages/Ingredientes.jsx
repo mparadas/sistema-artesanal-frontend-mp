@@ -118,10 +118,10 @@ export default function Ingredientes() {
       stock: ingrediente.stock !== undefined ? String(ingrediente.stock) : '',
       stock_minimo: ingrediente.stock_minimo !== undefined ? String(ingrediente.stock_minimo) : '10',
       costo: ingrediente.costo !== undefined ? String(ingrediente.costo) : '',
-        cava_cuarto:
-          String(ingrediente.cava_cuarto || '').toLowerCase() === 'anaquel'
-            ? ''
-            : (ingrediente.cava_cuarto || '')
+      cava_cuarto:
+        String(ingrediente.cava_cuarto || '').toLowerCase() === 'anaquel'
+          ? ''
+          : (ingrediente.cava_cuarto || '')
     }
     setFormData(formDataActualizado)
     setMostrarForm(true)
