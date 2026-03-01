@@ -83,10 +83,7 @@ function Login({ onLogin }) {
                 </div>
                 <p className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-gray-700 leading-tight">
                   que conecta <span className="text-orange-600 font-bold">tradición</span> y{' '}
-                  <span className="text-amber-600 font-bold">frescura del campo</span>
-                </p>
-                <p className="text-xl lg:text-2xl text-gray-600 font-medium">
-                  en casa
+                  <span className="text-amber-600 font-bold">frescura del campo en casa</span>
                 </p>
               </div>
 
