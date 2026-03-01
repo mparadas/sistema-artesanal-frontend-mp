@@ -624,8 +624,17 @@ export default function Catalogo() {
                   src={p.imagen}
                   alt={p.nombre}
                   className="w-full h-48 object-cover"
+                  onLoad={() => console.log('✅ Imagen cargada:', p.imagen)}
                   onError={(e) => {
-                    e.currentTarget.src = 'https://placehold.co/600x400/F97316/FFFFFF?text=Producto'
+                    console.log('❌ Error cargando imagen:', p.imagen)
+                    console.log('🔄 Intentando con getImageUrl...')
+                    const processedUrl = getImageUrl(p.imagen)
+                    console.log('🖼️ URL procesada:', processedUrl)
+                    if (processedUrl !== p.imagen) {
+                      e.currentTarget.src = processedUrl
+                    } else {
+                      e.currentTarget.src = 'https://placehold.co/600x400/F97316/FFFFFF?text=Producto'
+                    }
                   }}
                 />
                 <button
