@@ -10,6 +10,12 @@ export const getImageUrl = (imagePath) => {
     if (imagePath.includes('192.168.100.224') || imagePath.includes('localhost')) {
       return imagePath.replace(/http:\/\/(localhost|192\.168\.100\.224):\d+/, 'https://agromae-b.onrender.com')
     }
+    
+    // Convertir HTTP a HTTPS para URLs de agromae-b.onrender.com
+    if (imagePath.includes('agromae-b.onrender.com')) {
+      return imagePath.replace('http://', 'https://')
+    }
+    
     return imagePath
   }
   
