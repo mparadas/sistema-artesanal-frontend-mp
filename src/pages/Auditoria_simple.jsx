@@ -40,14 +40,12 @@ export default function Auditoria() {
     
     // Detectar cambios de conexión
     const handleOnline = () => {
-      console.log('🟢 Conexión restaurada')
       setIsOnline(true)
       setMensaje('')
       cargarAuditorias()
     }
     
     const handleOffline = () => {
-      console.log('🔴 Conexión perdida')
       setIsOnline(false)
       setMensaje('🔴 Sin conexión a internet. Intentando reconectar...')
     }
@@ -67,22 +65,12 @@ export default function Auditoria() {
       setCargando(true)
       setMensaje('')
       
-      console.log('🔍 Variables de estado:', {
-        filtroModulo,
-        filtroTipo,
-        filtroUsuario,
-        fechaInicio,
-        fechaFin
-      })
-      
       const params = new URLSearchParams()
       if (filtroModulo) params.append('tabla', filtroModulo)
       if (filtroTipo) params.append('tipo_movimiento', filtroTipo)
       if (filtroUsuario) params.append('usuario', filtroUsuario)
       if (fechaInicio) params.append('fecha_inicio', fechaInicio)
       if (fechaFin) params.append('fecha_fin', fechaFin)
-      
-      console.log('🔍 Cargando auditorías desde:', `${API_URL}/auditoria?${params}`)
       
       const response = await fetch(`${API_URL}/auditoria?${params}`)
       
@@ -91,7 +79,6 @@ export default function Auditoria() {
       }
       
       const data = await response.json()
-      console.log('✅ Auditorías cargadas:', data.length, 'registros')
       
       setAuditorias(data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)))
       
@@ -121,7 +108,6 @@ export default function Auditoria() {
       // Intentar reconexión automática después de 3 segundos
       setTimeout(() => {
         if (navigator.onLine) {
-          console.log('🔄 Intentando reconexión automática...')
           cargarAuditorias()
         }
       }, 3000)
@@ -204,12 +190,12 @@ export default function Auditoria() {
 
   const reintentarConexion = async () => {
     setReintentando(true)
-    setMensaje('🔄 Reintentando conexión...')
+    setMensaje('')
     
     try {
+      // Probar conexión básica
       const response = await fetch(`${API_URL}/productos`)
       if (response.ok) {
-        console.log('✅ Conexión restaurada')
         setIsOnline(true)
         setMensaje('')
         await cargarAuditorias()

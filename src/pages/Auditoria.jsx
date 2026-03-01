@@ -38,14 +38,12 @@ export default function Auditoria() {
     
     // Detectar cambios de conexión
     const handleOnline = () => {
-      console.log('🟢 Conexión restaurada')
       setIsOnline(true)
       setMensaje('')
       cargarAuditorias()
     }
     
     const handleOffline = () => {
-      console.log('🔴 Conexión perdida')
       setIsOnline(false)
       setMensaje('🔴 Sin conexión a internet. Intentando reconectar...')
     }
@@ -110,7 +108,6 @@ export default function Auditoria() {
       // Intentar reconexión automática después de 3 segundos
       setTimeout(() => {
         if (navigator.onLine) {
-          console.log('🔄 Intentando reconexión automática...')
           cargarAuditorias()
         }
       }, 3000)
@@ -197,7 +194,6 @@ export default function Auditoria() {
       // Probar conexión básica
       const response = await fetch(`${API_URL}/productos`)
       if (response.ok) {
-        console.log('✅ Conexión restaurada')
         setIsOnline(true)
         setMensaje('')
         await cargarAuditorias()
