@@ -542,7 +542,7 @@ export default function Catalogo() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {catalogo.length === 0 && (
           <div className="col-span-full bg-white rounded-xl border border-gray-100 p-6 text-center text-gray-500">
             No hay productos activos para mostrar en el catálogo.
