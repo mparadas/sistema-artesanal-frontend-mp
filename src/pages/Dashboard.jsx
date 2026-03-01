@@ -401,7 +401,7 @@ export default function Dashboard() {
                     <div key={venta.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-gray-900">
-                          {venta.cliente_nombre_completo || venta.cliente_nombre}
+                          {venta.cliente_nombre_completo || venta.cliente_nombre || 'Cliente general'}
                         </p>
                         <p className="text-xs text-gray-500">
                           {new Date(venta.fecha).toLocaleDateString('es-ES', {
@@ -412,6 +412,9 @@ export default function Dashboard() {
                           })}
                           {venta.items && venta.items[0]?.producto_id && (
                             <span> • {venta.items.length} productos</span>
+                          )}
+                          {venta.cliente_id && (
+                            <span> • ID: {venta.cliente_id}</span>
                           )}
                         </p>
                       </div>
