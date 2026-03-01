@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node_modules/.bin/vite",
+    "dev": "node_modules/.bin/vite --host",
+    "dev-local": "node_modules/.bin/vite --host 192.168.100.224",
     "build": "node_modules/.bin/vite build",
     "lint": "eslint .",
     "preview": "node_modules/.bin/vite preview",

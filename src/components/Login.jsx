@@ -118,11 +118,11 @@ function Login({ onLogin }) {
                   <Sparkles className="w-6 h-6 text-amber-500 animate-pulse delay-300" />
                 </div>
                 <p className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-gray-700 leading-tight">
-                  que conecta <span className="text-orange-600 font-bold">tradición</span> y{' '}
-                  <span className="text-amber-600 font-bold">frescura del campo</span>
+                  en casa
                 </p>
                 <p className="text-xl lg:text-2xl text-gray-600 font-medium">
-                  en casa
+                  que conecta <span className="text-orange-600 font-bold">tradición</span> y{' '}
+                  <span className="text-amber-600 font-bold">frescura del campo</span>
                 </p>
               </div>
 
