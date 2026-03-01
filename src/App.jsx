@@ -230,7 +230,7 @@ function Login({ onLogin }) {
               style={{ mixBlendMode: 'darken', backgroundColor: 'transparent' }}
             />
             <h1 className="text-3xl sm:text-5xl font-extrabold text-gray-800 leading-tight tracking-tight">
-              Sabor artesanal <span className="text-orange-600">que conecta tradición</span> y tecnología
+              Sabor artesanal <span className="text-orange-600">que conecta tradición y frescura del campo</span> en casa
             </h1>
             <p className="text-gray-600 mt-3 max-w-2xl text-base sm:text-lg">
               AgroMAE integra producción, inventario, ventas y pedidos para impulsar el crecimiento
