@@ -78,14 +78,14 @@ export default function Produccion() {
     try {
       const res = await fetch(url, opciones)
       if (!res.ok) {
-        // Si es 404, retornamos null para manejarlo como "no encontrado" pero no error crítico
+        // Si es 404, retornamos null silenciosamente (es esperado para config-proteinas)
         if (res.status === 404) return null
         throw new Error(`HTTP ${res.status}: ${res.statusText}`)
       }
       return await res.json()
     } catch (error) {
       // Solo mostrar error si no es un 404 (que es esperado para config-proteinas)
-      if (!error.message.includes('404')) {
+      if (!error.message.includes('404') && !error.message.includes('config-proteinas')) {
         console.warn(`Error fetching ${url}:`, error)
       }
       return null
@@ -117,7 +117,6 @@ export default function Produccion() {
       // Cargar config de proteínas (opcional - si falla, usa array vacío)
       const configData = await fetchConManejo(`${API_URL}/produccion/config-proteinas`)
       
-      console.log('🔍 Productos cargados:', productosData)
       
       // Extraer categorías únicas de los productos
       const categoriasUnicas = [...new Set(productosData.map(p => p.categoria))].sort()
