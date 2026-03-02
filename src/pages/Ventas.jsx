@@ -359,6 +359,21 @@ export default function Ventas() {
     ventas_anuladas: ventasFiltradas.filter(v => ES_VENTA_NO_CONTABILIZABLE(v?.estado_pago)).length
   }), [ventasFiltradas]);
 
+  const estadoCuentaClientes = useMemo(() => {
+    const map = new Map();
+    for (const v of ventasFiltradas) {
+      if (ES_VENTA_NO_CONTABILIZABLE(v?.estado_pago)) continue;
+      const key = String(v?.cliente_nombre || 'Cliente general');
+      const acc = map.get(key) || { cliente: key, total: 0, pagado: 0, pendiente: 0, ventas: 0 };
+      acc.total += toNumber(v?.total);
+      acc.pagado += toNumber(v?.monto_pagado);
+      acc.pendiente += toNumber(v?.saldo_pendiente);
+      acc.ventas += 1;
+      map.set(key, acc);
+    }
+    return Array.from(map.values()).sort((a, b) => b.pendiente - a.pendiente);
+  }, [ventasFiltradas]);
+
   // Componentes UI simplificados
   const Button = memo(({ children, onClick, variant = 'primary', size = 'md', loading = false, disabled = false, className = '', type = 'button', title, ...props }) => {
     const baseClasses = 'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
@@ -513,6 +528,12 @@ export default function Ventas() {
             <p className="text-gray-600 mt-1">Gestión de ventas y pagos</p>
           </div>
           <div className="flex gap-3">
+            <Button variant="outline" onClick={() => {
+              setUi(prev => ({ ...prev, tipoEstadoCuenta: 'general', modalEstadoCuenta: true }));
+            }}>
+              <FileText className="w-4 h-4 mr-2" />
+              Estado de cuenta
+            </Button>
             <Button onClick={() => handleModalToggle('venta')}>
               <Plus className="w-4 h-4 mr-2" />
               Nueva Venta
@@ -679,6 +700,46 @@ export default function Ventas() {
             {formatearMonto(ui.modalAbono?.saldo_pendiente, ui.modalAbono?.moneda_original)}
           </p>
           <p>El registro completo de abonos será integrado en la siguiente iteración.</p>
+        </div>
+      </SimpleModal>
+
+      <SimpleModal
+        open={ui.modalEstadoCuenta}
+        title={`Estado de cuenta (${ui.tipoEstadoCuenta})`}
+        onClose={() => setUi(prev => ({ ...prev, modalEstadoCuenta: false }))}
+      >
+        <div className="space-y-2">
+          <div className="max-h-[55vh] overflow-auto border border-gray-200 rounded-lg">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left px-3 py-2">Cliente</th>
+                  <th className="text-right px-3 py-2">Ventas</th>
+                  <th className="text-right px-3 py-2">Total</th>
+                  <th className="text-right px-3 py-2">Pagado</th>
+                  <th className="text-right px-3 py-2">Pendiente</th>
+                </tr>
+              </thead>
+              <tbody>
+                {estadoCuentaClientes.map((r) => (
+                  <tr key={r.cliente} className="border-t border-gray-100">
+                    <td className="px-3 py-2">{r.cliente}</td>
+                    <td className="px-3 py-2 text-right">{r.ventas}</td>
+                    <td className="px-3 py-2 text-right">{formatearMonto(r.total)}</td>
+                    <td className="px-3 py-2 text-right">{formatearMonto(r.pagado)}</td>
+                    <td className="px-3 py-2 text-right font-semibold">{formatearMonto(r.pendiente)}</td>
+                  </tr>
+                ))}
+                {estadoCuentaClientes.length === 0 && (
+                  <tr>
+                    <td className="px-3 py-4 text-center text-gray-500" colSpan={5}>
+                      Sin datos para estado de cuenta.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </SimpleModal>
     </div>
