@@ -67,18 +67,21 @@ const formatDate = (date) => {
 const estaPagada = (venta) => ['pagado', 'liquidado', 'cancelado', 'anulado'].includes(venta?.estado_pago);
 
 const puedeAnularVenta = (venta) => {
+  // TEMPORAL: Permitir anular cualquier venta pagada para testing
   if (!venta?.fecha) return false;
-  const fechaVenta = new Date(venta.fecha);
-  const ahora = new Date();
-  const dosDiasEnMilisegundos = 2 * 24 * 60 * 60 * 1000;
-  const diferencia = ahora - fechaVenta;
   
-  // Solo puede anular si tiene menos de 2 días y está pagada o parcial
-  return (
-    diferencia <= dosDiasEnMilisegundos && 
-    ['pagado', 'parcial'].includes(venta?.estado_pago) &&
-    venta?.estado_pago !== 'anulado'
-  );
+  const esPagada = ['pagado', 'parcial'].includes(venta?.estado_pago);
+  const noEstaAnulada = venta?.estado_pago !== 'anulado';
+  
+  console.log('🔍 puedeAnularVenta:', {
+    ventaId: venta?.id,
+    estado: venta?.estado_pago,
+    esPagada,
+    noEstaAnulada,
+    resultado: esPagada && noEstaAnulada
+  });
+  
+  return esPagada && noEstaAnulada;
 };
 
 const puedeModificarVenta = (venta) => {
@@ -2357,8 +2360,11 @@ export default function Ventas() {
       return;
     }
 
-    // Abrir modal de modificación con los datos actuales
-    setUi(prev => ({ ...prev, modalModificarVenta: true, ventaSeleccionada: venta }));
+    // TEMPORAL: Solo mostrar alert para testing
+    alert(`Función de modificar venta #${venta.id}\n\nCliente: ${venta.cliente_nombre || 'Cliente general'}\nMonto: ${formatearMonto(venta.total, venta.moneda_original)}\n\nEsta función está en desarrollo.`);
+    
+    // TODO: Implementar modal de modificación cuando esté listo
+    console.log('🔧 Modificar venta:', venta);
   }, [showMessage]);
 
   const ventasFiltradas = useMemo(() => {
