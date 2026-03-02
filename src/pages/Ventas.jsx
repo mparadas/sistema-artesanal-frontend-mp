@@ -239,12 +239,13 @@ export default function Ventas() {
   const [filtros, setFiltros] = useState({ fecha: '', tipo: '', estado: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tasaActual, setTasaActual] = useState(CONFIG.TASA_DEFAULT);
-  const [abonoForm, setAbonoForm] = useState({
+  const [abonoDraft, setAbonoDraft] = useState({
     monto: '',
     moneda: 'USD',
     metodoPago: 'efectivo',
     referenciaPago: ''
   });
+  const [abonosPendientes, setAbonosPendientes] = useState([]);
 
   const showMessage = useCallback((msg, tipo = 'success') => {
     setUi(prev => ({ ...prev, mensaje: { texto: msg, tipo } }));
@@ -366,74 +367,116 @@ export default function Ventas() {
       return;
     }
     const tasa = await obtenerTasaActual();
-    setAbonoForm({
+    setAbonoDraft({
       monto: '',
       moneda: String(venta?.moneda_original || 'USD').toUpperCase() === 'VES' ? 'VES' : 'USD',
       metodoPago: 'efectivo',
       referenciaPago: ''
     });
+    setAbonosPendientes([]);
     setTasaActual(tasa);
     handleModalToggle('abono', venta);
   }, [handleModalToggle, showMessage, obtenerTasaActual]);
 
-  const handleRegistrarAbono = useCallback(async (e) => {
+  const saldoVentaActualVes = useMemo(() => {
+    const venta = ui.modalAbono;
+    if (!venta) return 0;
+    const saldo = toNumber(venta.saldo_pendiente);
+    const moneda = String(venta.moneda_original || 'USD').toUpperCase();
+    return moneda === 'USD' ? saldo * toNumber(tasaActual) : saldo;
+  }, [ui.modalAbono, tasaActual]);
+
+  const subtotalAbonosVes = useMemo(
+    () => abonosPendientes.reduce((sum, a) => sum + toNumber(a.montoVes), 0),
+    [abonosPendientes]
+  );
+  const restanteVes = useMemo(
+    () => Math.max(0, saldoVentaActualVes - subtotalAbonosVes),
+    [saldoVentaActualVes, subtotalAbonosVes]
+  );
+
+  const handleAgregarAbonoLinea = useCallback((e) => {
     e.preventDefault();
+    const monto = toNumber(abonoDraft.monto);
+    if (monto <= 0) return showMessage('Ingresa un monto válido', 'error');
+    if (['transferencia', 'pago_movil'].includes(abonoDraft.metodoPago) && !String(abonoDraft.referenciaPago || '').trim()) {
+      return showMessage('La referencia es obligatoria para transferencia y pago móvil', 'error');
+    }
+
+    const montoVes = abonoDraft.moneda === 'VES' ? monto : monto * toNumber(tasaActual);
+    if ((subtotalAbonosVes + montoVes) > (saldoVentaActualVes + 0.01)) {
+      return showMessage('Los abonos no pueden superar el saldo total', 'error');
+    }
+
+    setAbonosPendientes(prev => [
+      ...prev,
+      {
+        monto,
+        moneda: abonoDraft.moneda,
+        metodoPago: abonoDraft.metodoPago,
+        referenciaPago: String(abonoDraft.referenciaPago || '').trim(),
+        montoVes
+      }
+    ]);
+    setAbonoDraft(prev => ({ ...prev, monto: '', referenciaPago: '' }));
+  }, [abonoDraft, showMessage, tasaActual, saldoVentaActualVes, subtotalAbonosVes]);
+
+  const handlePagarTotal = useCallback(() => {
+    if (restanteVes <= 0) return;
+    const moneda = abonoDraft.moneda;
+    const monto = moneda === 'VES' ? restanteVes : (restanteVes / toNumber(tasaActual));
+    setAbonoDraft(prev => ({ ...prev, monto: Number(monto.toFixed(2)).toString() }));
+  }, [restanteVes, abonoDraft.moneda, tasaActual]);
+
+  const handleConfirmarAbonos = useCallback(async () => {
     const venta = ui.modalAbono;
     if (!venta?.id) return;
-
-    const monto = toNumber(abonoForm.monto);
-    if (monto <= 0) {
-      showMessage('Ingresa un monto válido', 'error');
-      return;
-    }
-    if (['transferencia', 'pago_movil'].includes(abonoForm.metodoPago) && !String(abonoForm.referenciaPago || '').trim()) {
-      showMessage('La referencia es obligatoria para transferencia y pago móvil', 'error');
-      return;
-    }
-
-    const tasa = await obtenerTasaActual();
-    const montoVes = abonoForm.moneda === 'VES' ? monto : (monto * tasa);
+    if (abonosPendientes.length === 0) return showMessage('Agrega al menos un abono', 'error');
 
     setIsSubmitting(true);
     try {
-      const res = await fetch(`${API_URL}/ventas/${venta.id}/pagos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          monto_ves: Number(montoVes.toFixed(2)),
-          metodo_pago: abonoForm.metodoPago,
-          referencia_pago: ['transferencia', 'pago_movil'].includes(abonoForm.metodoPago) ? abonoForm.referenciaPago.trim() : null,
-          tasa_cambio: tasa,
-          moneda_original: abonoForm.moneda,
-          monto_original: monto
-        })
-      });
-      const data = await parseResponseBody(res);
-      if (!res.ok) throw new Error(getApiErrorMessage(res, data, 'No se pudo registrar el abono'));
+      const tasa = await obtenerTasaActual();
+      let ultimaRespuesta = null;
+      for (const abono of abonosPendientes) {
+        const res = await fetch(`${API_URL}/ventas/${venta.id}/pagos`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            monto_ves: Number(toNumber(abono.montoVes).toFixed(2)),
+            metodo_pago: abono.metodoPago,
+            referencia_pago: ['transferencia', 'pago_movil'].includes(abono.metodoPago) ? (abono.referenciaPago || null) : null,
+            tasa_cambio: tasa,
+            moneda_original: abono.moneda,
+            monto_original: abono.monto
+          })
+        });
+        const data = await parseResponseBody(res);
+        if (!res.ok) throw new Error(getApiErrorMessage(res, data, 'No se pudo registrar un abono'));
+        ultimaRespuesta = data;
+      }
 
       dispatch({
         type: 'UPDATE_VENTA',
         payload: {
           id: venta.id,
           changes: {
-            saldo_pendiente: toNumber(data?.saldo_pendiente),
-            estado_pago: data?.estado_pago || venta.estado_pago,
-            monto_pagado: toNumber(venta?.monto_pagado) + (abonoForm.moneda === 'USD' && String(venta?.moneda_original).toUpperCase() === 'USD'
-              ? monto
-              : toNumber(venta?.monto_pagado))
+            saldo_pendiente: toNumber(ultimaRespuesta?.saldo_pendiente),
+            estado_pago: ultimaRespuesta?.estado_pago || venta.estado_pago
           }
         }
       });
 
-      showMessage('Abono registrado correctamente');
+      showMessage('Abonos registrados correctamente');
       setUi(prev => ({ ...prev, modalAbono: null }));
+      setAbonosPendientes([]);
+      setAbonoDraft({ monto: '', moneda: 'USD', metodoPago: 'efectivo', referenciaPago: '' });
       setTimeout(() => { refresh(); }, 250);
     } catch (error) {
-      showMessage(error.message || 'Error al registrar abono', 'error');
+      showMessage(error.message || 'Error al registrar abonos', 'error');
     } finally {
       setIsSubmitting(false);
     }
-  }, [ui.modalAbono, abonoForm, showMessage, obtenerTasaActual, refresh]);
+  }, [ui.modalAbono, abonosPendientes, showMessage, obtenerTasaActual, refresh]);
 
   const totalGeneral = useMemo(() => ({
     ventas: ventasFiltradas.filter(v => !ES_VENTA_NO_CONTABILIZABLE(v?.estado_pago)).length,
@@ -783,7 +826,7 @@ export default function Ventas() {
         title={`Abonar venta #${ui.modalAbono?.id || ''}`}
         onClose={() => handleModalToggle('abono', null)}
       >
-        <form onSubmit={handleRegistrarAbono} className="space-y-3 text-sm text-gray-700">
+        <form onSubmit={handleAgregarAbonoLinea} className="space-y-3 text-sm text-gray-700">
           <p>
             <strong>Saldo pendiente:</strong>{' '}
             {formatearMonto(ui.modalAbono?.saldo_pendiente, ui.modalAbono?.moneda_original)}
@@ -797,22 +840,22 @@ export default function Ventas() {
               step="0.01"
               min="0"
               placeholder="Monto"
-              value={abonoForm.monto}
-              onChange={(e) => setAbonoForm(prev => ({ ...prev, monto: e.target.value }))}
+              value={abonoDraft.monto}
+              onChange={(e) => setAbonoDraft(prev => ({ ...prev, monto: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
               required
             />
             <select
-              value={abonoForm.moneda}
-              onChange={(e) => setAbonoForm(prev => ({ ...prev, moneda: e.target.value }))}
+              value={abonoDraft.moneda}
+              onChange={(e) => setAbonoDraft(prev => ({ ...prev, moneda: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
             >
               <option value="USD">$ USD</option>
               <option value="VES">Bs VES</option>
             </select>
             <select
-              value={abonoForm.metodoPago}
-              onChange={(e) => setAbonoForm(prev => ({ ...prev, metodoPago: e.target.value }))}
+              value={abonoDraft.metodoPago}
+              onChange={(e) => setAbonoDraft(prev => ({ ...prev, metodoPago: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
             >
               {METODOS_PAGO.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
@@ -820,22 +863,75 @@ export default function Ventas() {
             <input
               type="text"
               placeholder="Referencia"
-              value={abonoForm.referenciaPago}
-              onChange={(e) => setAbonoForm(prev => ({ ...prev, referenciaPago: e.target.value }))}
+              value={abonoDraft.referenciaPago}
+              onChange={(e) => setAbonoDraft(prev => ({ ...prev, referenciaPago: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              disabled={!['transferencia', 'pago_movil'].includes(abonoForm.metodoPago)}
-              required={['transferencia', 'pago_movil'].includes(abonoForm.metodoPago)}
+              disabled={!['transferencia', 'pago_movil'].includes(abonoDraft.metodoPago)}
+              required={['transferencia', 'pago_movil'].includes(abonoDraft.metodoPago)}
             />
           </div>
           <div className="text-xs text-gray-500">
-            Equivalente en Bs: {formatearMonto(abonoForm.moneda === 'VES' ? toNumber(abonoForm.monto) : toNumber(abonoForm.monto) * toNumber(tasaActual), 'VES')}
+            Equivalente en Bs: {formatearMonto(abonoDraft.moneda === 'VES' ? toNumber(abonoDraft.monto) : toNumber(abonoDraft.monto) * toNumber(tasaActual), 'VES')}
           </div>
+          <div className="flex flex-wrap justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={handlePagarTotal}>
+              Pagar restante
+            </Button>
+            <Button type="submit" variant="success">
+              Agregar abono
+            </Button>
+          </div>
+
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <table className="w-full text-xs sm:text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-2 py-2 text-left">Monto</th>
+                  <th className="px-2 py-2 text-left">Método</th>
+                  <th className="px-2 py-2 text-left">Ref</th>
+                  <th className="px-2 py-2 text-right">Bs</th>
+                  <th className="px-2 py-2 text-right">-</th>
+                </tr>
+              </thead>
+              <tbody>
+                {abonosPendientes.map((a, idx) => (
+                  <tr key={`${a.metodoPago}-${idx}`} className="border-t border-gray-100">
+                    <td className="px-2 py-2">{formatearMonto(a.monto, a.moneda)}</td>
+                    <td className="px-2 py-2">{a.metodoPago}</td>
+                    <td className="px-2 py-2">{a.referenciaPago || '-'}</td>
+                    <td className="px-2 py-2 text-right">{formatearMonto(a.montoVes, 'VES')}</td>
+                    <td className="px-2 py-2 text-right">
+                      <button
+                        type="button"
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() => setAbonosPendientes(prev => prev.filter((_, i) => i !== idx))}
+                      >
+                        Quitar
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {abonosPendientes.length === 0 && (
+                  <tr>
+                    <td className="px-2 py-3 text-center text-gray-500" colSpan={5}>Sin abonos agregados</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs sm:text-sm">
+            <div className="border rounded p-2">Subtotal Bs: <strong>{formatearMonto(subtotalAbonosVes, 'VES')}</strong></div>
+            <div className="border rounded p-2">Total deuda Bs: <strong>{formatearMonto(saldoVentaActualVes, 'VES')}</strong></div>
+            <div className="border rounded p-2">Restante Bs: <strong>{formatearMonto(restanteVes, 'VES')}</strong></div>
+          </div>
+
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="secondary" onClick={() => handleModalToggle('abono', null)}>
               Cancelar
             </Button>
-            <Button type="submit" loading={isSubmitting} disabled={isSubmitting}>
-              Registrar abono
+            <Button type="button" loading={isSubmitting} disabled={isSubmitting || abonosPendientes.length === 0} onClick={handleConfirmarAbonos}>
+              Confirmar abonos
             </Button>
           </div>
         </form>
