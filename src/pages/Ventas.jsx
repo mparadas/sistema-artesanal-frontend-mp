@@ -305,7 +305,9 @@ export default function Ventas() {
       return;
     }
 
-    const action = userChoice.toUpperCase();
+    const action = userChoice.trim().toUpperCase();
+    console.log('🔍 Debug - User choice:', userChoice);
+    console.log('🔍 Debug - Action procesado:', action);
     
     if (action === 'ANULAR') {
       // Proceder con anulación
@@ -354,7 +356,8 @@ export default function Ventas() {
       showMessage('Venta mantenida como pendiente');
       return;
     } else {
-      showMessage('Opción no válida. Operación cancelada.', 'error');
+      console.log('❌ Debug - Opción no reconocida:', action);
+      showMessage(`Opción "${userChoice}" no válida. Operación cancelada.\n\nOpciones válidas: ANULAR, CANCEL, PENDIENTE`, 'error');
       return;
     }
   }, [showMessage, refresh]);
