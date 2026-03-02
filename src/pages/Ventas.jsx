@@ -205,7 +205,7 @@ const ventasOrdenadasMasAntiguaPrimero = (lista) => {
     if (f !== 0) return f;
     return idNum(a) - idNum(b);
   });
-});
+};
 
 export default Ventas;
 
