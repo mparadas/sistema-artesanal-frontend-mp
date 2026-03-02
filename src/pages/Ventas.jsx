@@ -2395,7 +2395,7 @@ export default function Ventas() {
       return;
     }
 
-    if (!confirm(`¿Está seguro que desea devolver la venta #${venta.id} a pedidos?\n\nCliente: ${venta.cliente_nombre || 'Cliente general'}\nMonto: ${formatearMonto(venta.total, venta.moneda_original)}\n\nEsta acción cambiará el estado a "Devuelta a Pedidos" y la moverá al módulo de pedidos.`)) {
+    if (!confirm(`¿Está seguro que desea anular la venta #${venta.id}?\n\nCliente: ${venta.cliente_nombre || 'Cliente general'}\nMonto: ${formatearMonto(venta.total, venta.moneda_original)}\n\nEsta acción anulará la venta con montos en cero.`)) {
       return;
     }
 
@@ -2405,21 +2405,20 @@ export default function Ventas() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          estado_pago: 'devuelta_a_pedidos',
-          motivo_devolucion: 'Devuelta a pedidos por administrador',
+          motivo_devolucion: 'Anulada por administrador',
           fecha_devolucion: new Date().toISOString()
         })
       });
 
       if (!res.ok) {
         const data = await parseResponseBody(res);
-        throw new Error(getApiErrorMessage(res, data, 'Error al devolver venta a pedidos'));
+        throw new Error(getApiErrorMessage(res, data, 'Error al anular venta'));
       }
 
-      showMessage(`Venta #${venta.id} devuelta a pedidos correctamente`);
+      showMessage(`Venta #${venta.id} anulada correctamente`);
       refresh();
     } catch (error) {
-      showMessage(error.message || 'Error al devolver venta a pedidos', 'error');
+      showMessage(error.message || 'Error al anular venta', 'error');
     } finally {
       setSubmitting(false);
     }
