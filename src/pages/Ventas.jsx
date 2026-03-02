@@ -289,76 +289,64 @@ export default function Ventas() {
       return;
     }
 
-    // Crear diálogo personalizado con botones claros
-    const userChoice = window.prompt(
-      `¿Qué desea hacer con la venta #${venta.id}?\n\n` +
+    // Crear diálogo simple con confirmación
+    const confirmacion = confirm(
+      `¿Está seguro que desea anular la venta #${venta.id}?\n\n` +
       `Cliente: ${venta.cliente_nombre || 'Cliente general'}\n` +
       `Monto: ${formatearMonto(venta.total, venta.moneda_original)}\n\n` +
-      `Escriba una opción:\n` +
-      `• "ANULAR" para anular la venta (montos en cero)\n` +
-      `• "CANCEL" para mantener como pendiente\n` +
-      `• CANCEL o ESC para abortar`,
-      'CANCEL'
+      `Esta acción:\n` +
+      `• Pondrá los montos en cero\n` +
+      `• Cambiará el estado a "anulada"\n` +
+      `• No afectará las estadísticas\n\n` +
+      `¿Desea continuar?`
     );
 
-    if (!userChoice || userChoice.toUpperCase() === 'CANCEL') {
+    if (!confirmacion) {
+      showMessage('Operación cancelada por el usuario');
       return;
     }
 
-    const action = userChoice.trim().toUpperCase();
-    console.log('🔍 Debug - User choice:', userChoice);
-    console.log('🔍 Debug - Action procesado:', action);
-    
-    if (action === 'ANULAR') {
-      // Proceder con anulación
-      setSubmitting(true);
-      try {
-        const res = await fetch(`${API_URL}/ventas/${venta.id}/devolver-a-pedidos`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            motivo_devolucion: 'Anulada por administrador',
-            fecha_devolucion: new Date().toISOString()
-          })
-        });
+    // Proceder con anulación
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${API_URL}/ventas/${venta.id}/devolver-a-pedidos`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          motivo_devolucion: 'Anulada por administrador',
+          fecha_devolucion: new Date().toISOString()
+        })
+      });
 
-        if (!res.ok) {
-          const data = await parseResponseBody(res);
-          throw new Error(getApiErrorMessage(res, data, 'Error al anular venta'));
-        }
+      if (!res.ok) {
+        const data = await parseResponseBody(res);
+        throw new Error(getApiErrorMessage(res, data, 'Error al anular venta'));
+      }
 
-        showMessage(`Venta #${venta.id} anulada correctamente - No afectará estadísticas`);
-        console.log('🔄 Refrescando datos después de anular venta...');
+      showMessage(`Venta #${venta.id} anulada correctamente - No afectará estadísticas`);
+      console.log('🔄 Refrescando datos después de anular venta...');
+      
+      // Forzar refresh con delay para asegurar que backend actualice
+      setTimeout(async () => {
+        await refresh();
+        console.log('✅ Primer refresh completado');
         
-        // Forzar refresh con delay para asegurar que backend actualice
+        // Segundo refresh para asegurar actualización
         setTimeout(async () => {
           await refresh();
-          console.log('✅ Primer refresh completado');
+          console.log('✅ Segundo refresh completado');
           
-          // Segundo refresh para asegurar actualización
+          // Tercer refresh si aún no se actualiza
           setTimeout(async () => {
             await refresh();
-            console.log('✅ Segundo refresh completado');
-            
-            // Tercer refresh si aún no se actualiza
-            setTimeout(async () => {
-              await refresh();
-              console.log('✅ Tercer refresh completado');
-            }, 500);
+            console.log('✅ Tercer refresh completado');
           }, 500);
         }, 500);
-      } catch (error) {
-        showMessage(error.message || 'Error al anular venta', 'error');
-      } finally {
-        setSubmitting(false);
-      }
-    } else if (action === 'CANCEL' || action === 'PENDIENTE') {
-      showMessage('Venta mantenida como pendiente');
-      return;
-    } else {
-      console.log('❌ Debug - Opción no reconocida:', action);
-      showMessage(`Opción "${userChoice}" no válida. Operación cancelada.\n\nOpciones válidas: ANULAR, CANCEL, PENDIENTE`, 'error');
-      return;
+      }, 500);
+    } catch (error) {
+      showMessage(error.message || 'Error al anular venta', 'error');
+    } finally {
+      setSubmitting(false);
     }
   }, [showMessage, refresh]);
 
