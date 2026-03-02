@@ -232,41 +232,6 @@ if ('serviceWorker' in navigator && window.location.hostname === 'sistema-artesa
   });
 }
 
-// Prevenir navegación hacia atrás en móvil
-if (window.location.pathname === '/ventas') {
-  // Prevenir el botón de retroceso del navegador
-  window.history.pushState(null, null, window.location.href);
-  window.onpopstate = function () {
-    window.history.pushState(null, null, window.location.href);
-  };
-  
-  // Prevenir el gesto de retroceso en móviles (cuando sea posible)
-  if ('visualViewport' in window) {
-    let touchStartX = 0;
-    let touchEndX = 0;
-    
-    document.addEventListener('touchstart', function(e) {
-      touchStartX = e.changedTouches[0].screenX;
-    });
-    
-    document.addEventListener('touchend', function(e) {
-      touchEndX = e.changedTouches[0].screenX;
-      handleSwipe();
-    });
-    
-    function handleSwipe() {
-      const swipeThreshold = 50;
-      const diff = touchStartX - touchEndX;
-      
-      // Si es un swipe hacia la derecha (retroceso)
-      if (diff > swipeThreshold) {
-        console.log('🔄 Swipe hacia atrás detectado, previniendo navegación');
-        window.history.pushState(null, null, window.location.href);
-      }
-    }
-  }
-}
-
 const Ventas = () => {
   const [state, dispatch] = useReducer((state, action) => {
     switch (action.type) {
