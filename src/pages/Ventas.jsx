@@ -64,13 +64,7 @@ const formatDate = (date) => {
   }
 };
 
-const estaPagada = (venta) => ['pagado', 'liquidado', 'cancelado', 'anulado'].includes(venta?.estado_pago);
-
-const puedeAnularVenta = (venta) => {
-  const esPagada = ['pagado', 'parcial'].includes(venta?.estado_pago);
-  const noEstaAnulada = venta?.estado_pago !== 'anulado';
-  return esPagada && noEstaAnulada;
-};
+const _estaPagada = (venta) => ['pagado', 'liquidado', 'cancelado', 'anulado'].includes(venta?.estado_pago);
 
 const puedeDevolverAPedidos = (venta) => {
   // Permitir anular ventas pendientes, pagadas o parciales
@@ -79,7 +73,7 @@ const puedeDevolverAPedidos = (venta) => {
   return puedeAnular && noEstaAnulada;
 };
 
-const puedeModificarVenta = (venta) => {
+const _puedeModificarVenta = (venta) => {
   return venta?.estado_pago !== 'anulado';
 };
 
@@ -96,21 +90,10 @@ const getEstadoColor = (estado) => {
   return map[estado] || 'bg-gray-100 text-gray-700 border-gray-200';
 };
 
-const getOrigenVenta = (venta) => {
+const _getOrigenVenta = (venta) => {
   const origen = String(venta?.origen_venta || '').toLowerCase();
   if (origen === 'catalogo' || origen === 'pedido' || origen === 'directa') return origen;
   return 'directa';
-};
-
-const getOrigenConfig = (venta) => {
-  const origen = getOrigenVenta(venta);
-  if (origen === 'catalogo') {
-    return { label: 'Catalogo', className: 'bg-amber-100 text-amber-700 border-amber-200' };
-  }
-  if (origen === 'pedido') {
-    return { label: 'Pedido', className: 'bg-blue-100 text-blue-700 border-blue-200' };
-  }
-  return { label: 'Directa', className: 'bg-emerald-100 text-emerald-700 border-emerald-200' };
 };
 
 const parseResponseBody = async (res) => {
@@ -128,20 +111,11 @@ const getApiErrorMessage = (res, body, fallback = 'Error de servidor') => {
   return base;
 };
 
+const ES_VENTA_NO_CONTABILIZABLE = (estado) => ['anulado', 'devuelta_a_pedidos'].includes(String(estado || '').toLowerCase());
+
 // ==========================================
 // HOOKS
 // ==========================================
-const useDebounce = (value, delay = CONFIG.DEBOUNCE_DELAY) => {
-  const [debounced, setDebounced] = useState(value);
-  
-  useEffect(() => {
-    const timer = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-  
-  return debounced;
-};
-
 // Forzar actualización en móvil (temporal)
 if ('serviceWorker' in navigator && window.location.hostname === 'sistema-artesanal-frontend-mp.vercel.app') {
   navigator.serviceWorker.getRegistrations().then(function(registrations) {
@@ -161,6 +135,16 @@ export default function Ventas() {
       case 'FETCH_START': return { ...state, loading: true, error: null };
       case 'FETCH_SUCCESS': return { ...state, ...action.payload, loading: false, lastUpdated: new Date().toISOString() };
       case 'FETCH_ERROR': return { ...state, error: action.payload, loading: false };
+      case 'UPDATE_VENTA':
+        return {
+          ...state,
+          ventas: state.ventas.map((v) => (
+            v?.id === action.payload?.id
+              ? { ...v, ...action.payload?.changes }
+              : v
+          )),
+          lastUpdated: new Date().toISOString()
+        };
       default: return state;
     }
   }, {
@@ -192,7 +176,11 @@ export default function Ventas() {
       const results = await Promise.allSettled(
         endpoints.map(async ({ key, url, optional }) => {
           try {
-            const res = await fetch(url, { signal: abortControllerRef.current.signal });
+            const res = await fetch(`${url}${url.includes('?') ? '&' : '?'}_ts=${Date.now()}`, {
+              signal: abortControllerRef.current.signal,
+              cache: 'no-store',
+              headers: { 'Cache-Control': 'no-cache' }
+            });
             const data = await parseResponseBody(res);
             if (!res.ok && !optional) throw new Error(getApiErrorMessage(res, data, `Error en ${key}`));
             return { key, data: data?.data || data || (key === 'estadosVenta' ? ESTADOS_DEFAULT : []) };
@@ -220,9 +208,13 @@ export default function Ventas() {
 
   const refresh = useCallback(() => fetchData(true), [fetchData]);
 
+  useEffect(() => {
+    fetchData(true);
+  }, [fetchData]);
+
   useEffect(() => () => abortControllerRef.current?.abort(), []);
 
-  const { ventas, productos, clientes, estadosVenta, loading, error, lastUpdated } = state;
+  const { ventas, estadosVenta, loading, error, lastUpdated } = state;
 
   // Obtener usuario actual para verificar rol de admin
   const usuarioActual = (() => { 
@@ -246,7 +238,7 @@ export default function Ventas() {
   });
 
   const [filtros, setFiltros] = useState({ fecha: '', tipo: '', estado: '' });
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const showMessage = useCallback((msg, tipo = 'success') => {
     setUi(prev => ({ ...prev, mensaje: { texto: msg, tipo } }));
@@ -307,7 +299,7 @@ export default function Ventas() {
     }
 
     // Proceder con anulación
-    setSubmitting(true);
+    setIsSubmitting(true);
     try {
       const res = await fetch(`${API_URL}/ventas/${venta.id}/devolver-a-pedidos`, {
         method: 'PUT',
@@ -323,46 +315,28 @@ export default function Ventas() {
         throw new Error(getApiErrorMessage(res, data, 'Error al devolver venta a pedidos'));
       }
 
+      // Reflejo inmediato para evitar UI stale por caché intermedio
+      dispatch({
+        type: 'UPDATE_VENTA',
+        payload: {
+          id: venta.id,
+          changes: {
+            estado_pago: 'devuelta_a_pedidos',
+            total: 0,
+            monto_pagado: 0,
+            saldo_pendiente: 0
+          }
+        }
+      });
+
       showMessage(`Venta #${venta.id} devuelta a pedidos correctamente - No afectará estadísticas`);
-      console.log('🔄 Refrescando datos después de devolver venta a pedidos...');
-      
-      // Forzar refresh con delay para asegurar que backend actualice
-      setTimeout(async () => {
-        await refresh();
-        console.log('✅ Primer refresh completado');
-        
-        // Segundo refresh para asegurar actualización
-        setTimeout(async () => {
-          await refresh();
-          console.log('✅ Segundo refresh completado');
-          
-          // Tercer refresh si aún no se actualiza
-          setTimeout(async () => {
-            await refresh();
-            console.log('✅ Tercer refresh completado');
-          }, 500);
-        }, 500);
-      }, 500);
+      setTimeout(() => { refresh(); }, 300);
     } catch (error) {
       showMessage(error.message || 'Error al devolver venta a pedidos', 'error');
     } finally {
-      setSubmitting(false);
+      setIsSubmitting(false);
     }
   }, [showMessage, refresh]);
-
-  const handleModificarVenta = useCallback(async (venta) => {
-    if (!venta || !venta.id) {
-      showMessage('Error: Venta no válida', 'error');
-      return;
-    }
-
-    if (!puedeModificarVenta(venta)) {
-      showMessage('Error: Esta venta no puede ser modificada.', 'error');
-      return;
-    }
-
-    showMessage('Función de modificar en desarrollo');
-  }, [showMessage]);
 
   const handleAbonar = useCallback(async (venta) => {
     if (!venta || !venta.id) {
@@ -374,14 +348,16 @@ export default function Ventas() {
   }, [handleModalToggle, showMessage]);
 
   const totalGeneral = useMemo(() => ({
-    ventas: ventasFiltradas.length,
-    monto_total: ventasFiltradas.reduce((sum, v) => sum + toNumber(v.total), 0),
+    ventas: ventasFiltradas.filter(v => !ES_VENTA_NO_CONTABILIZABLE(v?.estado_pago)).length,
+    monto_total: ventasFiltradas
+      .filter(v => !ES_VENTA_NO_CONTABILIZABLE(v?.estado_pago))
+      .reduce((sum, v) => sum + toNumber(v.total), 0),
     monto_pagado: ventasFiltradas.reduce((sum, v) => sum + toNumber(v.monto_pagado), 0),
     monto_pendiente: ventasFiltradas.reduce((sum, v) => sum + toNumber(v.saldo_pendiente), 0),
     ventas_pagadas: ventasFiltradas.filter(v => v.estado_pago === 'pagado').length,
     ventas_pendientes: ventasFiltradas.filter(v => v.estado_pago === 'pendiente').length,
     ventas_parciales: ventasFiltradas.filter(v => v.estado_pago === 'parcial').length,
-    ventas_anuladas: ventasFiltradas.filter(v => v.estado_pago === 'anulado').length
+    ventas_anuladas: ventasFiltradas.filter(v => ES_VENTA_NO_CONTABILIZABLE(v?.estado_pago)).length
   }), [ventasFiltradas]);
 
   // Componentes UI simplificados
@@ -416,7 +392,24 @@ export default function Ventas() {
     );
   });
 
-  const VistaCompacta = memo(({ ventas, onVerDetalle, onAbonar, onDevolverAPedidos }) => (
+  const SimpleModal = memo(({ open, title, onClose, children }) => {
+    if (!open) return null;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="w-full max-w-xl rounded-lg bg-white shadow-xl border border-gray-200">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+            <button onClick={onClose} className="p-1 rounded hover:bg-gray-100" type="button">
+              <X className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
+          <div className="p-4">{children}</div>
+        </div>
+      </div>
+    );
+  });
+
+  const VistaCompacta = memo(({ ventas, onVerDetalle, onAbonar, onDevolverAPedidos, submitting }) => (
     <div className="space-y-3">
       {ventas.map((venta) => (
         <div key={venta.id} className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-md transition-shadow">
@@ -459,6 +452,8 @@ export default function Ventas() {
                 variant="danger" 
                 size="sm" 
                 onClick={() => onDevolverAPedidos(venta)}
+                disabled={submitting}
+                loading={submitting}
                 title="Devolver a pedidos (montos en cero)"
               >
                 <Ban className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -467,7 +462,7 @@ export default function Ventas() {
             )}
             
             {/* Debug: Mostrar siempre para testing */}
-            {process.env.NODE_ENV === 'development' && (
+            {import.meta.env.DEV && (
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -621,13 +616,14 @@ export default function Ventas() {
           </div>
         </div>
 
-        {/* Vista Mobile */}
-        <div className="lg:hidden">
+        {/* Vista de listado */}
+        <div className="block">
           <VistaCompacta 
             ventas={ventasFiltradas}
-            onVerDetalle={handleModalToggle}
+            onVerDetalle={(venta) => handleModalToggle('detalle', venta)}
             onAbonar={handleAbonar}
             onDevolverAPedidos={handleDevolverAPedidos}
+            submitting={isSubmitting}
           />
         </div>
 
@@ -648,6 +644,44 @@ export default function Ventas() {
           {ui.mensaje.texto}
         </div>
       )}
+
+      <SimpleModal
+        open={ui.modalVenta}
+        title="Nueva venta"
+        onClose={() => handleModalToggle('venta', false)}
+      >
+        <p className="text-sm text-gray-700">
+          El formulario completo de nueva venta está en proceso de integración en este módulo.
+        </p>
+      </SimpleModal>
+
+      <SimpleModal
+        open={Boolean(ui.modalDetalle)}
+        title={`Detalle de venta #${ui.modalDetalle?.id || ''}`}
+        onClose={() => handleModalToggle('detalle', null)}
+      >
+        <div className="space-y-2 text-sm text-gray-700">
+          <p><strong>Cliente:</strong> {ui.modalDetalle?.cliente_nombre || 'Cliente general'}</p>
+          <p><strong>Fecha:</strong> {formatDate(ui.modalDetalle?.fecha)}</p>
+          <p><strong>Total:</strong> {formatearMonto(ui.modalDetalle?.total, ui.modalDetalle?.moneda_original)}</p>
+          <p><strong>Estado:</strong> {ui.modalDetalle?.estado_pago || 'N/A'}</p>
+          <p><strong>Tipo:</strong> {ui.modalDetalle?.tipo_venta || 'N/A'}</p>
+        </div>
+      </SimpleModal>
+
+      <SimpleModal
+        open={Boolean(ui.modalAbono)}
+        title={`Abonar venta #${ui.modalAbono?.id || ''}`}
+        onClose={() => handleModalToggle('abono', null)}
+      >
+        <div className="space-y-3 text-sm text-gray-700">
+          <p>
+            <strong>Saldo pendiente:</strong>{' '}
+            {formatearMonto(ui.modalAbono?.saldo_pendiente, ui.modalAbono?.moneda_original)}
+          </p>
+          <p>El registro completo de abonos será integrado en la siguiente iteración.</p>
+        </div>
+      </SimpleModal>
     </div>
   );
 }
