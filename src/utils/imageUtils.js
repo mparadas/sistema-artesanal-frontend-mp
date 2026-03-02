@@ -20,12 +20,16 @@ export const getImageUrl = (imagePath) => {
       return converted
     }
     
-    // Convertir HTTP a HTTPS para URLs de agromae-b.onrender.com
+    // Convertir HTTP a HTTPS para URLs de agromae-b.onrender.com con cache-busting
     if (imagePath.includes('agromae-b.onrender.com')) {
       if (imagePath.startsWith('http://')) {
         const converted = imagePath.replace('http://', 'https://')
-        console.log('🔒 HTTP→HTTPS convertida:', converted)
-        return converted
+        // Agregar timestamp para evitar caché de versión HTTP
+        const cacheBusted = converted.includes('?') 
+          ? `${converted}&v=${Date.now()}` 
+          : `${converted}?v=${Date.now()}`
+        console.log('🔒 HTTP→HTTPS convertida con cache-busting:', cacheBusted)
+        return cacheBusted
       } else if (imagePath.startsWith('https://')) {
         console.log('✅ URL HTTPS ya correcta:', imagePath)
         return imagePath
