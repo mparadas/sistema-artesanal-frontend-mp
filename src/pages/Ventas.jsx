@@ -67,35 +67,13 @@ const formatDate = (date) => {
 const estaPagada = (venta) => ['pagado', 'liquidado', 'cancelado', 'anulado'].includes(venta?.estado_pago);
 
 const puedeAnularVenta = (venta) => {
-  if (!venta?.fecha) return false;
-  const fechaVenta = new Date(venta.fecha);
-  const ahora = new Date();
-  const dosDiasEnMilisegundos = 2 * 24 * 60 * 60 * 1000;
-  const diferencia = ahora - fechaVenta;
-  
-  // TEMPORAL: Relajar reglas para testing - SOLO VENTAS PAGADAS
-  const cumpleTiempo = true; // Temporalmente ignorar tiempo
-  const cumpleEstado = ['pagado'].includes(venta?.estado_pago); // Solo pagadas
-  const noEstaAnulada = venta?.estado_pago !== 'anulado';
-  
-  // Debug logs para verificar
-  console.log('🔍 puedeAnularVenta debug:', {
-    ventaId: venta?.id,
-    fecha: venta?.fecha,
-    diferencia,
-    cumpleTiempo,
-    estado: venta?.estado_pago,
-    cumpleEstado,
-    noEstaAnulada,
-    resultado: cumpleTiempo && cumpleEstado && noEstaAnulada
-  });
-  
-  return cumpleTiempo && cumpleEstado && noEstaAnulada;
+  // Para testing: Admins pueden anular cualquier venta activa
+  return venta?.estado_pago !== 'anulado' && venta?.estado_pago !== 'cancelado';
 };
 
 const puedeModificarVenta = (venta) => {
-  // Los admins pueden modificar cualquier venta que no esté anulada
-  return venta?.estado_pago !== 'anulado';
+  // Admins pueden modificar cualquier venta activa
+  return venta?.estado_pago !== 'anulado' && venta?.estado_pago !== 'cancelado';
 };
 
 const getEstadoColor = (estado) => {
