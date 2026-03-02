@@ -327,14 +327,24 @@ export default function Ventas() {
 
         showMessage(`Venta #${venta.id} anulada correctamente - No afectará estadísticas`);
         console.log('🔄 Refrescando datos después de anular venta...');
-        await refresh(); // Forzar refresh asíncrono
-        console.log('✅ Datos refrescados');
         
-        // Forzar actualización adicional si es necesario
-        setTimeout(() => {
-          console.log('🔄 Forzando segundo refresh...');
-          refresh();
-        }, 1000);
+        // Forzar refresh con delay para asegurar que backend actualice
+        setTimeout(async () => {
+          await refresh();
+          console.log('✅ Primer refresh completado');
+          
+          // Segundo refresh para asegurar actualización
+          setTimeout(async () => {
+            await refresh();
+            console.log('✅ Segundo refresh completado');
+            
+            // Tercer refresh si aún no se actualiza
+            setTimeout(async () => {
+              await refresh();
+              console.log('✅ Tercer refresh completado');
+            }, 500);
+          }, 500);
+        }, 500);
       } catch (error) {
         showMessage(error.message || 'Error al anular venta', 'error');
       } finally {
