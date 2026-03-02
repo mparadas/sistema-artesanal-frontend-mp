@@ -238,6 +238,13 @@ export default function Ventas() {
 
   const [filtros, setFiltros] = useState({ fecha: '', tipo: '', estado: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tasaActual, setTasaActual] = useState(CONFIG.TASA_DEFAULT);
+  const [abonoForm, setAbonoForm] = useState({
+    monto: '',
+    moneda: 'USD',
+    metodoPago: 'efectivo',
+    referenciaPago: ''
+  });
 
   const showMessage = useCallback((msg, tipo = 'success') => {
     setUi(prev => ({ ...prev, mensaje: { texto: msg, tipo } }));
@@ -251,6 +258,22 @@ export default function Ventas() {
   const handleFilterChange = useCallback((key, value) => {
     setFiltros(prev => ({ ...prev, [key]: value }));
   }, []);
+
+  const obtenerTasaActual = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/tasas-cambio/actual`);
+      const data = await parseResponseBody(res);
+      if (!res.ok) throw new Error(getApiErrorMessage(res, data, 'No se pudo obtener tasa actual'));
+      const tasa = toNumber(data?.tasa);
+      if (tasa > 0) {
+        setTasaActual(tasa);
+        return tasa;
+      }
+    } catch {
+      return tasaActual;
+    }
+    return tasaActual;
+  }, [tasaActual]);
 
   const ventasFiltradas = useMemo(() => {
     let filtradas = ventas;
@@ -342,9 +365,75 @@ export default function Ventas() {
       showMessage('Error: Venta no válida', 'error');
       return;
     }
-
+    const tasa = await obtenerTasaActual();
+    setAbonoForm({
+      monto: '',
+      moneda: String(venta?.moneda_original || 'USD').toUpperCase() === 'VES' ? 'VES' : 'USD',
+      metodoPago: 'efectivo',
+      referenciaPago: ''
+    });
+    setTasaActual(tasa);
     handleModalToggle('abono', venta);
-  }, [handleModalToggle, showMessage]);
+  }, [handleModalToggle, showMessage, obtenerTasaActual]);
+
+  const handleRegistrarAbono = useCallback(async (e) => {
+    e.preventDefault();
+    const venta = ui.modalAbono;
+    if (!venta?.id) return;
+
+    const monto = toNumber(abonoForm.monto);
+    if (monto <= 0) {
+      showMessage('Ingresa un monto válido', 'error');
+      return;
+    }
+    if (['transferencia', 'pago_movil'].includes(abonoForm.metodoPago) && !String(abonoForm.referenciaPago || '').trim()) {
+      showMessage('La referencia es obligatoria para transferencia y pago móvil', 'error');
+      return;
+    }
+
+    const tasa = await obtenerTasaActual();
+    const montoVes = abonoForm.moneda === 'VES' ? monto : (monto * tasa);
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`${API_URL}/ventas/${venta.id}/pagos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          monto_ves: Number(montoVes.toFixed(2)),
+          metodo_pago: abonoForm.metodoPago,
+          referencia_pago: ['transferencia', 'pago_movil'].includes(abonoForm.metodoPago) ? abonoForm.referenciaPago.trim() : null,
+          tasa_cambio: tasa,
+          moneda_original: abonoForm.moneda,
+          monto_original: monto
+        })
+      });
+      const data = await parseResponseBody(res);
+      if (!res.ok) throw new Error(getApiErrorMessage(res, data, 'No se pudo registrar el abono'));
+
+      dispatch({
+        type: 'UPDATE_VENTA',
+        payload: {
+          id: venta.id,
+          changes: {
+            saldo_pendiente: toNumber(data?.saldo_pendiente),
+            estado_pago: data?.estado_pago || venta.estado_pago,
+            monto_pagado: toNumber(venta?.monto_pagado) + (abonoForm.moneda === 'USD' && String(venta?.moneda_original).toUpperCase() === 'USD'
+              ? monto
+              : toNumber(venta?.monto_pagado))
+          }
+        }
+      });
+
+      showMessage('Abono registrado correctamente');
+      setUi(prev => ({ ...prev, modalAbono: null }));
+      setTimeout(() => { refresh(); }, 250);
+    } catch (error) {
+      showMessage(error.message || 'Error al registrar abono', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [ui.modalAbono, abonoForm, showMessage, obtenerTasaActual, refresh]);
 
   const totalGeneral = useMemo(() => ({
     ventas: ventasFiltradas.filter(v => !ES_VENTA_NO_CONTABILIZABLE(v?.estado_pago)).length,
@@ -694,13 +783,62 @@ export default function Ventas() {
         title={`Abonar venta #${ui.modalAbono?.id || ''}`}
         onClose={() => handleModalToggle('abono', null)}
       >
-        <div className="space-y-3 text-sm text-gray-700">
+        <form onSubmit={handleRegistrarAbono} className="space-y-3 text-sm text-gray-700">
           <p>
             <strong>Saldo pendiente:</strong>{' '}
             {formatearMonto(ui.modalAbono?.saldo_pendiente, ui.modalAbono?.moneda_original)}
           </p>
-          <p>El registro completo de abonos será integrado en la siguiente iteración.</p>
-        </div>
+          <p>
+            <strong>Tasa actual:</strong> {toNumber(tasaActual).toFixed(4)} Bs/USD
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="Monto"
+              value={abonoForm.monto}
+              onChange={(e) => setAbonoForm(prev => ({ ...prev, monto: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              required
+            />
+            <select
+              value={abonoForm.moneda}
+              onChange={(e) => setAbonoForm(prev => ({ ...prev, moneda: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            >
+              <option value="USD">$ USD</option>
+              <option value="VES">Bs VES</option>
+            </select>
+            <select
+              value={abonoForm.metodoPago}
+              onChange={(e) => setAbonoForm(prev => ({ ...prev, metodoPago: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            >
+              {METODOS_PAGO.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+            </select>
+            <input
+              type="text"
+              placeholder="Referencia"
+              value={abonoForm.referenciaPago}
+              onChange={(e) => setAbonoForm(prev => ({ ...prev, referenciaPago: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              disabled={!['transferencia', 'pago_movil'].includes(abonoForm.metodoPago)}
+              required={['transferencia', 'pago_movil'].includes(abonoForm.metodoPago)}
+            />
+          </div>
+          <div className="text-xs text-gray-500">
+            Equivalente en Bs: {formatearMonto(abonoForm.moneda === 'VES' ? toNumber(abonoForm.monto) : toNumber(abonoForm.monto) * toNumber(tasaActual), 'VES')}
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="secondary" onClick={() => handleModalToggle('abono', null)}>
+              Cancelar
+            </Button>
+            <Button type="submit" loading={isSubmitting} disabled={isSubmitting}>
+              Registrar abono
+            </Button>
+          </div>
+        </form>
       </SimpleModal>
 
       <SimpleModal
