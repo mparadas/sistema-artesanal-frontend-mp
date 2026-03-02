@@ -105,6 +105,20 @@ function Login({ onLogin }) {
               
               {/* Sección principal - Contenido y botones (siempre visible) */}
               <div className="text-center space-y-6">
+                {/* Logo de AgroMAE */}
+                <div className="flex items-center justify-center mb-4">
+                  <div className="relative">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-orange-500 to-amber-500 rounded-3xl shadow-2xl flex items-center justify-center">
+                      <div className="text-white font-bold text-2xl sm:text-3xl">
+                        🌾
+                      </div>
+                    </div>
+                    <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                      <span className="text-white text-xs font-bold">MAE</span>
+                    </div>
+                  </div>
+                </div>
+                
                 {/* Badge animado */}
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-100 to-amber-100 rounded-full border border-orange-200 shadow-lg">
                   <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
@@ -209,8 +223,18 @@ function Login({ onLogin }) {
                       
                       {/* Header del login */}
                       <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl shadow-lg mb-4">
-                          <KeyRound className="w-8 h-8 text-white" />
+                        {/* Logo pequeño en el formulario */}
+                        <div className="flex items-center justify-center mb-4">
+                          <div className="relative">
+                            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl shadow-lg flex items-center justify-center">
+                              <div className="text-white font-bold text-lg">
+                                🌾
+                              </div>
+                            </div>
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shadow">
+                              <span className="text-white text-xs font-bold">MAE</span>
+                            </div>
+                          </div>
                         </div>
                         <h2 className="text-2xl font-bold text-gray-800 mb-2">
                           Acceso al Sistema
