@@ -108,14 +108,11 @@ function Login({ onLogin }) {
                 {/* Logo de AgroMAE */}
                 <div className="flex items-center justify-center mb-4">
                   <div className="relative">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-orange-500 to-amber-500 rounded-3xl shadow-2xl flex items-center justify-center">
-                      <div className="text-white font-bold text-2xl sm:text-3xl">
-                        🌾
-                      </div>
-                    </div>
-                    <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
-                      <span className="text-white text-xs font-bold">MAE</span>
-                    </div>
+                    <img 
+                      src="/logo_agromae.png" 
+                      alt="AgroMAE Logo" 
+                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl shadow-2xl object-contain bg-white p-2"
+                    />
                   </div>
                 </div>
                 
@@ -225,16 +222,11 @@ function Login({ onLogin }) {
                       <div className="text-center mb-8">
                         {/* Logo pequeño en el formulario */}
                         <div className="flex items-center justify-center mb-4">
-                          <div className="relative">
-                            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl shadow-lg flex items-center justify-center">
-                              <div className="text-white font-bold text-lg">
-                                🌾
-                              </div>
-                            </div>
-                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shadow">
-                              <span className="text-white text-xs font-bold">MAE</span>
-                            </div>
-                          </div>
+                          <img 
+                            src="/logo_agromae.png" 
+                            alt="AgroMAE Logo" 
+                            className="w-12 h-12 rounded-2xl shadow-lg object-contain bg-white p-1"
+                          />
                         </div>
                         <h2 className="text-2xl font-bold text-gray-800 mb-2">
                           Acceso al Sistema
