@@ -5,7 +5,7 @@ import {
   ShoppingCart, Plus, Trash2, Search, User, Package, DollarSign, 
   CheckCircle, X, Clock, Receipt, Banknote, 
   Smartphone, CreditCard, TrendingUp, FileText, AlertCircle,
-  ChevronDown, ChevronUp, RefreshCw, ArrowRightLeft, Filter, Ban, Edit
+  ChevronDown, ChevronUp, RefreshCw, ArrowRightLeft, Filter, Ban, Edit, ArrowLeft
 } from 'lucide-react';
 import API_URL from '../config';
 
@@ -67,9 +67,7 @@ const formatDate = (date) => {
 const estaPagada = (venta) => ['pagado', 'liquidado', 'cancelado', 'anulado'].includes(venta?.estado_pago);
 
 const puedeAnularVenta = (venta) => {
-  // TEMPORAL: Permitir anular cualquier venta pagada para testing
-  if (!venta?.fecha) return false;
-  
+  // Admins pueden anular ventas pagadas/parciales
   const esPagada = ['pagado', 'parcial'].includes(venta?.estado_pago);
   const noEstaAnulada = venta?.estado_pago !== 'anulado';
   
@@ -84,6 +82,22 @@ const puedeAnularVenta = (venta) => {
   return esPagada && noEstaAnulada;
 };
 
+const puedeDevolverAPedidos = (venta) => {
+  // Admins pueden devolver ventas pendientes a pedidos
+  const esPendiente = venta?.estado_pago === 'pendiente';
+  const noEstaDevuelta = venta?.estado_pago !== 'devuelta_a_pedidos';
+  
+  console.log('🔍 puedeDevolverAPedidos:', {
+    ventaId: venta?.id,
+    estado: venta?.estado_pago,
+    esPendiente,
+    noEstaDevuelta,
+    resultado: esPendiente && noEstaDevuelta
+  });
+  
+  return esPendiente && noEstaDevuelta;
+};
+
 const puedeModificarVenta = (venta) => {
   // Los admins pueden modificar cualquier venta que no esté anulada
   return venta?.estado_pago !== 'anulado';
@@ -96,7 +110,8 @@ const getEstadoColor = (estado) => {
     pendiente: 'bg-red-100 text-red-700 border-red-200',
     liquidado: 'bg-emerald-100 text-emerald-700 border-emerald-200',
     cancelado: 'bg-gray-100 text-gray-700 border-gray-200',
-    anulado: 'bg-red-100 text-red-700 border-red-200'
+    anulado: 'bg-red-100 text-red-700 border-red-200',
+    devuelta_a_pedidos: 'bg-orange-100 text-orange-700 border-orange-200'
   };
   return map[estado] || 'bg-gray-100 text-gray-700 border-gray-200';
 };
@@ -543,7 +558,7 @@ const MetodoPagoSelector = memo(({ metodo, onChange }) => (
 // COMPONENTES ESPECÍFICOS
 // ==========================================
 
-const VentaCard = memo(({ venta, onVerDetalle, onAbonar, onAnular, onModificar, getEstadoTexto, esAdmin }) => {
+const VentaCard = memo(({ venta, onVerDetalle, onAbonar, onAnular, onModificar, onDevolverAPedidos, getEstadoTexto, esAdmin }) => {
   if (!venta) return null;
   const origenCfg = getOrigenConfig(venta);
   
@@ -618,6 +633,17 @@ const VentaCard = memo(({ venta, onVerDetalle, onAbonar, onAnular, onModificar, 
           >
             <Ban className="w-4 h-4" />
             <span className="truncate">Anular</span>
+          </Button>
+        )}
+        {esAdmin && puedeDevolverAPedidos(venta) && (
+          <Button 
+            variant="warning" 
+            size="sm" 
+            onClick={() => onDevolverAPedidos(venta)}
+            className="flex items-center gap-1"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="truncate">Devolver a Pedidos</span>
           </Button>
         )}
         {esAdmin && puedeModificarVenta(venta) && (
@@ -713,7 +739,7 @@ const Modal = memo(({ isOpen, onClose, title, children, size = 'md', footer = nu
   );
 });
 
-const VentasTable = memo(({ ventas, onVerDetalle, onAbonar, onAnular, onModificar, getEstadoTexto, esAdmin }) => {
+const VentasTable = memo(({ ventas, onVerDetalle, onAbonar, onAnular, onModificar, onDevolverAPedidos, getEstadoTexto, esAdmin }) => {
   if (!Array.isArray(ventas) || ventas.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -805,6 +831,15 @@ const VentasTable = memo(({ ventas, onVerDetalle, onAbonar, onAnular, onModifica
                       title="Anular venta"
                     >
                       <Ban className="w-4 h-4" />
+                    </button>
+                  )}
+                  {esAdmin && v && puedeDevolverAPedidos(v) && (
+                    <button 
+                      onClick={() => onDevolverAPedidos(v)} 
+                      className="p-1.5 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                      title="Devolver a pedidos"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
                     </button>
                   )}
                   {esAdmin && v && puedeModificarVenta(v) && (
@@ -2349,6 +2384,47 @@ export default function Ventas() {
     }
   }, [showMessage, refresh]);
 
+  const handleDevolverAPedidos = useCallback(async (venta) => {
+    if (!venta || !venta.id) {
+      showMessage('Error: Venta no válida', 'error');
+      return;
+    }
+
+    if (!puedeDevolverAPedidos(venta)) {
+      showMessage('Error: Esta venta no puede ser devuelta a pedidos.', 'error');
+      return;
+    }
+
+    if (!confirm(`¿Está seguro que desea devolver la venta #${venta.id} a pedidos?\n\nCliente: ${venta.cliente_nombre || 'Cliente general'}\nMonto: ${formatearMonto(venta.total, venta.moneda_original)}\n\nEsta acción cambiará el estado a "Devuelta a Pedidos" y la moverá al módulo de pedidos.`)) {
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${API_URL}/ventas/${venta.id}/devolver-a-pedidos`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          estado_pago: 'devuelta_a_pedidos',
+          motivo_devolucion: 'Devuelta a pedidos por administrador',
+          fecha_devolucion: new Date().toISOString()
+        })
+      });
+
+      if (!res.ok) {
+        const data = await parseResponseBody(res);
+        throw new Error(getApiErrorMessage(res, data, 'Error al devolver venta a pedidos'));
+      }
+
+      showMessage(`Venta #${venta.id} devuelta a pedidos correctamente`);
+      refresh();
+    } catch (error) {
+      showMessage(error.message || 'Error al devolver venta a pedidos', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  }, [showMessage, refresh]);
+
   const handleModificarVenta = useCallback(async (venta) => {
     if (!venta || !venta.id) {
       showMessage('Error: Venta no válida', 'error');
@@ -2717,6 +2793,7 @@ export default function Ventas() {
                     onAbonar={abrirAbono}
                     onAnular={handleAnularVenta}
                     onModificar={handleModificarVenta}
+                    onDevolverAPedidos={handleDevolverAPedidos}
                     getEstadoTexto={getEstadoTexto}
                     esAdmin={esAdmin}
                   />
@@ -2729,6 +2806,7 @@ export default function Ventas() {
                   onAbonar={abrirAbono}
                   onAnular={handleAnularVenta}
                   onModificar={handleModificarVenta}
+                  onDevolverAPedidos={handleDevolverAPedidos}
                   getEstadoTexto={getEstadoTexto}
                   esAdmin={esAdmin}
                 />
