@@ -2395,32 +2395,55 @@ export default function Ventas() {
       return;
     }
 
-    if (!confirm(`¿Está seguro que desea anular la venta #${venta.id}?\n\nCliente: ${venta.cliente_nombre || 'Cliente general'}\nMonto: ${formatearMonto(venta.total, venta.moneda_original)}\n\nEsta acción anulará la venta con montos en cero.`)) {
+    // Crear diálogo personalizado con botones claros
+    const userChoice = window.prompt(
+      `¿Qué desea hacer con la venta #${venta.id}?\n\n` +
+      `Cliente: ${venta.cliente_nombre || 'Cliente general'}\n` +
+      `Monto: ${formatearMonto(venta.total, venta.moneda_original)}\n\n` +
+      `Escriba una opción:\n` +
+      `• "ANULAR" para anular la venta\n` +
+      `• "PENDIENTE" para mantener como pendiente\n` +
+      `• CANCEL o ESC para abortar`,
+      'CANCEL'
+    );
+
+    if (!userChoice || userChoice.toUpperCase() === 'CANCEL') {
       return;
     }
 
-    setSubmitting(true);
-    try {
-      const res = await fetch(`${API_URL}/ventas/${venta.id}/devolver-a-pedidos`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          motivo_devolucion: 'Anulada por administrador',
-          fecha_devolucion: new Date().toISOString()
-        })
-      });
+    const action = userChoice.toUpperCase();
+    
+    if (action === 'ANULAR') {
+      // Proceder con anulación
+      setSubmitting(true);
+      try {
+        const res = await fetch(`${API_URL}/ventas/${venta.id}/devolver-a-pedidos`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            motivo_devolucion: 'Anulada por administrador',
+            fecha_devolucion: new Date().toISOString()
+          })
+        });
 
-      if (!res.ok) {
-        const data = await parseResponseBody(res);
-        throw new Error(getApiErrorMessage(res, data, 'Error al anular venta'));
+        if (!res.ok) {
+          const data = await parseResponseBody(res);
+          throw new Error(getApiErrorMessage(res, data, 'Error al anular venta'));
+        }
+
+        showMessage(`Venta #${venta.id} anulada correctamente`);
+        refresh();
+      } catch (error) {
+        showMessage(error.message || 'Error al anular venta', 'error');
+      } finally {
+        setSubmitting(false);
       }
-
-      showMessage(`Venta #${venta.id} anulada correctamente`);
-      refresh();
-    } catch (error) {
-      showMessage(error.message || 'Error al anular venta', 'error');
-    } finally {
-      setSubmitting(false);
+    } else if (action === 'PENDIENTE') {
+      showMessage('Venta mantenida como pendiente');
+      return;
+    } else {
+      showMessage('Opción no válida. Operación cancelada.', 'error');
+      return;
     }
   }, [showMessage, refresh]);
 
