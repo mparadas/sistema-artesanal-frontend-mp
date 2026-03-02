@@ -634,24 +634,14 @@ const VentaCard = memo(({ venta, onVerDetalle, onAbonar, onAnular, onModificar, 
             <span className="truncate">{venta.tipo_venta === 'credito' ? 'Abonar' : 'Pagar'}</span>
           </Button>
         )}
-        {esAdmin && puedeAnularVenta(venta) && (
-          <button 
-            onClick={() => onAnular(venta)}
-            className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors font-medium"
-            title="Anular venta"
-          >
-            <Ban className="w-3 h-3 inline mr-1" />
-            Anular
-          </button>
-        )}
         {esAdmin && puedeDevolverAPedidos(venta) && (
           <button 
             onClick={() => onDevolverAPedidos(venta)}
-            className="px-2 py-1 text-xs text-orange-600 hover:bg-orange-50 rounded transition-colors font-medium"
-            title="Devolver a pedidos"
+            className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors font-medium"
+            title="Anular venta (montos en cero)"
           >
-            <ArrowLeft className="w-3 h-3 inline mr-1" />
-            Devolver
+            <Ban className="w-3 h-3 inline mr-1" />
+            Anular
           </button>
         )}
         {esAdmin && puedeModificarVenta(venta) && (
@@ -2398,7 +2388,7 @@ export default function Ventas() {
     }
 
     if (!puedeDevolverAPedidos(venta)) {
-      showMessage('Error: Esta venta no puede ser devuelta a pedidos.', 'error');
+      showMessage('Error: Esta venta no puede ser anulada.', 'error');
       return;
     }
 
@@ -2408,8 +2398,8 @@ export default function Ventas() {
       `Cliente: ${venta.cliente_nombre || 'Cliente general'}\n` +
       `Monto: ${formatearMonto(venta.total, venta.moneda_original)}\n\n` +
       `Escriba una opción:\n` +
-      `• "ANULAR" para anular la venta\n` +
-      `• "PENDIENTE" para mantener como pendiente\n` +
+      `• "ANULAR" para anular la venta (montos en cero)\n` +
+      `• "CANCEL" para mantener como pendiente\n` +
       `• CANCEL o ESC para abortar`,
       'CANCEL'
     );
@@ -2438,14 +2428,14 @@ export default function Ventas() {
           throw new Error(getApiErrorMessage(res, data, 'Error al anular venta'));
         }
 
-        showMessage(`Venta #${venta.id} anulada correctamente`);
+        showMessage(`Venta #${venta.id} anulada correctamente - No afectará estadísticas`);
         refresh();
       } catch (error) {
         showMessage(error.message || 'Error al anular venta', 'error');
       } finally {
         setSubmitting(false);
       }
-    } else if (action === 'PENDIENTE') {
+    } else if (action === 'CANCEL' || action === 'PENDIENTE') {
       showMessage('Venta mantenida como pendiente');
       return;
     } else {
