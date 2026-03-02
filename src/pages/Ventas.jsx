@@ -73,9 +73,10 @@ const puedeAnularVenta = (venta) => {
 };
 
 const puedeDevolverAPedidos = (venta) => {
-  const esPendiente = venta?.estado_pago === 'pendiente';
-  const noEstaDevuelta = venta?.estado_pago !== 'devuelta_a_pedidos';
-  return esPendiente && noEstaDevuelta;
+  // Permitir anular ventas pendientes, pagadas o parciales
+  const puedeAnular = ['pendiente', 'pagado', 'parcial'].includes(venta?.estado_pago);
+  const noEstaAnulada = !['anulada', 'devuelta_a_pedidos'].includes(venta?.estado_pago);
+  return puedeAnular && noEstaAnulada;
 };
 
 const puedeModificarVenta = (venta) => {
@@ -285,18 +286,18 @@ export default function Ventas() {
     }
 
     if (!puedeDevolverAPedidos(venta)) {
-      showMessage('Error: Esta venta no puede ser anulada.', 'error');
+      showMessage('Error: Esta venta no puede ser devuelta a pedidos.', 'error');
       return;
     }
 
     // Crear diálogo simple con confirmación
     const confirmacion = confirm(
-      `¿Está seguro que desea anular la venta #${venta.id}?\n\n` +
+      `¿Está seguro que desea devolver a pedidos la venta #${venta.id}?\n\n` +
       `Cliente: ${venta.cliente_nombre || 'Cliente general'}\n` +
       `Monto: ${formatearMonto(venta.total, venta.moneda_original)}\n\n` +
       `Esta acción:\n` +
       `• Pondrá los montos en cero\n` +
-      `• Cambiará el estado a "anulada"\n` +
+      `• Cambiará el estado a "devuelta a pedidos"\n` +
       `• No afectará las estadísticas`
     );
 
@@ -319,11 +320,11 @@ export default function Ventas() {
 
       if (!res.ok) {
         const data = await parseResponseBody(res);
-        throw new Error(getApiErrorMessage(res, data, 'Error al anular venta'));
+        throw new Error(getApiErrorMessage(res, data, 'Error al devolver venta a pedidos'));
       }
 
-      showMessage(`Venta #${venta.id} anulada correctamente - No afectará estadísticas`);
-      console.log('🔄 Refrescando datos después de anular venta...');
+      showMessage(`Venta #${venta.id} devuelta a pedidos correctamente - No afectará estadísticas`);
+      console.log('🔄 Refrescando datos después de devolver venta a pedidos...');
       
       // Forzar refresh con delay para asegurar que backend actualice
       setTimeout(async () => {
@@ -343,7 +344,7 @@ export default function Ventas() {
         }, 500);
       }, 500);
     } catch (error) {
-      showMessage(error.message || 'Error al anular venta', 'error');
+      showMessage(error.message || 'Error al devolver venta a pedidos', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -458,10 +459,10 @@ export default function Ventas() {
                 variant="danger" 
                 size="sm" 
                 onClick={() => onDevolverAPedidos(venta)}
-                title="Anular venta (montos en cero)"
+                title="Devolver a pedidos (montos en cero)"
               >
                 <Ban className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline ml-1">Anular</span>
+                <span className="hidden sm:inline ml-1">Devolver</span>
               </Button>
             )}
             
