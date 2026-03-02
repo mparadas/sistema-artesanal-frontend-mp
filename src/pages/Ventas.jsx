@@ -2429,7 +2429,15 @@ export default function Ventas() {
         }
 
         showMessage(`Venta #${venta.id} anulada correctamente - No afectará estadísticas`);
-        refresh();
+        console.log('🔄 Refrescando datos después de anular venta...');
+        await refresh(); // Forzar refresh asíncrono
+        console.log('✅ Datos refrescados');
+        
+        // Forzar actualización adicional si es necesario
+        setTimeout(() => {
+          console.log('🔄 Forzando segundo refresh...');
+          refresh();
+        }, 1000);
       } catch (error) {
         showMessage(error.message || 'Error al anular venta', 'error');
       } finally {
