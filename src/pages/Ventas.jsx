@@ -74,11 +74,23 @@ const puedeAnularVenta = (venta) => {
   const diferencia = ahora - fechaVenta;
   
   // Solo puede anular si tiene menos de 2 días y está pagada o parcial
-  return (
-    diferencia <= dosDiasEnMilisegundos && 
-    ['pagado', 'parcial'].includes(venta?.estado_pago) &&
-    venta?.estado_pago !== 'anulado'
-  );
+  const cumpleTiempo = diferencia <= dosDiasEnMilisegundos;
+  const cumpleEstado = ['pagado', 'parcial'].includes(venta?.estado_pago);
+  const noEstaAnulada = venta?.estado_pago !== 'anulado';
+  
+  // Debug logs para verificar
+  console.log('🔍 puedeAnularVenta debug:', {
+    ventaId: venta?.id,
+    fecha: venta?.fecha,
+    diferencia,
+    cumpleTiempo,
+    estado: venta?.estado_pago,
+    cumpleEstado,
+    noEstaAnulada,
+    resultado: cumpleTiempo && cumpleEstado && noEstaAnulada
+  });
+  
+  return cumpleTiempo && cumpleEstado && noEstaAnulada;
 };
 
 const getEstadoColor = (estado) => {
@@ -605,11 +617,24 @@ const VentaCard = memo(({ venta, onVerDetalle, onAbonar, onAnular, getEstadoText
           <Button 
             variant="danger" 
             size="sm" 
-            onClick={() => onAnular(venta)} 
-            className="flex-1 min-h-10 text-sm font-medium"
+            onClick={() => onAnular(venta)}
+            className="flex items-center gap-1"
           >
-            <Ban className="w-4 h-4 mr-2 flex-shrink-0" /> 
+            <Ban className="w-4 h-4" />
             <span className="truncate">Anular</span>
+          </Button>
+        )}
+        
+        {/* Debug: Mostrar siempre para testing */}
+        {process.env.NODE_ENV === 'development' && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => console.log('🔍 Debug venta mobile:', venta)}
+            className="flex items-center gap-1"
+          >
+            <AlertCircle className="w-4 h-4" />
+            <span className="truncate">Debug</span>
           </Button>
         )}
       </div>
@@ -773,6 +798,17 @@ const VentasTable = memo(({ ventas, onVerDetalle, onAbonar, onAnular, getEstadoT
                       title="Anular venta"
                     >
                       <Ban className="w-4 h-4" />
+                    </button>
+                  )}
+                  
+                  {/* Debug: Mostrar siempre para testing */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <button 
+                      onClick={() => console.log('🔍 Debug venta:', v)}
+                      className="p-1.5 text-gray-400 hover:bg-gray-50 rounded-lg transition-colors"
+                      title="Debug venta"
+                    >
+                      <AlertCircle className="w-4 h-4" />
                     </button>
                   )}
                 </div>
@@ -1958,6 +1994,13 @@ export default function Ventas() {
     } 
   })();
   const esAdmin = usuarioActual?.rol === 'admin';
+  
+  // Debug log para verificar rol de usuario
+  console.log('👤 Usuario actual:', {
+    usuario: usuarioActual,
+    rol: usuarioActual?.rol,
+    esAdmin
+  });
 
   const obtenerTasaDesdeTabla = useCallback(async () => {
     const data = await requestJson(`${API_URL}/tasas-cambio/actual`, {}, 'No se pudo obtener la tasa vigente');
