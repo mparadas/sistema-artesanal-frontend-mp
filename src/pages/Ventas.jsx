@@ -5,7 +5,7 @@ import {
   ShoppingCart, Plus, Trash2, Search, User, Package, DollarSign, 
   CheckCircle, X, Clock, Receipt, Banknote, 
   Smartphone, CreditCard, TrendingUp, FileText, AlertCircle,
-  ChevronDown, ChevronUp, RefreshCw, ArrowRightLeft, Filter
+  ChevronDown, ChevronUp, RefreshCw, ArrowRightLeft, Filter, Ban
 } from 'lucide-react';
 import API_URL from '../config';
 
@@ -23,7 +23,8 @@ const ESTADOS_DEFAULT = [
   { codigo: 'parcial', nombre: 'Parcial', color: 'yellow' },
   { codigo: 'pendiente', nombre: 'Pendiente', color: 'red' },
   { codigo: 'liquidado', nombre: 'Liquidado', color: 'emerald' },
-  { codigo: 'cancelado', nombre: 'Cancelado', color: 'gray' }
+  { codigo: 'cancelado', nombre: 'Cancelado', color: 'gray' },
+  { codigo: 'anulado', nombre: 'Anulado', color: 'red' }
 ];
 
 const CONFIG = {
@@ -63,7 +64,22 @@ const formatDate = (date) => {
   }
 };
 
-const estaPagada = (venta) => ['pagado', 'liquidado', 'cancelado'].includes(venta?.estado_pago);
+const estaPagada = (venta) => ['pagado', 'liquidado', 'cancelado', 'anulado'].includes(venta?.estado_pago);
+
+const puedeAnularVenta = (venta) => {
+  if (!venta?.fecha) return false;
+  const fechaVenta = new Date(venta.fecha);
+  const ahora = new Date();
+  const dosDiasEnMilisegundos = 2 * 24 * 60 * 60 * 1000;
+  const diferencia = ahora - fechaVenta;
+  
+  // Solo puede anular si tiene menos de 2 días y está pagada o parcial
+  return (
+    diferencia <= dosDiasEnMilisegundos && 
+    ['pagado', 'parcial'].includes(venta?.estado_pago) &&
+    venta?.estado_pago !== 'anulado'
+  );
+};
 
 const getEstadoColor = (estado) => {
   const map = {
@@ -71,7 +87,8 @@ const getEstadoColor = (estado) => {
     parcial: 'bg-yellow-100 text-yellow-700 border-yellow-200',
     pendiente: 'bg-red-100 text-red-700 border-red-200',
     liquidado: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    cancelado: 'bg-gray-100 text-gray-700 border-gray-200'
+    cancelado: 'bg-gray-100 text-gray-700 border-gray-200',
+    anulado: 'bg-red-100 text-red-700 border-red-200'
   };
   return map[estado] || 'bg-gray-100 text-gray-700 border-gray-200';
 };
@@ -518,7 +535,7 @@ const MetodoPagoSelector = memo(({ metodo, onChange }) => (
 // COMPONENTES ESPECÍFICOS
 // ==========================================
 
-const VentaCard = memo(({ venta, onVerDetalle, onAbonar, getEstadoTexto }) => {
+const VentaCard = memo(({ venta, onVerDetalle, onAbonar, onAnular, getEstadoTexto, esAdmin }) => {
   if (!venta) return null;
   const origenCfg = getOrigenConfig(venta);
   
@@ -582,6 +599,17 @@ const VentaCard = memo(({ venta, onVerDetalle, onAbonar, getEstadoTexto }) => {
           >
             <DollarSign className="w-4 h-4 mr-2 flex-shrink-0" /> 
             <span className="truncate">{venta.tipo_venta === 'credito' ? 'Abonar' : 'Pagar'}</span>
+          </Button>
+        )}
+        {esAdmin && puedeAnularVenta(venta) && (
+          <Button 
+            variant="danger" 
+            size="sm" 
+            onClick={() => onAnular(venta)} 
+            className="flex-1 min-h-10 text-sm font-medium"
+          >
+            <Ban className="w-4 h-4 mr-2 flex-shrink-0" /> 
+            <span className="truncate">Anular</span>
           </Button>
         )}
       </div>
@@ -653,7 +681,7 @@ const Modal = memo(({ isOpen, onClose, title, children, size = 'md', footer = nu
   );
 });
 
-const VentasTable = memo(({ ventas, onVerDetalle, onAbonar, getEstadoTexto }) => {
+const VentasTable = memo(({ ventas, onVerDetalle, onAbonar, onAnular, getEstadoTexto, esAdmin }) => {
   if (!Array.isArray(ventas) || ventas.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -736,6 +764,15 @@ const VentasTable = memo(({ ventas, onVerDetalle, onAbonar, getEstadoTexto }) =>
                       title={v.tipo_venta === 'credito' ? 'Abonar' : 'Pagar'}
                     >
                       <DollarSign className="w-4 h-4" />
+                    </button>
+                  )}
+                  {esAdmin && v && puedeAnularVenta(v) && (
+                    <button 
+                      onClick={() => onAnular(v)} 
+                      className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Anular venta"
+                    >
+                      <Ban className="w-4 h-4" />
                     </button>
                   )}
                 </div>
@@ -1912,6 +1949,16 @@ export default function Ventas() {
   const [filtros, setFiltros] = useState({ fecha: '', tipo: '', estado: '' });
   const [submitting, setSubmitting] = useState(false);
 
+  // Obtener usuario actual para verificar rol de admin
+  const usuarioActual = (() => { 
+    try { 
+      return JSON.parse(localStorage.getItem('usuario') || '{}') 
+    } catch { 
+      return {} 
+    } 
+  })();
+  const esAdmin = usuarioActual?.rol === 'admin';
+
   const obtenerTasaDesdeTabla = useCallback(async () => {
     const data = await requestJson(`${API_URL}/tasas-cambio/actual`, {}, 'No se pudo obtener la tasa vigente');
     if (!data?.desde_tabla) {
@@ -2201,6 +2248,47 @@ export default function Ventas() {
       setSubmitting(false);
     }
   }, [ui.modalAbono, showMessage, refresh, obtenerTasaDesdeTabla]);
+
+  const handleAnularVenta = useCallback(async (venta) => {
+    if (!venta || !venta.id) {
+      showMessage('Error: Venta no válida', 'error');
+      return;
+    }
+
+    if (!puedeAnularVenta(venta)) {
+      showMessage('Error: Esta venta no puede ser anulada. Solo se pueden anular ventas con menos de 2 días de antigüedad y que estén pagadas o parciales.', 'error');
+      return;
+    }
+
+    if (!confirm(`¿Está seguro que desea anular la venta #${venta.id}?\n\nCliente: ${venta.cliente_nombre || 'Cliente general'}\nMonto: ${formatearMonto(venta.total, venta.moneda_original)}\n\nEsta acción no se puede deshacer.`)) {
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${API_URL}/ventas/${venta.id}/anular`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          estado_pago: 'anulado',
+          motivo_anulacion: 'Anulado por administrador',
+          fecha_anulacion: new Date().toISOString()
+        })
+      });
+
+      if (!res.ok) {
+        const data = await parseResponseBody(res);
+        throw new Error(getApiErrorMessage(res, data, 'Error al anular venta'));
+      }
+
+      showMessage(`Venta #${venta.id} anulada correctamente`);
+      refresh();
+    } catch (error) {
+      showMessage(error.message || 'Error al anular venta', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  }, [showMessage, refresh]);
 
   const ventasFiltradas = useMemo(() => {
     if (!Array.isArray(ventas)) return [];
@@ -2550,7 +2638,9 @@ export default function Ventas() {
                     venta={v} 
                     onVerDetalle={abrirDetalle}
                     onAbonar={abrirAbono}
+                    onAnular={handleAnularVenta}
                     getEstadoTexto={getEstadoTexto}
+                    esAdmin={esAdmin}
                   />
                 ))}
               </div>
@@ -2559,7 +2649,9 @@ export default function Ventas() {
                   ventas={ventasFiltradas} 
                   onVerDetalle={abrirDetalle}
                   onAbonar={abrirAbono}
+                  onAnular={handleAnularVenta}
                   getEstadoTexto={getEstadoTexto}
+                  esAdmin={esAdmin}
                 />
               </div>
             </>

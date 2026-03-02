@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, Link } from 'react-router-dom'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import { LayoutDashboard, ShoppingCart, Users, Package, Factory, ClipboardList, BookOpen, BarChart2, Wallet, TrendingUp, Database, Shield, LogOut, Menu } from 'lucide-react'
+import { LayoutDashboard, ShoppingCart, Users, Package, Factory, ClipboardList, BookOpen, BarChart2, Wallet, TrendingUp, Database, Shield, LogOut, Menu, MessageCircle } from 'lucide-react'
 import Login from './components/Login'
 import Dashboard from './pages/Dashboard'
 import Ventas from './pages/Ventas'
@@ -20,16 +20,17 @@ import Auditoria_simple from './pages/Auditoria_simple'
 import TasasCambio from './pages/TasasCambio'
 import ListaPrecios from './pages/ListaPrecios'
 import Usuarios from './pages/Usuarios'
+import WhatsAppAgent from './pages/WhatsAppAgent'
 import TestErroresConexion from './components/TestErroresConexion'
 import API_URL from './config'
 
 // Permisos por rol
 const PERMISOS = {
-  admin:      ['/', '/ventas', '/clientes', '/productos', '/ingredientes', '/produccion', '/estadisticas', '/usuarios', '/pedidos', '/catalogo', '/tasas-cambio', '/auditoria', '/financiero', '/productos-disponibles', '/lista-precios'],
-  vendedor:   ['/', '/ventas', '/clientes', '/estadisticas', '/pedidos', '/catalogo', '/tasas-cambio', '/productos-disponibles', '/lista-precios'],
+  admin:      ['/', '/ventas', '/clientes', '/productos', '/ingredientes', '/produccion', '/estadisticas', '/usuarios', '/pedidos', '/catalogo', '/tasas-cambio', '/auditoria', '/financiero', '/productos-disponibles', '/lista-precios', '/whatsapp-agent'],
+  vendedor:   ['/', '/ventas', '/clientes', '/estadisticas', '/pedidos', '/catalogo', '/tasas-cambio', '/productos-disponibles', '/lista-precios', '/whatsapp-agent'],
   produccion: ['/', '/ingredientes', '/produccion', '/estadisticas', '/pedidos', '/catalogo', '/tasas-cambio', '/productos-disponibles', '/lista-precios'],
   viewer:     ['/', '/estadisticas', '/tasas-cambio', '/productos-disponibles', '/lista-precios'],
-  mparadas:   ['/', '/auditoria'],
+  mparadas:   ['/', '/auditoria', '/whatsapp-agent'],
 }
 
 const tieneAcceso = (rol, path) => {
@@ -60,6 +61,7 @@ function Layout({ children, usuario, onLogout }) {
     { path: '/tasas-cambio', icon: TrendingUp,      label: 'Tasa de Cambio', roles: ['admin', 'gerente'] },
     { path: '/auditoria',    icon: Database,         label: 'Auditoría', roles: ['admin', 'mparadas'] },
     { path: '/usuarios',     icon: Shield,          label: 'Usuarios', soloAdmin: true },
+    { path: '/whatsapp-agent', icon: MessageCircle, label: 'WhatsApp Agent' },
   ]
 
   const menuItems = todosMenuItems.filter(item =>
@@ -233,6 +235,7 @@ function App() {
                 <Route path="/auditoria"    element={<RutaProtegida usuario={usuario} path="/auditoria"><Auditoria /></RutaProtegida>} />
                 <Route path="/usuarios"     element={<RutaProtegida usuario={usuario} path="/usuarios"><Usuarios /></RutaProtegida>} />
                 <Route path="/lista-precios" element={<RutaProtegida usuario={usuario} path="/lista-precios"><ListaPrecios /></RutaProtegida>} />
+                <Route path="/whatsapp-agent" element={<RutaProtegida usuario={usuario} path="/whatsapp-agent"><WhatsAppAgent /></RutaProtegida>} />
               </Routes>
             </Layout>
           )
