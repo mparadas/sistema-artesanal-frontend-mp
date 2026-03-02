@@ -5,7 +5,7 @@ import {
   ShoppingCart, Plus, Trash2, Search, User, Package, DollarSign, 
   CheckCircle, X, Clock, Receipt, Banknote, 
   Smartphone, CreditCard, TrendingUp, FileText, AlertCircle,
-  ChevronDown, ChevronUp, RefreshCw, ArrowRightLeft, Filter, Ban
+  ChevronDown, ChevronUp, RefreshCw, ArrowRightLeft, Filter, Ban, Edit
 } from 'lucide-react';
 import API_URL from '../config';
 
@@ -91,6 +91,11 @@ const puedeAnularVenta = (venta) => {
   });
   
   return cumpleTiempo && cumpleEstado && noEstaAnulada;
+};
+
+const puedeModificarVenta = (venta) => {
+  // Los admins pueden modificar cualquier venta que no esté anulada
+  return venta?.estado_pago !== 'anulado';
 };
 
 const getEstadoColor = (estado) => {
@@ -547,7 +552,7 @@ const MetodoPagoSelector = memo(({ metodo, onChange }) => (
 // COMPONENTES ESPECÍFICOS
 // ==========================================
 
-const VentaCard = memo(({ venta, onVerDetalle, onAbonar, onAnular, getEstadoTexto, esAdmin }) => {
+const VentaCard = memo(({ venta, onVerDetalle, onAbonar, onAnular, onModificar, getEstadoTexto, esAdmin }) => {
   if (!venta) return null;
   const origenCfg = getOrigenConfig(venta);
   
@@ -622,6 +627,17 @@ const VentaCard = memo(({ venta, onVerDetalle, onAbonar, onAnular, getEstadoText
           >
             <Ban className="w-4 h-4" />
             <span className="truncate">Anular</span>
+          </Button>
+        )}
+        {esAdmin && puedeModificarVenta(venta) && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => onModificar(venta)}
+            className="flex items-center gap-1"
+          >
+            <Edit className="w-4 h-4" />
+            <span className="truncate">Modificar</span>
           </Button>
         )}
         
@@ -706,7 +722,7 @@ const Modal = memo(({ isOpen, onClose, title, children, size = 'md', footer = nu
   );
 });
 
-const VentasTable = memo(({ ventas, onVerDetalle, onAbonar, onAnular, getEstadoTexto, esAdmin }) => {
+const VentasTable = memo(({ ventas, onVerDetalle, onAbonar, onAnular, onModificar, getEstadoTexto, esAdmin }) => {
   if (!Array.isArray(ventas) || ventas.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -798,6 +814,15 @@ const VentasTable = memo(({ ventas, onVerDetalle, onAbonar, onAnular, getEstadoT
                       title="Anular venta"
                     >
                       <Ban className="w-4 h-4" />
+                    </button>
+                  )}
+                  {esAdmin && v && puedeModificarVenta(v) && (
+                    <button 
+                      onClick={() => onModificar(v)} 
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Modificar venta"
+                    >
+                      <Edit className="w-4 h-4" />
                     </button>
                   )}
                   
@@ -2333,6 +2358,21 @@ export default function Ventas() {
     }
   }, [showMessage, refresh]);
 
+  const handleModificarVenta = useCallback(async (venta) => {
+    if (!venta || !venta.id) {
+      showMessage('Error: Venta no válida', 'error');
+      return;
+    }
+
+    if (!puedeModificarVenta(venta)) {
+      showMessage('Error: Esta venta no puede ser modificada.', 'error');
+      return;
+    }
+
+    // Abrir modal de modificación con los datos actuales
+    setUi(prev => ({ ...prev, modalModificarVenta: true, ventaSeleccionada: venta }));
+  }, [showMessage]);
+
   const ventasFiltradas = useMemo(() => {
     if (!Array.isArray(ventas)) return [];
     return ventas.filter(v => {
@@ -2682,6 +2722,7 @@ export default function Ventas() {
                     onVerDetalle={abrirDetalle}
                     onAbonar={abrirAbono}
                     onAnular={handleAnularVenta}
+                    onModificar={handleModificarVenta}
                     getEstadoTexto={getEstadoTexto}
                     esAdmin={esAdmin}
                   />
@@ -2693,6 +2734,7 @@ export default function Ventas() {
                   onVerDetalle={abrirDetalle}
                   onAbonar={abrirAbono}
                   onAnular={handleAnularVenta}
+                  onModificar={handleModificarVenta}
                   getEstadoTexto={getEstadoTexto}
                   esAdmin={esAdmin}
                 />
