@@ -67,15 +67,23 @@ const formatDate = (date) => {
 const estaPagada = (venta) => ['pagado', 'liquidado', 'cancelado', 'anulado'].includes(venta?.estado_pago);
 
 const puedeAnularVenta = (venta) => {
-  // TEMPORAL: Siempre true para testing
-  console.log('🔍 puedeAnularVenta - siempre true para testing');
-  return true;
+  if (!venta?.fecha) return false;
+  const fechaVenta = new Date(venta.fecha);
+  const ahora = new Date();
+  const dosDiasEnMilisegundos = 2 * 24 * 60 * 60 * 1000;
+  const diferencia = ahora - fechaVenta;
+  
+  // Solo puede anular si tiene menos de 2 días y está pagada o parcial
+  return (
+    diferencia <= dosDiasEnMilisegundos && 
+    ['pagado', 'parcial'].includes(venta?.estado_pago) &&
+    venta?.estado_pago !== 'anulado'
+  );
 };
 
 const puedeModificarVenta = (venta) => {
-  // TEMPORAL: Siempre true para testing
-  console.log('🔍 puedeModificarVenta - siempre true para testing');
-  return true;
+  // Los admins pueden modificar cualquier venta que no esté anulada
+  return venta?.estado_pago !== 'anulado';
 };
 
 const getEstadoColor = (estado) => {
@@ -598,7 +606,7 @@ const VentaCard = memo(({ venta, onVerDetalle, onAbonar, onAnular, onModificar, 
             <span className="truncate">{venta.tipo_venta === 'credito' ? 'Abonar' : 'Pagar'}</span>
           </Button>
         )}
-        {esAdminForzado && puedeAnularVenta(venta) && (
+        {esAdmin && puedeAnularVenta(venta) && (
           <Button 
             variant="danger" 
             size="sm" 
@@ -609,7 +617,7 @@ const VentaCard = memo(({ venta, onVerDetalle, onAbonar, onAnular, onModificar, 
             <span className="truncate">Anular</span>
           </Button>
         )}
-        {esAdminForzado && puedeModificarVenta(venta) && (
+        {esAdmin && puedeModificarVenta(venta) && (
           <Button 
             variant="outline" 
             size="sm" 
@@ -787,7 +795,7 @@ const VentasTable = memo(({ ventas, onVerDetalle, onAbonar, onAnular, onModifica
                       <DollarSign className="w-4 h-4" />
                     </button>
                   )}
-                  {esAdminForzado && puedeAnularVenta(v) && (
+                  {esAdmin && v && puedeAnularVenta(v) && (
                     <button 
                       onClick={() => onAnular(v)} 
                       className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -796,7 +804,7 @@ const VentasTable = memo(({ ventas, onVerDetalle, onAbonar, onAnular, onModifica
                       <Ban className="w-4 h-4" />
                     </button>
                   )}
-                  {esAdminForzado && v && puedeModificarVenta(v) && (
+                  {esAdmin && v && puedeModificarVenta(v) && (
                     <button 
                       onClick={() => onModificar(v)} 
                       className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -2006,10 +2014,6 @@ export default function Ventas() {
     rol: usuarioActual?.rol,
     esAdmin
   });
-  
-  // TEMPORAL: Forzar esAdmin a true para testing
-  const esAdminForzado = true;
-  console.log('🔥 esAdmin forzado a true para testing');
 
   const obtenerTasaDesdeTabla = useCallback(async () => {
     const data = await requestJson(`${API_URL}/tasas-cambio/actual`, {}, 'No se pudo obtener la tasa vigente');
@@ -2708,7 +2712,7 @@ export default function Ventas() {
                     onAnular={handleAnularVenta}
                     onModificar={handleModificarVenta}
                     getEstadoTexto={getEstadoTexto}
-                    esAdmin={esAdminForzado}
+                    esAdmin={esAdmin}
                   />
                 ))}
               </div>
@@ -2720,7 +2724,7 @@ export default function Ventas() {
                   onAnular={handleAnularVenta}
                   onModificar={handleModificarVenta}
                   getEstadoTexto={getEstadoTexto}
-                  esAdmin={esAdminForzado}
+                  esAdmin={esAdmin}
                 />
               </div>
             </>
