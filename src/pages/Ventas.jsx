@@ -455,14 +455,15 @@ export default function Ventas() {
               </Button>
             ) : null}
             {esAdmin && puedeDevolverAPedidos(venta) && (
-              <button 
+              <Button 
+                variant="danger" 
+                size="sm" 
                 onClick={() => onDevolverAPedidos(venta)}
-                className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors font-medium"
                 title="Anular venta (montos en cero)"
               >
-                <Ban className="w-3 h-3 inline mr-1" />
-                Anular
-              </button>
+                <Ban className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline ml-1">Anular</span>
+              </Button>
             )}
             
             {/* Debug: Mostrar siempre para testing */}
