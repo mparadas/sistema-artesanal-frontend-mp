@@ -222,7 +222,17 @@ const useDebounce = (value, delay = CONFIG.DEBOUNCE_DELAY) => {
   return debounced;
 };
 
-const useVentasData = () => {
+// Forzar actualización en móvil (temporal)
+if ('serviceWorker' in navigator && window.location.hostname === 'sistema-artesanal-frontend-mp.vercel.app') {
+  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+    registrations.forEach(function(registration) {
+      registration.unregister();
+      console.log(' Service Worker desregistrado para forzar actualización');
+    });
+  });
+}
+
+const Ventas = () => {
   const [state, dispatch] = useReducer((state, action) => {
     switch (action.type) {
       case 'FETCH_START': return { ...state, loading: true, error: null };
