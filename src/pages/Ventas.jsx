@@ -2399,12 +2399,6 @@ export default function Ventas() {
       return;
     }
 
-    // TEMPORAL: Simular éxito hasta que el backend tenga el endpoint
-    showMessage(`Venta #${venta.id} devuelta a pedidos correctamente (simulado)`);
-    console.log('🔄 Devolver a pedidos (simulado):', venta);
-    
-    // TODO: Descomentar cuando el backend tenga el endpoint
-    /*
     setSubmitting(true);
     try {
       const res = await fetch(`${API_URL}/ventas/${venta.id}/devolver-a-pedidos`, {
@@ -2429,8 +2423,7 @@ export default function Ventas() {
     } finally {
       setSubmitting(false);
     }
-    */
-  }, [showMessage]);
+  }, [showMessage, refresh]);
 
   const handleModificarVenta = useCallback(async (venta) => {
     if (!venta || !venta.id) {
