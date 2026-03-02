@@ -73,9 +73,9 @@ const puedeAnularVenta = (venta) => {
   const dosDiasEnMilisegundos = 2 * 24 * 60 * 60 * 1000;
   const diferencia = ahora - fechaVenta;
   
-  // Solo puede anular si tiene menos de 2 días y está pagada o parcial
-  const cumpleTiempo = diferencia <= dosDiasEnMilisegundos;
-  const cumpleEstado = ['pagado', 'parcial'].includes(venta?.estado_pago);
+  // TEMPORAL: Relajar reglas para testing - SOLO VENTAS PAGADAS
+  const cumpleTiempo = true; // Temporalmente ignorar tiempo
+  const cumpleEstado = ['pagado'].includes(venta?.estado_pago); // Solo pagadas
   const noEstaAnulada = venta?.estado_pago !== 'anulado';
   
   // Debug logs para verificar
