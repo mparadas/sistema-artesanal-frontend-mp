@@ -297,8 +297,7 @@ export default function Ventas() {
       `Esta acción:\n` +
       `• Pondrá los montos en cero\n` +
       `• Cambiará el estado a "anulada"\n` +
-      `• No afectará las estadísticas\n\n` +
-      `¿Desea continuar?`
+      `• No afectará las estadísticas`
     );
 
     if (!confirmacion) {
