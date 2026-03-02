@@ -11,7 +11,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://agromae.onrender.com/api/$1"
+      "destination": "https://agromae-b.onrender.com/api/$1"
     },
     {
       "source": "/(.*)",
