@@ -32,6 +32,11 @@ const obtenerIconoProducto = (producto) => {
     return '🐑'
   }
   
+  // Hamburguesa (PRIORIDAD MÁXIMA - antes que todo)
+  if (nombre.includes('hamburguesa') || categoria.includes('hamburguesa')) {
+    return '🍔'
+  }
+  
   // Pescado/mariscos
   if (nombre.includes('pescado') || nombre.includes('fish') || nombre.includes('camarón') || 
       nombre.includes('shrimp') || animal.includes('pescado')) {
@@ -42,6 +47,17 @@ const obtenerIconoProducto = (producto) => {
   if (nombre.includes('queso') || nombre.includes('lacteo') || nombre.includes('mantequilla') || 
       categoria.includes('queso') || categoria.includes('lacteo')) {
     return '🧀'
+  }
+  
+  // Cordero/oveja
+  if (nombre.includes('cordero') || nombre.includes('oveja') || nombre.includes('lamb') || 
+      animal.includes('cordero') || animal.includes('oveja')) {
+    return '🐑'
+  }
+  
+  // Chorizo
+  if (nombre.includes('chorizo') || categoria.includes('chorizo')) {
+    return '🥩'
   }
   
   // Verduras/vegetales

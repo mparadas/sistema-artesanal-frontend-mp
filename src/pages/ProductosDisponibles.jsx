@@ -23,6 +23,11 @@ const obtenerIconoProducto = (producto) => {
     return '🐷'
   }
   
+  // Hamburguesa (PRIORIDAD MÁXIMA - antes que todo)
+  if (nombre.includes('hamburguesa') || categoria.includes('hamburguesa')) {
+    return '🍔'
+  }
+  
   // Res/vaca/carne de res
   if (nombre.includes('res') || nombre.includes('vaca') || nombre.includes('carne') || 
       nombre.includes('beef') || animal.includes('res')) {
@@ -38,11 +43,6 @@ const obtenerIconoProducto = (producto) => {
   // Chorizo
   if (nombre.includes('salchicha') || categoria.includes('salchicha')) {
     return '🥩'
-  }
-  
-  // Hamburguesa
-  if (nombre.includes('hamburguesa') || nombre.includes('hamburgues') || categoria.includes('hamburgues')) {
-    return '🍔'
   }
   
   // Default genérico

@@ -10,6 +10,11 @@ const obtenerIconoProducto = (producto) => {
   const categoria = String(producto?.categoria || '').toLowerCase()
   const animal = String(producto?.animal_origen || '').toLowerCase()
   
+  // Hamburguesa (PRIORIDAD MÁXIMA - antes que todo)
+  if (nombre.includes('hamburguesa') || categoria.includes('hamburguesa')) {
+    return '🍔'
+  }
+  
   // Pollo
   if (nombre.includes('pollo') || nombre.includes('chicken') || animal.includes('pollo')) {
     return '🐔'
@@ -19,12 +24,6 @@ const obtenerIconoProducto = (producto) => {
   if (nombre.includes('cerdo') || nombre.includes('cochino') || nombre.includes('puerco') || 
       nombre.includes('chancho') || nombre.includes('pork') || animal.includes('cerdo')) {
     return '🐷'
-  }
-  
-  // Res/vaca/carne de res
-  if (nombre.includes('res') || nombre.includes('vaca') || nombre.includes('carne') || 
-      nombre.includes('beef') || animal.includes('res')) {
-    return '🐄'
   }
   
   // Cordero/oveja
@@ -43,14 +42,16 @@ const obtenerIconoProducto = (producto) => {
     return '🥩'
   }
   
-  // Hamburguesa
-  if (nombre.includes('hamburguesa') || nombre.includes('hamburgues') || categoria.includes('hamburgues')) {
-    return '🍔'
-  }
-  
   // Jamón
   if (nombre.includes('jamón') || nombre.includes('jamon') || nombre.includes('ham')) {
     return '🥓'
+  }
+  
+  // Res/vaca/carne de res (excluyendo hamburguesa)
+  if (nombre.includes('res') || nombre.includes('vaca') || 
+      (nombre.includes('carne') && !nombre.includes('hamburguesa')) || 
+      nombre.includes('beef') || animal.includes('res')) {
+    return '🐄'
   }
   
   // Salchicha
