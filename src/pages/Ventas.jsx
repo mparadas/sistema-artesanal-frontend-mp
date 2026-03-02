@@ -496,15 +496,16 @@ export default function Ventas() {
     for (const v of ventasFiltradas) {
       if (ES_VENTA_NO_CONTABILIZABLE(v?.estado_pago)) continue;
       const key = String(v?.cliente_nombre || 'Cliente general');
-      const acc = map.get(key) || { cliente: key, total: 0, pagado: 0, pendiente: 0, ventas: 0 };
-      acc.total += toNumber(v?.total);
-      acc.pagado += toNumber(v?.monto_pagado);
-      acc.pendiente += toNumber(v?.saldo_pendiente);
+      const acc = map.get(key) || { cliente: key, totalVes: 0, pagadoVes: 0, pendienteVes: 0, ventas: 0 };
+      const factor = String(v?.moneda_original || 'USD').toUpperCase() === 'USD' ? toNumber(tasaActual) : 1;
+      acc.totalVes += toNumber(v?.total) * factor;
+      acc.pagadoVes += toNumber(v?.monto_pagado) * factor;
+      acc.pendienteVes += toNumber(v?.saldo_pendiente) * factor;
       acc.ventas += 1;
       map.set(key, acc);
     }
-    return Array.from(map.values()).sort((a, b) => b.pendiente - a.pendiente);
-  }, [ventasFiltradas]);
+    return Array.from(map.values()).sort((a, b) => b.pendienteVes - a.pendienteVes);
+  }, [ventasFiltradas, tasaActual]);
 
   // Componentes UI simplificados
   const Button = memo(({ children, onClick, variant = 'primary', size = 'md', loading = false, disabled = false, className = '', type = 'button', title, ...props }) => {
@@ -959,9 +960,9 @@ export default function Ventas() {
                   <tr key={r.cliente} className="border-t border-gray-100">
                     <td className="px-3 py-2">{r.cliente}</td>
                     <td className="px-3 py-2 text-right">{r.ventas}</td>
-                    <td className="px-3 py-2 text-right">{formatearMonto(r.total)}</td>
-                    <td className="px-3 py-2 text-right">{formatearMonto(r.pagado)}</td>
-                    <td className="px-3 py-2 text-right font-semibold">{formatearMonto(r.pendiente)}</td>
+                    <td className="px-3 py-2 text-right">{formatearMonto(r.totalVes, 'VES')}</td>
+                    <td className="px-3 py-2 text-right">{formatearMonto(r.pagadoVes, 'VES')}</td>
+                    <td className="px-3 py-2 text-right font-semibold">{formatearMonto(r.pendienteVes, 'VES')}</td>
                   </tr>
                 ))}
                 {estadoCuentaClientes.length === 0 && (
