@@ -113,6 +113,14 @@ const getApiErrorMessage = (res, body, fallback = 'Error de servidor') => {
 
 const ES_VENTA_NO_CONTABILIZABLE = (estado) => ['anulado', 'devuelta_a_pedidos'].includes(String(estado || '').toLowerCase());
 
+const ventasOrdenadasMasAntiguaPrimero = (lista = []) =>
+  [...lista].sort((a, b) => {
+    const fa = Date.parse(a?.fecha || 0) || 0;
+    const fb = Date.parse(b?.fecha || 0) || 0;
+    if (fa !== fb) return fa - fb;
+    return (toNumber(a?.id) - toNumber(b?.id));
+  });
+
 // ==========================================
 // HOOKS
 // ==========================================
@@ -430,41 +438,46 @@ export default function Ventas() {
 
   const handleConfirmarAbonos = useCallback(async () => {
     const venta = ui.modalAbono;
-    if (!venta?.id) return;
+    if (!venta) return;
     if (abonosPendientes.length === 0) return showMessage('Agrega al menos un abono', 'error');
 
     setIsSubmitting(true);
     try {
       const tasa = await obtenerTasaActual();
-      let ultimaRespuesta = null;
-      for (const abono of abonosPendientes) {
-        const res = await fetch(`${API_URL}/ventas/${venta.id}/pagos`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            monto_ves: Number(toNumber(abono.montoVes).toFixed(2)),
-            metodo_pago: abono.metodoPago,
-            referencia_pago: ['transferencia', 'pago_movil'].includes(abono.metodoPago) ? (abono.referenciaPago || null) : null,
-            tasa_cambio: tasa,
-            moneda_original: abono.moneda,
-            monto_original: abono.monto
-          })
-        });
-        const data = await parseResponseBody(res);
-        if (!res.ok) throw new Error(getApiErrorMessage(res, data, 'No se pudo registrar un abono'));
-        ultimaRespuesta = data;
-      }
+      const ventasDestino = Array.isArray(venta?._ventasPendientes) && venta._ventasPendientes.length > 0
+        ? ventasOrdenadasMasAntiguaPrimero(venta._ventasPendientes)
+        : [venta];
 
-      dispatch({
-        type: 'UPDATE_VENTA',
-        payload: {
-          id: venta.id,
-          changes: {
-            saldo_pendiente: toNumber(ultimaRespuesta?.saldo_pendiente),
-            estado_pago: ultimaRespuesta?.estado_pago || venta.estado_pago
-          }
+      for (const abono of abonosPendientes) {
+        let restanteAbonoVes = toNumber(abono.montoVes);
+        for (const ventaDestino of ventasDestino) {
+          if (restanteAbonoVes <= 0.0001) break;
+          const factorVenta = String(ventaDestino?.moneda_original || 'USD').toUpperCase() === 'USD' ? tasa : 1;
+          const saldoVentaVes = toNumber(ventaDestino?.saldo_pendiente) * factorVenta;
+          if (saldoVentaVes <= 0.0001) continue;
+
+          const montoAplicarVes = Math.min(restanteAbonoVes, saldoVentaVes);
+          const montoOriginalAplicado = abono.moneda === 'VES'
+            ? montoAplicarVes
+            : (montoAplicarVes / tasa);
+
+          const res = await fetch(`${API_URL}/ventas/${ventaDestino.id}/pagos`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              monto_ves: Number(montoAplicarVes.toFixed(2)),
+              metodo_pago: abono.metodoPago,
+              referencia_pago: ['transferencia', 'pago_movil'].includes(abono.metodoPago) ? (abono.referenciaPago || null) : null,
+              tasa_cambio: tasa,
+              moneda_original: abono.moneda,
+              monto_original: Number(montoOriginalAplicado.toFixed(2))
+            })
+          });
+          const data = await parseResponseBody(res);
+          if (!res.ok) throw new Error(getApiErrorMessage(res, data, `No se pudo registrar abono en venta #${ventaDestino.id}`));
+          restanteAbonoVes -= montoAplicarVes;
         }
-      });
+      }
 
       showMessage('Abonos registrados correctamente');
       setUi(prev => ({ ...prev, modalAbono: null }));
@@ -496,16 +509,63 @@ export default function Ventas() {
     for (const v of ventasFiltradas) {
       if (ES_VENTA_NO_CONTABILIZABLE(v?.estado_pago)) continue;
       const key = String(v?.cliente_nombre || 'Cliente general');
-      const acc = map.get(key) || { cliente: key, totalVes: 0, pagadoVes: 0, pendienteVes: 0, ventas: 0 };
+      const acc = map.get(key) || { cliente: key, totalVes: 0, pagadoVes: 0, pendienteVes: 0, ventas: 0, ventasDetalle: [] };
       const factor = String(v?.moneda_original || 'USD').toUpperCase() === 'USD' ? toNumber(tasaActual) : 1;
       acc.totalVes += toNumber(v?.total) * factor;
       acc.pagadoVes += toNumber(v?.monto_pagado) * factor;
       acc.pendienteVes += toNumber(v?.saldo_pendiente) * factor;
       acc.ventas += 1;
+      acc.ventasDetalle.push(v);
       map.set(key, acc);
     }
     return Array.from(map.values()).sort((a, b) => b.pendienteVes - a.pendienteVes);
   }, [ventasFiltradas, tasaActual]);
+
+  const estadoCuentaStats = useMemo(() => {
+    const totalVentas = estadoCuentaClientes.reduce((s, c) => s + c.totalVes, 0);
+    const totalPagado = estadoCuentaClientes.reduce((s, c) => s + c.pagadoVes, 0);
+    const totalPendiente = estadoCuentaClientes.reduce((s, c) => s + c.pendienteVes, 0);
+    return {
+      totalVentas,
+      totalPagado,
+      totalPendiente,
+      porcentajePagado: totalVentas > 0 ? (totalPagado / totalVentas) * 100 : 0
+    };
+  }, [estadoCuentaClientes]);
+
+  const toggleClienteExpandido = useCallback((cliente) => {
+    setUi(prev => {
+      const set = new Set(prev.expandedClients || []);
+      if (set.has(cliente)) set.delete(cliente);
+      else set.add(cliente);
+      return { ...prev, expandedClients: set };
+    });
+  }, []);
+
+  const handleAbonarCliente = useCallback(async (clienteItem) => {
+    const ventasPendientes = ventasOrdenadasMasAntiguaPrimero(
+      (clienteItem?.ventasDetalle || []).filter(v => toNumber(v?.saldo_pendiente) > 0)
+    );
+    if (ventasPendientes.length === 0) return showMessage('El cliente no tiene saldo pendiente', 'error');
+    const tasa = await obtenerTasaActual();
+    const saldoVes = ventasPendientes.reduce((s, v) => {
+      const factor = String(v?.moneda_original || 'USD').toUpperCase() === 'USD' ? tasa : 1;
+      return s + (toNumber(v?.saldo_pendiente) * factor);
+    }, 0);
+    setAbonoDraft({ monto: '', moneda: 'VES', metodoPago: 'efectivo', referenciaPago: '' });
+    setAbonosPendientes([]);
+    setTasaActual(tasa);
+    setUi(prev => ({
+      ...prev,
+      modalAbono: {
+        id: `cliente-${clienteItem?.cliente}`,
+        cliente_nombre: clienteItem?.cliente,
+        moneda_original: 'VES',
+        saldo_pendiente: saldoVes,
+        _ventasPendientes: ventasPendientes
+      }
+    }));
+  }, [showMessage, obtenerTasaActual]);
 
   // Componentes UI simplificados
   const Button = memo(({ children, onClick, variant = 'primary', size = 'md', loading = false, disabled = false, className = '', type = 'button', title, ...props }) => {
@@ -824,10 +884,11 @@ export default function Ventas() {
 
       <SimpleModal
         open={Boolean(ui.modalAbono)}
-        title={`Abonar venta #${ui.modalAbono?.id || ''}`}
+        title={Array.isArray(ui.modalAbono?._ventasPendientes) ? 'Registrar Abono General' : `Registrar Abono #${ui.modalAbono?.id || ''}`}
         onClose={() => handleModalToggle('abono', null)}
       >
         <form onSubmit={handleAgregarAbonoLinea} className="space-y-3 text-sm text-gray-700">
+          <p><strong>Cliente:</strong> {ui.modalAbono?.cliente_nombre || 'Cliente general'}</p>
           <p>
             <strong>Saldo pendiente:</strong>{' '}
             {formatearMonto(ui.modalAbono?.saldo_pendiente, ui.modalAbono?.moneda_original)}
@@ -872,7 +933,12 @@ export default function Ventas() {
             />
           </div>
           <div className="text-xs text-gray-500">
-            Equivalente en Bs: {formatearMonto(abonoDraft.moneda === 'VES' ? toNumber(abonoDraft.monto) : toNumber(abonoDraft.monto) * toNumber(tasaActual), 'VES')}
+            Equivalente a: {formatearMonto(
+              abonoDraft.moneda === 'VES'
+                ? (toNumber(abonoDraft.monto) / Math.max(toNumber(tasaActual), 1))
+                : toNumber(abonoDraft.monto),
+              'USD'
+            )}
           </div>
           <div className="flex flex-wrap justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={handlePagarTotal}>
@@ -943,38 +1009,79 @@ export default function Ventas() {
         title={`Estado de cuenta (${ui.tipoEstadoCuenta})`}
         onClose={() => setUi(prev => ({ ...prev, modalEstadoCuenta: false }))}
       >
-        <div className="space-y-2">
-          <div className="max-h-[55vh] overflow-auto border border-gray-200 rounded-lg">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="text-left px-3 py-2">Cliente</th>
-                  <th className="text-right px-3 py-2">Ventas</th>
-                  <th className="text-right px-3 py-2">Total</th>
-                  <th className="text-right px-3 py-2">Pagado</th>
-                  <th className="text-right px-3 py-2">Pendiente</th>
-                </tr>
-              </thead>
-              <tbody>
-                {estadoCuentaClientes.map((r) => (
-                  <tr key={r.cliente} className="border-t border-gray-100">
-                    <td className="px-3 py-2">{r.cliente}</td>
-                    <td className="px-3 py-2 text-right">{r.ventas}</td>
-                    <td className="px-3 py-2 text-right">{formatearMonto(r.totalVes, 'VES')}</td>
-                    <td className="px-3 py-2 text-right">{formatearMonto(r.pagadoVes, 'VES')}</td>
-                    <td className="px-3 py-2 text-right font-semibold">{formatearMonto(r.pendienteVes, 'VES')}</td>
-                  </tr>
-                ))}
-                {estadoCuentaClientes.length === 0 && (
-                  <tr>
-                    <td className="px-3 py-4 text-center text-gray-500" colSpan={5}>
-                      Sin datos para estado de cuenta.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+        <div className="space-y-4">
+          <div className="flex gap-2 bg-gray-100 p-1 rounded-lg w-fit">
+            <Button size="sm" variant={ui.tipoEstadoCuenta === 'general' ? 'primary' : 'secondary'} onClick={() => setUi(prev => ({ ...prev, tipoEstadoCuenta: 'general' }))}>
+              General
+            </Button>
+            <Button size="sm" variant={ui.tipoEstadoCuenta === 'clientes' ? 'primary' : 'secondary'} onClick={() => setUi(prev => ({ ...prev, tipoEstadoCuenta: 'clientes' }))}>
+              Por Clientes
+            </Button>
           </div>
+
+          {ui.tipoEstadoCuenta === 'general' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="border rounded-lg p-3 bg-blue-50">
+                <p className="text-xs text-blue-700">Total Ventas (Bs)</p>
+                <p className="text-xl font-bold text-blue-900">{formatearMonto(estadoCuentaStats.totalVentas, 'VES')}</p>
+              </div>
+              <div className="border rounded-lg p-3 bg-green-50">
+                <p className="text-xs text-green-700">Total Pagado (Bs)</p>
+                <p className="text-xl font-bold text-green-900">{formatearMonto(estadoCuentaStats.totalPagado, 'VES')}</p>
+              </div>
+              <div className="border rounded-lg p-3 bg-red-50">
+                <p className="text-xs text-red-700">Total Pendiente (Bs)</p>
+                <p className="text-xl font-bold text-red-900">{formatearMonto(estadoCuentaStats.totalPendiente, 'VES')}</p>
+              </div>
+              <div className="border rounded-lg p-3 bg-purple-50">
+                <p className="text-xs text-purple-700">% Pagado</p>
+                <p className="text-xl font-bold text-purple-900">{estadoCuentaStats.porcentajePagado.toFixed(1)}%</p>
+              </div>
+            </div>
+          ) : (
+            <div className="max-h-[55vh] overflow-auto space-y-3 pr-1">
+              {estadoCuentaClientes.map((c) => {
+                const isOpen = (ui.expandedClients || new Set()).has(c.cliente);
+                const pendientes = ventasOrdenadasMasAntiguaPrimero((c.ventasDetalle || []).filter(v => toNumber(v?.saldo_pendiente) > 0));
+                const progreso = c.totalVes > 0 ? Math.max(0, Math.min(100, (c.pagadoVes / c.totalVes) * 100)) : 0;
+                return (
+                  <div key={c.cliente} className="border rounded-xl overflow-hidden">
+                    <button type="button" onClick={() => toggleClienteExpandido(c.cliente)} className="w-full text-left p-3 hover:bg-gray-50">
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <p className="font-semibold text-gray-800">{c.cliente}</p>
+                          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                            <div className="bg-gradient-to-r from-red-500 to-green-500 h-2 rounded-full" style={{ width: `${progreso}%` }} />
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold">{formatearMonto(c.totalVes, 'VES')}</p>
+                          <p className="text-red-600 text-sm">Debe: {formatearMonto(c.pendienteVes, 'VES')}</p>
+                        </div>
+                      </div>
+                    </button>
+                    {isOpen && (
+                      <div className="border-t bg-gray-50 p-3 space-y-2">
+                        <p className="text-xs text-gray-500">El pago se aplica desde la venta más antigua</p>
+                        {pendientes.map((v, idx) => (
+                          <div key={v.id} className="bg-white border rounded-lg p-2 flex justify-between items-center">
+                            <div>
+                              <p className="font-medium">#{v.id} {idx === 0 ? <span className="text-xs bg-orange-100 text-orange-600 px-1 rounded">Más antigua</span> : null}</p>
+                              <p className="text-xs text-gray-500">{formatDate(v.fecha)}</p>
+                            </div>
+                            <p className="font-semibold text-red-600">{formatearMonto(v.saldo_pendiente, v.moneda_original)}</p>
+                          </div>
+                        ))}
+                        <Button className="w-full" onClick={() => handleAbonarCliente(c)}>
+                          <DollarSign className="w-4 h-4 mr-2" /> Registrar Abono General
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </SimpleModal>
     </div>
