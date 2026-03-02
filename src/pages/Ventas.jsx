@@ -625,37 +625,34 @@ const VentaCard = memo(({ venta, onVerDetalle, onAbonar, onAnular, onModificar, 
           </Button>
         )}
         {esAdmin && puedeAnularVenta(venta) && (
-          <Button 
-            variant="danger" 
-            size="sm" 
+          <button 
             onClick={() => onAnular(venta)}
-            className="flex items-center gap-1"
+            className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors font-medium"
+            title="Anular venta"
           >
-            <Ban className="w-4 h-4" />
-            <span className="truncate">Anular</span>
-          </Button>
+            <Ban className="w-3 h-3 inline mr-1" />
+            Anular
+          </button>
         )}
         {esAdmin && puedeDevolverAPedidos(venta) && (
-          <Button 
-            variant="warning" 
-            size="sm" 
+          <button 
             onClick={() => onDevolverAPedidos(venta)}
-            className="flex items-center gap-1"
+            className="px-2 py-1 text-xs text-orange-600 hover:bg-orange-50 rounded transition-colors font-medium"
+            title="Devolver a pedidos"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="truncate">Devolver a Pedidos</span>
-          </Button>
+            <ArrowLeft className="w-3 h-3 inline mr-1" />
+            Devolver
+          </button>
         )}
         {esAdmin && puedeModificarVenta(venta) && (
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <button 
             onClick={() => onModificar(venta)}
-            className="flex items-center gap-1"
+            className="px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors font-medium"
+            title="Modificar venta"
           >
-            <Edit className="w-4 h-4" />
-            <span className="truncate">Modificar</span>
-          </Button>
+            <Edit className="w-3 h-3 inline mr-1" />
+            Modificar
+          </button>
         )}
         
         {/* Debug: Mostrar siempre para testing */}
