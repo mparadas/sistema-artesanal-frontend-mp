@@ -178,8 +178,7 @@ export default function Ventas() {
           try {
             const res = await fetch(`${url}${url.includes('?') ? '&' : '?'}_ts=${Date.now()}`, {
               signal: abortControllerRef.current.signal,
-              cache: 'no-store',
-              headers: { 'Cache-Control': 'no-cache' }
+              cache: 'no-store'
             });
             const data = await parseResponseBody(res);
             if (!res.ok && !optional) throw new Error(getApiErrorMessage(res, data, `Error en ${key}`));
