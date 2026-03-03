@@ -425,6 +425,7 @@ export default function Ventas() {
   });
   const [abonoGeneralVentasDetalle, setAbonoGeneralVentasDetalle] = useState([]);
   const [abonoGeneralAccordionOpen, setAbonoGeneralAccordionOpen] = useState([]);
+  const [abonosHistorialAccordionOpen, setAbonosHistorialAccordionOpen] = useState(false);
   const [abonosHistorial, setAbonosHistorial] = useState([]);
   const [abonosPendientes, setAbonosPendientes] = useState([]);
 
@@ -668,6 +669,7 @@ export default function Ventas() {
     });
     setAbonoGeneralVentasDetalle([]);
     setAbonoGeneralAccordionOpen([]);
+    setAbonosHistorialAccordionOpen(false);
     setAbonosHistorial([]);
     setAbonosPendientes([]);
     setTasaActual(tasa);
@@ -681,6 +683,7 @@ export default function Ventas() {
     setUi(prev => ({ ...prev, modalAbono: null }));
     setAbonoGeneralVentasDetalle([]);
     setAbonoGeneralAccordionOpen([]);
+    setAbonosHistorialAccordionOpen(false);
     setAbonosHistorial([]);
     setAbonosPendientes([]);
     setAbonoDraft({ monto: '', moneda: 'USD', metodoPago: 'efectivo', referenciaPago: '' });
@@ -931,6 +934,10 @@ export default function Ventas() {
     ));
   }, []);
 
+  const toggleHistorialAbonosAccordion = useCallback(() => {
+    setAbonosHistorialAccordionOpen((prev) => !prev);
+  }, []);
+
   const handleAbonarCliente = useCallback(async (clienteItem) => {
     const ventasPendientes = ventasOrdenadasMasAntiguaPrimero(
       (clienteItem?.ventasDetalle || []).filter(v => toNumber(v?.saldo_pendiente) > 0)
@@ -944,6 +951,7 @@ export default function Ventas() {
     setAbonoDraft({ monto: '', moneda: 'VES', metodoPago: 'efectivo', referenciaPago: '' });
     setAbonoGeneralVentasDetalle([]);
     setAbonoGeneralAccordionOpen([]);
+    setAbonosHistorialAccordionOpen(false);
     setAbonosHistorial([]);
     setAbonosPendientes([]);
     setTasaActual(tasa);
@@ -1513,7 +1521,7 @@ export default function Ventas() {
 
           {Array.isArray(ui.modalAbono?._ventasPendientes) && (
             <div className="border border-gray-200 rounded-xl p-3 bg-white space-y-3">
-              <p className="font-semibold text-gray-800">Ventas incluidas (productos y abonos)</p>
+              <p className="font-semibold text-gray-800">Ventas incluidas (productos)</p>
               <div className="max-h-[32vh] sm:max-h-[38vh] overflow-auto space-y-2 pr-1">
                 {abonoGeneralVentasDetalle.map((v) => {
                   const isOpen = abonoGeneralAccordionOpen.includes(v.id);
@@ -1567,28 +1575,6 @@ export default function Ventas() {
                             )}
                           </div>
 
-                          <div className="mt-2">
-                            <p className="text-xs font-medium text-gray-700 mb-1">Abonos de esta venta</p>
-                            {Array.isArray(v.pagos) && v.pagos.length > 0 ? (
-                              <div className="space-y-1">
-                                {v.pagos.map((p, idx) => {
-                                  const tasa = Math.max(toNumber(p?.tasa_cambio) || toNumber(tasaActual), 1);
-                                  const bs = toNumber(p?.monto_bs) > 0
-                                    ? toNumber(p?.monto_bs)
-                                    : (toNumber(p?.monto_ves) > 0 ? toNumber(p?.monto_ves) : (toNumber(p?.monto_usd || p?.monto_original || p?.monto) * tasa));
-                                  const usd = toNumber(p?.monto_usd) > 0 ? toNumber(p?.monto_usd) : (bs / tasa);
-                                  return (
-                                    <div key={`pago-${v.id}-${idx}`} className="flex items-center justify-between text-xs border-t border-gray-200 pt-1">
-                                      <span className="text-gray-500">{formatDate(p?.fecha)}</span>
-                                      <span>{formatearMonto(usd, 'USD')} / {formatearMonto(bs, 'VES')}</span>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <p className="text-xs text-gray-500">Sin abonos registrados.</p>
-                            )}
-                          </div>
                         </>
                       )}
                     </div>
@@ -1602,37 +1588,50 @@ export default function Ventas() {
           )}
 
           <div className="border border-gray-200 rounded-lg overflow-hidden">
-            <table className="w-full table-fixed text-[10px] sm:text-xs">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-1.5 py-2 text-right">$</th>
-                  <th className="px-1.5 py-2 text-right">Tasa</th>
-                  <th className="px-1.5 py-2 text-left">Fecha</th>
-                  <th className="px-1.5 py-2 text-left">Método</th>
-                  <th className="px-1.5 py-2 text-left">Ref</th>
-                  <th className="px-1.5 py-2 text-right">Bs</th>
-                  <th className="px-1.5 py-2 text-right">-</th>
-                </tr>
-              </thead>
-              <tbody>
-                {abonosMostrados.map((a, idx) => (
-                  <tr key={`${a.ventaId || 'local'}-${a.metodoPago}-${a.fechaAbono || idx}`} className="border-t border-gray-100">
-                    <td className="px-1.5 py-2 text-right break-words">{formatearMonto(a.montoUsd, 'USD')}</td>
-                    <td className="px-1.5 py-2 text-right">{toNumber(a.tasaDelDia).toFixed(2)}</td>
-                    <td className="px-1.5 py-2 break-words">{formatDate(a.fechaAbono)}</td>
-                    <td className="px-1.5 py-2 break-words">{a.metodoPago}</td>
-                    <td className="px-1.5 py-2 break-words">{a.referenciaPago || '-'}</td>
-                    <td className="px-1.5 py-2 text-right break-words">{formatearMonto(a.montoVes, 'VES')}</td>
-                    <td className="px-1.5 py-2 text-right text-emerald-700">Guardado</td>
-                  </tr>
-                ))}
-                {abonosMostrados.length === 0 && (
+            <button
+              type="button"
+              onClick={toggleHistorialAbonosAccordion}
+              className="w-full flex items-center justify-between px-2 py-2 bg-gray-50 text-left"
+            >
+              <div>
+                <p className="text-xs font-semibold text-gray-700">Historial de abonos</p>
+                <p className="text-[11px] text-gray-500">{abonosMostrados.length} registro(s)</p>
+              </div>
+              {abonosHistorialAccordionOpen ? <ChevronUp className="w-4 h-4 text-gray-600" /> : <ChevronDown className="w-4 h-4 text-gray-600" />}
+            </button>
+            {abonosHistorialAccordionOpen && (
+              <table className="w-full table-fixed text-[10px] leading-tight sm:text-xs">
+                <thead className="bg-gray-50">
                   <tr>
-                    <td className="px-2 py-3 text-center text-gray-500" colSpan={7}>Sin historial de abonos</td>
+                    <th className="px-1.5 py-1 text-right">$</th>
+                    <th className="px-1.5 py-1 text-right">Tasa</th>
+                    <th className="px-1.5 py-1 text-left">Fecha</th>
+                    <th className="px-1.5 py-1 text-left">Método</th>
+                    <th className="px-1.5 py-1 text-left">Ref</th>
+                    <th className="px-1.5 py-1 text-right">Bs</th>
+                    <th className="px-1.5 py-1 text-right">-</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {abonosMostrados.map((a, idx) => (
+                    <tr key={`${a.ventaId || 'local'}-${a.metodoPago}-${a.fechaAbono || idx}`} className="border-t border-gray-100">
+                      <td className="px-1.5 py-1 text-right break-words">{formatearMonto(a.montoUsd, 'USD')}</td>
+                      <td className="px-1.5 py-1 text-right">{toNumber(a.tasaDelDia).toFixed(2)}</td>
+                      <td className="px-1.5 py-1 break-words">{formatDate(a.fechaAbono)}</td>
+                      <td className="px-1.5 py-1 break-words">{a.metodoPago}</td>
+                      <td className="px-1.5 py-1 break-words">{a.referenciaPago || '-'}</td>
+                      <td className="px-1.5 py-1 text-right break-words">{formatearMonto(a.montoVes, 'VES')}</td>
+                      <td className="px-1.5 py-1 text-right text-emerald-700">Guardado</td>
+                    </tr>
+                  ))}
+                  {abonosMostrados.length === 0 && (
+                    <tr>
+                      <td className="px-2 py-2 text-center text-gray-500" colSpan={7}>Sin historial de abonos</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
