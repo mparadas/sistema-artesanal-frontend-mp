@@ -9,12 +9,26 @@ const API_BASE_URL_RENDER = 'https://agromae-b.onrender.com/api'
 const API_BASE_URL_LOCAL = 'http://localhost:3000/api'
 
 // Forzar producción en Vercel/Render
-const isProduction = window.location.hostname.includes('vercel.app') || 
+const isProduction = window.location.hostname.includes('vercel.app') ||
                    window.location.hostname.includes('onrender.com') ||
                    window.location.hostname !== 'localhost'
 
 // VOLVER A RENDER - Necesitamos arreglar el backend
 const FINAL_API_URL = isProduction ? API_BASE_URL_RENDER : API_BASE_URL_RENDER
 
+// Rutas del módulo Productos y Mantenimiento (subida de imágenes y mantenimiento)
+const UPLOAD_PRODUCTOS_URL = `${FINAL_API_URL}/uploads/productos`
+const PRODUCTOS_MANTENIMIENTO_PATH = (id) => `${FINAL_API_URL}/productos/${id}/mantenimiento`
+const PRODUCTOS_MANTENIMIENTO_HISTORIAL_URL = `${FINAL_API_URL}/productos/mantenimiento/historial`
+
 export default FINAL_API_URL
-export { API_BASE_URL_FALLBACK, API_BASE_URL_DEV, API_BASE_URL_RENDER, API_BASE_URL_LOCAL, IMAGES_BASE_URL }
+export {
+  API_BASE_URL_FALLBACK,
+  API_BASE_URL_DEV,
+  API_BASE_URL_RENDER,
+  API_BASE_URL_LOCAL,
+  IMAGES_BASE_URL,
+  UPLOAD_PRODUCTOS_URL,
+  PRODUCTOS_MANTENIMIENTO_PATH,
+  PRODUCTOS_MANTENIMIENTO_HISTORIAL_URL
+}

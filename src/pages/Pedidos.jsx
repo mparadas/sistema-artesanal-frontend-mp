@@ -105,9 +105,27 @@ export default function Pedidos() {
       }
       const etiquetaTipo = tipoVentaDespacho === 'credito' ? 'crédito' : 'pago inmediato'
       msg(`✅ Pedido despachado - Venta #${d.venta_id} creada (${etiquetaTipo}) (Total: $${d.total.toFixed(2)})`);
-      setEntregandoId(null); 
-      setPesoEntrega({}); 
-      setTipoVentaDespacho('')
+      setEntregandoId(null);
+      setPesoEntrega({});
+      setTipoVentaDespacho('');
+
+      // Actualizar en estado el pedido con los pesos despachados para que se muestre el peso sin esperar al backend
+      setPedidos((prev) =>
+        prev.map((p) => {
+          if (p.id !== pedido.id) return p;
+          const itemsActualizados = (p.items || []).map((it) => {
+            const desp = itemsDespachados.find((d) => d.producto_id === it.producto_id);
+            if (!desp) return it;
+            return {
+              ...it,
+              peso_entregado: desp.peso_entregado,
+              cantidad_entregada: desp.cantidad_entregada
+            };
+          });
+          return { ...p, items: itemsActualizados, estado: 'despachado' };
+        })
+      );
+
       cargar();
     } catch { 
       msg('❌ Error de red') 

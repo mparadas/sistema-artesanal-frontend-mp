@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Package, Plus, Trash2, AlertTriangle, Loader2, RefreshCw, Pencil, TrendingUp, Settings, Eye } from 'lucide-react'
 
 import { getImageUrl } from '../utils/imageUtils'
-import API_URL from '../config'
+import API_URL, { UPLOAD_PRODUCTOS_URL, PRODUCTOS_MANTENIMIENTO_PATH, PRODUCTOS_MANTENIMIENTO_HISTORIAL_URL } from '../config'
 
 const PESO_UNIDAD_HAMBURGUESA_KG = 0.15
 const formatearKg = (valor) => (parseFloat(valor || 0) || 0).toFixed(3).replace('.', ',')
@@ -436,7 +436,7 @@ export default function Productos() {
       
       // Agregar timestamp para evitar cache
       const timestamp = new Date().getTime()
-      const response = await fetch(`${API_URL}/productos/mantenimiento/historial?limit=200&timestamp=${timestamp}`, {
+      const response = await fetch(`${PRODUCTOS_MANTENIMIENTO_HISTORIAL_URL}?limit=200&timestamp=${timestamp}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       })
       const data = await response.json()
@@ -489,7 +489,7 @@ export default function Productos() {
     
     try {
       const token = localStorage.getItem('token')
-      const url = `${API_URL}/productos/${productoMantenimientoId}/mantenimiento`
+      const url = PRODUCTOS_MANTENIMIENTO_PATH(productoMantenimientoId)
       
       const requestBody = {
         precio: precioCambiado ? precio : null,
@@ -608,7 +608,7 @@ export default function Productos() {
   const subirImagenAlServidor = async (archivo) => {
     const token = localStorage.getItem('token')
     const imageData = await convertirArchivoABase64(archivo)
-    const response = await fetch(`${API_URL}/uploads/productos`, {
+    const response = await fetch(UPLOAD_PRODUCTOS_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -800,8 +800,8 @@ export default function Productos() {
               required
             />
             <input
-              type="url"
-              placeholder="URL de imagen del producto"
+              type="text"
+              placeholder="URL o ruta de imagen (ej: /uploads/productos/archivo.jpg)"
               value={nuevoProducto.imagen_url}
               onChange={(e) => setNuevoProducto({...nuevoProducto, imagen_url: e.target.value})}
               className="border rounded-lg px-3 py-2 text-sm"
@@ -1300,8 +1300,8 @@ export default function Productos() {
                 className="border rounded-lg px-3 py-2 text-sm"
               />
               <input
-                type="url"
-                placeholder="URL de imagen del producto"
+                type="text"
+                placeholder="URL o ruta de imagen (ej: /uploads/productos/archivo.jpg)"
                 value={mantenimientoForm.imagen_url}
                 onChange={(e) => setMantenimientoForm({ ...mantenimientoForm, imagen_url: e.target.value })}
                 className="border rounded-lg px-3 py-2 text-sm"

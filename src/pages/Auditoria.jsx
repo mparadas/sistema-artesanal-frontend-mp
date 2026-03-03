@@ -68,10 +68,13 @@ export default function Auditoria() {
       if (filtroUsuario) params.append('usuario', filtroUsuario)
       if (fechaInicio) params.append('fecha_inicio', fechaInicio)
       if (fechaFin) params.append('fecha_fin', fechaFin)
+      // Pedir más registros para incluir datos recientes (backend puede ignorar si no soporta limit)
+      params.append('limit', '5000')
+      params.append('_t', String(Date.now()))
       
       console.log('🔍 Cargando auditorías desde:', `${API_URL}/auditoria?${params}`)
       
-      const response = await fetch(`${API_URL}/auditoria?${params}`)
+      const response = await fetch(`${API_URL}/auditoria?${params}`, { cache: 'no-store' })
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
@@ -452,6 +455,20 @@ export default function Auditoria() {
             <p>No se encontraron registros de auditoría</p>
           </div>
         ) : (
+          <>
+          {/* Aviso si el registro más reciente es antiguo (posible límite o falta de registro en backend) */}
+          {(() => {
+            const ultimo = auditoriasFiltradas[0]
+            const fechaUltimo = ultimo?.fecha ? new Date(ultimo.fecha) : null
+            const haceMasDe3Dias = fechaUltimo && (Date.now() - fechaUltimo.getTime() > 3 * 24 * 60 * 60 * 1000)
+            if (!haceMasDe3Dias) return null
+            return (
+              <div className="px-4 py-2 bg-amber-50 border-b border-amber-200 text-amber-800 text-sm">
+                <span className="font-medium">Último registro:</span> {fechaUltimo.toLocaleString('es-VE')}.
+                Si no ves actividad reciente, el backend puede estar limitando registros o no guardando nuevas auditorías. Usa &quot;Recargar&quot; o revisa el endpoint /auditoria en el servidor.
+              </div>
+            )
+          })()}
           <div className="divide-y divide-gray-200">
             {auditoriasFiltradas.map((aud) => {
               const TipoInfo = TIPOS_MOVIMIENTO[aud.tipo_movimiento]
@@ -565,6 +582,7 @@ export default function Auditoria() {
               )
             })}
           </div>
+          </>
         )}
       </div>
     </div>
