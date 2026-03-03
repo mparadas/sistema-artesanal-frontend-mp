@@ -10,7 +10,6 @@ export default function Produccion() {
   const [productos, setProductos] = useState([])
   const [historialProduccion, setHistorialProduccion] = useState([])
   const [configProteinas, setConfigProteinas] = useState([])
-  const [categorias, setCategorias] = useState([])
   const [cargando, setCargando] = useState(false)
   const [mensaje, setMensaje] = useState('')
   const [detalleUltimaProduccion, setDetalleUltimaProduccion] = useState(null)
@@ -29,22 +28,6 @@ export default function Produccion() {
     ingredientes: [{ ingredienteId: '', cantidad: '' }]
   })
 
-  // Función para obtener emoji según categoría
-  const getCategoriaEmoji = (categoria) => {
-    const emojis = {
-      'Chorizos': '🌭',
-      'Hamburguesas': '🍔',
-      'Chistorras': '🌶️',
-      'Quesos': '🧀',
-      'Curados': '🥓',
-      'Lácteos': '🥛',
-      'Carnes Frías': '🥩',
-      'Aderezos': '🥫',
-      'Otros': '📦'
-    }
-    return emojis[categoria] || '📦'
-  }
-  
   const normalizarTexto = (v) =>
     String(v || '')
       .normalize('NFD')
@@ -118,20 +101,18 @@ export default function Produccion() {
       const configData = await fetchConManejo(`${API_URL}/produccion/config-proteinas`)
       
       // Extraer categorías únicas de los productos
-      const categoriasUnicas = [...new Set(productosData.map(p => p.categoria))].sort()
       setRecetas(recetasData)
       setIngredientes(ingredientesData)
       setProductos(productosData)
       setHistorialProduccion(historialData)
       setConfigProteinas(configData || []) // Si es null, usa array vacío
-      setCategorias(categoriasUnicas)
       
       // Si config-proteinas no existe, no mostrar mensaje en consola (es normal)
       if (configData === null && esAdmin) {
         // El endpoint no existe, pero eso es normal - usar valores por defecto
       }
       
-    } catch (e) { 
+    } catch { 
       // console.error('Error en cargarDatos:', e)
       setMensaje('❌ Error al sincronizar datos') 
       setTimeout(() => setMensaje(''), 3000)
@@ -313,7 +294,7 @@ export default function Produccion() {
         const err = await response.json()
         setMensaje(`❌ Error: ${err.error || 'No se pudo guardar'}`)
       }
-    } catch (error) {
+    } catch {
       setMensaje('❌ Error de red')
     } finally { setCargando(false) }
   }
@@ -367,7 +348,6 @@ export default function Produccion() {
       return;
     }
     
-    const unidadNormalizada = (u) => String(u || '').toLowerCase().trim()
     const construirDetalle = () => {
       const detalle = []
       for (const ing of receta.ingredientes || []) {
@@ -375,15 +355,14 @@ export default function Produccion() {
         if (!ingrediente) continue
         const porcentaje = parseFloat(ing.cantidad) || 0
         const kgNecesarios = (porcentaje / 100) * cantidadNumerica
-        const gramosNecesarios = kgNecesarios * 1000
+        const cantidadNecesariaUnidad = convertirKgAUnidad(kgNecesarios, ingrediente.unidad)
         const costoUnitario = parseFloat(ingrediente.costo || 0)
-        const unidadIng = unidadNormalizada(ingrediente.unidad)
-        const cantidadCosto = ['gr', 'g', 'gramo', 'gramos'].includes(unidadIng) ? gramosNecesarios : kgNecesarios
-        const costoTotal = cantidadCosto * costoUnitario
+        const costoTotal = cantidadNecesariaUnidad * costoUnitario
         detalle.push({
           nombre: ingrediente.nombre,
           porcentaje,
-          gramos: gramosNecesarios,
+          unidad: ingrediente.unidad,
+          cantidad: cantidadNecesariaUnidad,
           costo: costoTotal
         })
       }
@@ -398,14 +377,13 @@ export default function Produccion() {
       const ingrediente = ingredientes.find(i => i.id == ing.ingrediente_id);
       if (ingrediente) {
         const kgRequeridos = ((parseFloat(ing.cantidad) || 0) / 100) * cantidadNumerica
-        const cantidadRequerida = ['gr', 'g', 'gramo', 'gramos'].includes(unidadNormalizada(ingrediente.unidad))
-          ? kgRequeridos * 1000
-          : kgRequeridos
+        const cantidadRequerida = convertirKgAUnidad(kgRequeridos, ingrediente.unidad)
         if (ingrediente.stock < cantidadRequerida) {
           ingredientesInsuficientes.push({
             nombre: ingrediente.nombre,
             disponible: ingrediente.stock,
-            requerido: cantidadRequerida
+            requerido: cantidadRequerida,
+            unidad: ingrediente.unidad
           });
         }
       }
@@ -413,7 +391,7 @@ export default function Produccion() {
     
     if (ingredientesInsuficientes.length > 0) {
       const listaInsuficientes = ingredientesInsuficientes.map(i => 
-        `${i.nombre}: ${i.disponible} disponible, ${i.requerido.toFixed(2)} requerido`
+        `${i.nombre}: ${i.disponible} ${i.unidad} disponible, ${i.requerido.toFixed(2)} ${i.unidad} requerido`
       ).join('\n');
       
       setMensaje(`❌ Stock insuficiente:\n${listaInsuficientes}`);
@@ -422,7 +400,7 @@ export default function Produccion() {
     }
     
     const listaDetalle = detalleIngredientes
-      .map(d => `• ${d.nombre}: ${d.porcentaje.toFixed(3)}% | ${d.gramos.toFixed(2)} gr | $${d.costo.toFixed(2)}`)
+      .map(d => `• ${d.nombre}: ${d.porcentaje.toFixed(3)}% | ${d.cantidad.toFixed(2)} ${d.unidad} | $${d.costo.toFixed(2)}`)
       .join('\n')
     const confirmacion = confirm(
       `¿Confirmar producción de ${cantidadNumerica} kg de "${receta.nombre}"?\n\n` +
@@ -449,7 +427,7 @@ export default function Produccion() {
       
       if (response.ok) {
         const result = await response.json();
-        setMensaje(`✅ Producción completada: lote ${result?.lote || 'N/A'} | costo total $${(parseFloat(result?.costo_total_receta || 0)).toFixed(2)}`);
+        setMensaje(`✅ Producción completada: lote ${result?.lote || 'N/A'} | ${parseFloat(result?.cantidad_producida || 0).toFixed(3)} ${result?.unidad || 'kg'} | costo total $${(parseFloat(result?.costo_total_receta || 0)).toFixed(2)}`);
         await cargarDatos();
         setTimeout(() => setMensaje(''), 4000);
       } else {
@@ -457,7 +435,7 @@ export default function Produccion() {
         setMensaje(`❌ Error en producción: ${error.error || 'Error desconocido'}`);
         setTimeout(() => setMensaje(''), 4000);
       }
-    } catch (error) {
+    } catch {
       setMensaje('❌ Error de conexión');
       setTimeout(() => setMensaje(''), 3000);
     } finally {
@@ -477,12 +455,21 @@ export default function Produccion() {
     const p = parseFloat(porcentaje) || 0
     return p * 10
   }
-  
-  const formatearKgYGr = (valorKg) => {
-    const kg = parseFloat(valorKg || 0)
-    const kgTxt = kg.toFixed(2).replace('.', ',')
-    const grTxt = (kg * 1000).toFixed(2).replace('.', ',')
-    return `${kgTxt} kg (${grTxt} gr)`
+
+  const convertirKgAUnidad = (kg, unidad) => {
+    const baseKg = parseFloat(kg || 0) || 0
+    const u = String(unidad || '').toLowerCase().trim()
+    if (['gr', 'g', 'gramo', 'gramos'].includes(u)) return baseKg * 1000
+    if (['kg', 'kilo', 'kilos'].includes(u)) return baseKg
+    if (['ml'].includes(u)) return baseKg * 1000
+    if (['lt', 'l', 'litro', 'litros'].includes(u)) return baseKg
+    return baseKg
+  }
+
+  const formatearCantidadConUnidad = (cantidad, unidad) => {
+    const n = parseFloat(cantidad || 0) || 0
+    const u = String(unidad || '').trim() || 'kg'
+    return `${n.toFixed(3)} ${u}`
   }
   
   const formatearFecha = (fecha) => {
@@ -641,11 +628,9 @@ export default function Produccion() {
                   required
                 >
                   <option value="">Seleccionar...</option>
-                  {ingredientes
-                    .filter(i => i.stock > 0)
-                    .map(i => (
+                  {ingredientes.map(i => (
                       <option key={i.id} value={i.id.toString()}>
-                        {i.nombre} ({i.unidad}) - Stock: {i.stock}
+                        {i.nombre} ({i.unidad}) - Stock: {i.stock}{i.stock <= 0 ? ' [Sin stock]' : ''}
                       </option>
                     ))}
                 </select>
@@ -730,10 +715,16 @@ export default function Produccion() {
               <button 
                 onClick={async () => { 
                   if(confirm('¿Eliminar receta?')) { 
-                    await fetch(`${API_URL}/recetas/${r.id}`, {
+                    const resp = await fetch(`${API_URL}/recetas/${r.id}`, {
                       method:'DELETE',
                       headers: authHeaders()
-                    }); 
+                    });
+                    if (!resp.ok) {
+                      const err = await resp.json().catch(() => ({}))
+                      setMensaje(`❌ ${err.error || 'No se pudo eliminar la receta'}`)
+                      setTimeout(() => setMensaje(''), 3000)
+                      return
+                    }
                     cargarDatos(); 
                   } 
                 }} 
@@ -755,7 +746,7 @@ export default function Produccion() {
             <p><span className="font-semibold">Producto:</span> {detalleUltimaProduccion.produccion.producto_nombre || '-'}</p>
             <p><span className="font-semibold">Fecha:</span> {formatearFecha(detalleUltimaProduccion.produccion.fecha_elaboracion || detalleUltimaProduccion.produccion.fecha)}</p>
             <p><span className="font-semibold">Lote:</span> {detalleUltimaProduccion.produccion.lote || '-'}</p>
-            <p><span className="font-semibold">Kg:</span> <span className="inline-block px-2 py-0.5 rounded bg-amber-200 text-amber-900 font-bold">{formatearKgYGr(detalleUltimaProduccion.produccion.cantidad_lotes || detalleUltimaProduccion.produccion.cantidad_producida || 0)}</span></p>
+            <p><span className="font-semibold">Cantidad:</span> <span className="inline-block px-2 py-0.5 rounded bg-amber-200 text-amber-900 font-bold">{formatearCantidadConUnidad(detalleUltimaProduccion.produccion.cantidad_producida || 0, detalleUltimaProduccion.produccion.unidad_producida || detalleUltimaProduccion.produccion.producto_unidad || 'kg')}</span></p>
             <p><span className="font-semibold">Usuario:</span> {detalleUltimaProduccion.produccion.usuario_proceso || 'sistema'}</p>
             <p className="sm:col-span-2"><span className="font-semibold">Costo total:</span> ${parseFloat(detalleUltimaProduccion.costo_total_receta || 0).toFixed(2)}</p>
           </div>
@@ -765,7 +756,7 @@ export default function Produccion() {
                 <tr className="text-left border-b border-amber-200">
                   <th className="py-1 pr-2">Ingrediente</th>
                   <th className="py-1 pr-2">% receta</th>
-                  <th className="py-1 pr-2">Gramos</th>
+                  <th className="py-1 pr-2">Cantidad</th>
                   <th className="py-1 pr-2">Costo</th>
                 </tr>
               </thead>
@@ -774,7 +765,7 @@ export default function Produccion() {
                   <tr key={it.id} className="border-b border-amber-100 last:border-0">
                     <td className="py-1 pr-2">{it.ingrediente_nombre || '-'}</td>
                     <td className="py-1 pr-2">{parseFloat(it.porcentaje || 0).toFixed(3)}%</td>
-                    <td className="py-1 pr-2">{parseFloat(it.gramos || 0).toFixed(2)} gr</td>
+                    <td className="py-1 pr-2">{formatearCantidadConUnidad(it.cantidad_consumida || it.gramos || 0, it.ingrediente_unidad || 'kg')}</td>
                     <td className="py-1 pr-2">${parseFloat(it.costo_total || 0).toFixed(2)}</td>
                   </tr>
                 ))}
@@ -793,7 +784,7 @@ export default function Produccion() {
                 <th className="py-2 pr-2">Fecha elaboración</th>
                 <th className="py-2 pr-2">Lote</th>
                 <th className="py-2 pr-2">Receta</th>
-                <th className="py-2 pr-2">Kg</th>
+                <th className="py-2 pr-2">Cantidad</th>
                 <th className="py-2 pr-2">Usuario</th>
               </tr>
             </thead>
@@ -803,7 +794,7 @@ export default function Produccion() {
                   <td className="py-2 pr-2">{new Date(h.fecha_elaboracion || h.fecha).toLocaleString()}</td>
                   <td className="py-2 pr-2 font-mono">{h.lote || `LOT-${String(h.id).padStart(6, '0')}`}</td>
                   <td className="py-2 pr-2">{h.receta_nombre || '-'}</td>
-                  <td className="py-2 pr-2">{parseFloat(h.cantidad_lotes || h.cantidad_producida || 0).toFixed(3)}</td>
+                  <td className="py-2 pr-2">{formatearCantidadConUnidad(h.cantidad_producida || 0, h.unidad_producida || h.producto_unidad || 'kg')}</td>
                   <td className="py-2 pr-2">{h.usuario_proceso || 'sistema'}</td>
                 </tr>
               ))}
@@ -821,7 +812,7 @@ export default function Produccion() {
         <div className="bg-white rounded-lg p-3">
           <div className="max-h-64 overflow-y-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
-              {ingredientes
+              {[...ingredientes]
                 .sort((a, b) => {
                   if (a.stock !== b.stock) {
                     return b.stock - a.stock;
