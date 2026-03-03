@@ -10,6 +10,15 @@ import {
 import html2canvas from 'html2canvas';
 import API_URL from '../config';
 
+// Headers con token para peticiones que requieren autenticación
+const getAuthHeaders = () => {
+  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null;
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {})
+  };
+};
+
 // ==========================================
 // CONSTANTES
 // ==========================================
@@ -451,7 +460,7 @@ export default function Ventas() {
 
     const resultados = await Promise.allSettled(
       idsVenta.map(async (ventaId) => {
-        const res = await fetch(`${API_URL}/ventas/${ventaId}`);
+        const res = await fetch(`${API_URL}/ventas/${ventaId}`, { headers: getAuthHeaders() });
         const data = await parseResponseBody(res);
         if (!res.ok) throw new Error(getApiErrorMessage(res, data, `No se pudo obtener historial de abonos de venta #${ventaId}`));
         return { ventaId, pagos: Array.isArray(data?.pagos) ? data.pagos : [] };
@@ -571,7 +580,7 @@ export default function Ventas() {
     try {
       const res = await fetch(`${API_URL}/ventas/${venta.id}/devolver-a-pedidos`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           motivo_devolucion: 'Anulada por administrador',
           fecha_devolucion: new Date().toISOString()
@@ -626,7 +635,7 @@ export default function Ventas() {
     try {
       const res = await fetch(`${API_URL}/ventas/${venta.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           estado_pago: 'pendiente',
           saldo_pendiente: toNumber(venta.total)
@@ -760,7 +769,7 @@ export default function Ventas() {
 
         const res = await fetch(`${API_URL}/ventas/${ventaDestino.id}/pagos`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
           body: JSON.stringify({
             monto_ves: Number(montoAplicarVes.toFixed(2)),
             metodo_pago: abonoDraft.metodoPago,
@@ -997,7 +1006,7 @@ export default function Ventas() {
     if (!ventaBase?.id) return;
     setDetalleLoading(true);
     try {
-      const res = await fetch(`${API_URL}/ventas/${ventaBase.id}`);
+      const res = await fetch(`${API_URL}/ventas/${ventaBase.id}`, { headers: getAuthHeaders() });
       const data = await parseResponseBody(res);
       if (!res.ok) throw new Error(getApiErrorMessage(res, data, `No se pudo cargar detalle de venta #${ventaBase.id}`));
       const pagosOrdenados = Array.isArray(data?.pagos)
