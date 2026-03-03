@@ -166,13 +166,13 @@ export default function Productos() {
     precio_canal: '',
     imagen_url: ''
   })
-  const imagenFallback = 'https://placehold.co/120x90/F97316/FFFFFF?text=Producto'
+  const imagenFallback = '/logo_agromae.png'
   const inputArchivoMantenimientoRef = useRef(null)
 
-  const cargarProductos = async () => {
+  const cargarProductos = async (signal) => {
     try {
       setCargando(true)
-      const response = await fetch(`${API_URL}/productos`)
+      const response = await fetch(`${API_URL}/productos`, { signal })
       const data = await response.json()
       
       const datosConvertidos = data.map((p) => {
@@ -207,21 +207,27 @@ export default function Productos() {
       })
       
       setProductos(datosConvertidos)
-    } catch {
+    } catch (error) {
+      if (error?.name === 'AbortError') return
       setMensaje('❌ Error al cargar productos')
     } finally {
       setCargando(false)
     }
   }
   useEffect(() => {
-    cargarProductos()
+    const controller = new AbortController()
+    cargarProductos(controller.signal)
     
     // Recargar datos cada 30 segundos para actualizar stock de producción
     const interval = setInterval(() => {
-      cargarProductos()
+      const pollController = new AbortController()
+      cargarProductos(pollController.signal)
     }, 30000)
     
-    return () => clearInterval(interval)
+    return () => {
+      controller.abort()
+      clearInterval(interval)
+    }
   }, [])
 
   const agregarProducto = async (e) => {
@@ -285,7 +291,20 @@ export default function Productos() {
   const eliminarProducto = async (id) => {
     if (!confirm('¿Eliminar este producto?')) return
     try {
-      await fetch(`${API_URL}/productos/${id}`, { method: 'DELETE' })
+      const token = localStorage.getItem('token')
+      if (!token) {
+        setMensaje('❌ Debes iniciar sesión para eliminar productos')
+        return
+      }
+      const response = await fetch(`${API_URL}/productos/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        setMensaje(`❌ ${data?.error || 'No se pudo eliminar el producto'}`)
+        return
+      }
       cargarProductos()
     } catch {
       setMensaje('❌ Error al eliminar')
@@ -310,9 +329,17 @@ export default function Productos() {
         setMensaje('❌ Debes indicar piezas, peso o precio en canal')
         return
       }
+      const token = localStorage.getItem('token')
+      if (!token) {
+        setMensaje('❌ Debes iniciar sesión para modificar cortes')
+        return
+      }
       const response = await fetch(`${API_URL}/productos/${productoEditandoCorte.id}/incrementar-corte`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({ piezas, peso_kg, precio_canal: precio_canal > 0 ? precio_canal : null })
       })
       const data = await response.json()
@@ -347,9 +374,17 @@ export default function Productos() {
         setMensaje('❌ Debes indicar al menos un valor para agregar')
         return
       }
+      const token = localStorage.getItem('token')
+      if (!token) {
+        setMensaje('❌ Debes iniciar sesión para agregar existencia')
+        return
+      }
       const response = await fetch(`${API_URL}/productos/${productoAgregandoExistencia.id}/agregar-existencia`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({ cantidad, piezas, peso_kg })
       })
       const data = await response.json()
@@ -1312,90 +1347,8 @@ export default function Productos() {
                 </div>
               </div>
               <div className="md:col-span-2 flex justify-end gap-2">
-                <button 
-                  type="button"  
-                  onClick={async () => {
-                    if (!productoMantenimientoId) {
-                      setMensaje('❌ Por favor, selecciona un producto');
-                      return;
-                    }
-
-                    const precio = mantenimientoForm.precio !== '' ? parseFloat(mantenimientoForm.precio) : null;
-                    const precio_canal = mantenimientoForm.precio_canal !== '' ? parseFloat(mantenimientoForm.precio_canal) : null;
-                    const imagen_url = (mantenimientoForm.imagen_url || '').trim();
-                    
-                    if (precio === null && precio_canal === null && !imagen_url) {
-                      setMensaje('❌ No hay cambios para aplicar');
-                      return;
-                    }
-                    
-                    try {
-                      const token = localStorage.getItem('token');
-                      const usuario = (() => { try { return JSON.parse(localStorage.getItem('usuario') || '{}') } catch { return {} } })();
-                      
-                      // Verificar si el usuario tiene permisos
-                      if (!token) {
-                        setMensaje('❌ Debes iniciar sesión para realizar cambios');
-                        return;
-                      }
-                      
-                      if (!usuario || usuario.rol !== 'admin') {
-                        setMensaje('❌ Solo los administradores pueden realizar mantenimiento');
-                        return;
-                      }
-                      
-                      const url = `${API_URL}/productos/${productoMantenimientoId}/mantenimiento`;
-                      
-                      const requestBody = { precio, precio_canal, imagen_url: imagen_url || null };
-                      
-                      const response = await fetch(url, {
-                        method: 'PUT',
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: `Bearer ${token}`
-                        },
-                        body: JSON.stringify(requestBody)
-                      });
-                      
-                      // Manejar diferentes tipos de respuesta
-                      let data;
-                      const contentType = response.headers.get('content-type');
-                      if (contentType && contentType.includes('application/json')) {
-                        data = await response.json();
-                      } else {
-                        const text = await response.text();
-                        data = { error: text || 'Error desconocido' };
-                      }
-                      
-                      if (!response.ok) {
-                        // Mensajes específicos según el error
-                        if (response.status === 401) {
-                          setMensaje('❌ Sesión expirada. Por favor inicia sesión nuevamente');
-                        } else if (response.status === 403) {
-                          setMensaje('❌ No tienes permisos para realizar esta acción');
-                        } else if (response.status === 404) {
-                          setMensaje('❌ El endpoint de mantenimiento no existe. Contacta al administrador');
-                        } else if (response.status === 500) {
-                          setMensaje('❌ Error del servidor. Intenta nuevamente más tarde');
-                        } else {
-                          setMensaje(`❌ ${data.error || 'No se pudo aplicar mantenimiento'}`);
-                        }
-                        return;
-                      }
-                      
-                      setMensaje('✅ Mantenimiento aplicado correctamente');
-                      setTimeout(() => setMensaje(''), 3000);
-                      
-                      // Limpiar y recargar
-                      setMantenimientoForm({ precio: '', precio_canal: '', imagen_url: '' });
-                      setProductoMantenimientoId('');
-                      await cargarProductos();
-                      await abrirMantenimiento();
-                      
-                    } catch {
-                      setMensaje('❌ Error de conexión. Verifica tu internet e intenta nuevamente');
-                    }
-                  }}
+                <button
+                  type="submit"
                   className="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-800"
                 >
                   Aplicar mantenimiento

@@ -1034,12 +1034,37 @@ export default function Ventas() {
   const handleCompartirDetalle = useCallback(async () => {
     if (!ui.modalDetalle?.id || !notaDetalleRef.current) return;
     setIsSharingDetalle(true);
+    let contenedor = null;
     try {
-      const canvas = await html2canvas(notaDetalleRef.current, {
+      const fuente = notaDetalleRef.current;
+      contenedor = document.createElement('div');
+      contenedor.style.position = 'fixed';
+      contenedor.style.left = '-10000px';
+      contenedor.style.top = '0';
+      contenedor.style.width = '960px';
+      contenedor.style.maxWidth = '960px';
+      contenedor.style.padding = '16px';
+      contenedor.style.background = '#ffffff';
+      contenedor.style.zIndex = '-1';
+
+      const clon = fuente.cloneNode(true);
+      contenedor.appendChild(clon);
+      document.body.appendChild(contenedor);
+
+      contenedor.querySelectorAll('.overflow-x-auto, .overflow-auto').forEach((el) => {
+        el.style.overflow = 'visible';
+        el.style.maxHeight = 'none';
+      });
+
+      const canvas = await html2canvas(contenedor, {
         backgroundColor: '#ffffff',
-        scale: Math.min(2, window.devicePixelRatio || 1.5),
+        scale: 2,
         useCORS: true,
-        logging: false
+        logging: false,
+        width: contenedor.scrollWidth,
+        height: contenedor.scrollHeight,
+        windowWidth: contenedor.scrollWidth,
+        windowHeight: contenedor.scrollHeight
       });
       const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
       if (!blob) throw new Error('No se pudo generar la imagen de la nota');
@@ -1081,6 +1106,9 @@ export default function Ventas() {
         showMessage(error.message || 'No se pudo compartir la nota', 'error');
       }
     } finally {
+      if (contenedor && contenedor.parentNode) {
+        contenedor.parentNode.removeChild(contenedor);
+      }
       setIsSharingDetalle(false);
     }
   }, [ui.modalDetalle, showMessage]);
