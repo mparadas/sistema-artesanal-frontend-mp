@@ -27,6 +27,7 @@ export default function Pedidos() {
   const [fechaEntrega, setFechaEntrega] = useState('')
   const [entregandoId, setEntregandoId] = useState(null)
   const [pesoEntrega, setPesoEntrega] = useState({})
+  const [tipoVentaDespacho, setTipoVentaDespacho] = useState('')
   const [expandido, setExpandido] = useState(null)
   const [totalForm, setTotalForm] = useState(0)
 
@@ -67,6 +68,11 @@ export default function Pedidos() {
   }
 
   const guardarEntrega = async (pedido) => {
+    if (!tipoVentaDespacho) {
+      msg('❌ Selecciona si la venta será a crédito o pago inmediato')
+      return
+    }
+
     // Preparar items para despachar
     const itemsDespachados = (pedido.items || []).filter(i => i?.id).map(i => ({
       producto_id: i.producto_id,
@@ -86,7 +92,7 @@ export default function Pedidos() {
         body: JSON.stringify({
           items_despachados: itemsDespachados,
           metodo_pago: 'efectivo',
-          tipo_venta: 'inmediato',
+          tipo_venta: tipoVentaDespacho,
           moneda_original: 'USD',
           tasa_cambio_usada: 1,
           referencia_pago: null
@@ -97,9 +103,11 @@ export default function Pedidos() {
         msg('❌ ' + (d.error || 'Error al despachar')); 
         return; 
       }
-      msg(`✅ Pedido despachado - Venta #${d.venta_id} creada (Total: $${d.total.toFixed(2)})`);
+      const etiquetaTipo = tipoVentaDespacho === 'credito' ? 'crédito' : 'pago inmediato'
+      msg(`✅ Pedido despachado - Venta #${d.venta_id} creada (${etiquetaTipo}) (Total: $${d.total.toFixed(2)})`);
       setEntregandoId(null); 
       setPesoEntrega({}); 
+      setTipoVentaDespacho('')
       cargar();
     } catch { 
       msg('❌ Error de red') 
@@ -214,6 +222,10 @@ export default function Pedidos() {
         const cfg = ESTADOS[pedido.estado] || ESTADOS.pendiente
         const Icon = cfg.icon
         const its = Array.isArray(pedido.items) ? pedido.items.filter(i => i?.producto_id) : []
+        const pesoTotalVenta = its.reduce((sum, i) => {
+          const peso = parseFloat(i.peso_entregado) || parseFloat(i.cantidad_entregada) || 0
+          return sum + (Number.isFinite(peso) ? peso : 0)
+        }, 0)
         // No calcular totales ya que los pedidos no manejan costos
         const totalP = 0
         const totalPagosPedido = 0
@@ -231,6 +243,9 @@ export default function Pedidos() {
                 </div>
                 <p className="text-sm text-gray-600 mt-0.5">{pedido.cliente_nombre || 'Sin cliente'}</p>
                 <p className="text-xs text-gray-400 mt-0.5">{its.length} producto(s) · {pedido.estado === 'despachado' ? '✅ Procesado' : pedido.estado_procesamiento === 'venta por procesar' ? '🔄 Venta por procesar' : '⏳ Pendiente'}
+                  {(pedido.estado === 'despachado' || pedido.estado === 'facturado') && pesoTotalVenta > 0
+                    ? <span className="ml-2 text-blue-600 font-medium">⚖️ {pesoTotalVenta.toFixed(3)} kg</span>
+                    : null}
                   {pedido.notas && <span className="italic ml-2">"{pedido.notas}"</span>}</p>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
@@ -243,6 +258,7 @@ export default function Pedidos() {
                         initPeso[i.id] = i.peso_entregado ?? i.cantidad_entregada ?? 0 
                       }); 
                       setPesoEntrega(initPeso) 
+                      setTipoVentaDespacho('')
                     }} 
                     className="p-1.5 text-green-600 hover:bg-green-50 rounded" 
                     title="Despachar pedido (crear venta)"
@@ -319,9 +335,28 @@ export default function Pedidos() {
                     )
                   })}
                 </ul>
+                <div className="bg-white border rounded-lg p-3">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Tipo de venta</p>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setTipoVentaDespacho('inmediato')}
+                      className={`px-3 py-2 rounded-lg text-sm border transition ${tipoVentaDespacho === 'inmediato' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                    >
+                      Pago inmediato
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTipoVentaDespacho('credito')}
+                      className={`px-3 py-2 rounded-lg text-sm border transition ${tipoVentaDespacho === 'credito' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                    >
+                      Crédito
+                    </button>
+                  </div>
+                </div>
                 <div className="flex flex-col sm:flex-row gap-2 pt-1">
                   <button onClick={() => guardarEntrega(pedido)} className="w-full sm:w-auto bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 flex items-center justify-center gap-1"><ArrowRight className="w-3.5 h-3.5" /> Despachar y Crear Venta</button>
-                  <button onClick={() => setEntregandoId(null)} className="w-full sm:w-auto bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm">Cancelar</button>
+                  <button onClick={() => { setEntregandoId(null); setTipoVentaDespacho('') }} className="w-full sm:w-auto bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm">Cancelar</button>
                 </div>
               </div>
             )}
