@@ -56,9 +56,9 @@ function Login({ onLogin }) {
           
           if (r.ok) {
             const data = await r.json()
-            // Guardar sesión
-            localStorage.setItem('token', data.token)
-            localStorage.setItem('usuario', JSON.stringify(data))
+            const token = data.token || data.accessToken || data.access_token
+            if (token) localStorage.setItem('token', token)
+            localStorage.setItem('usuario', JSON.stringify({ ...data, token: token || data.token }))
             onLogin(data)
             navigate('/')
             return

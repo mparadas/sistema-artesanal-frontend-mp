@@ -12,7 +12,19 @@ import API_URL from '../config';
 
 // Headers con token para peticiones que requieren autenticación
 const getAuthHeaders = () => {
-  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null;
+  let token = null;
+  if (typeof localStorage !== 'undefined') {
+    token = localStorage.getItem('token');
+    if (!token) {
+      try {
+        const usuario = localStorage.getItem('usuario');
+        if (usuario) {
+          const data = JSON.parse(usuario);
+          token = data?.token || data?.accessToken || null;
+        }
+      } catch (_) {}
+    }
+  }
   return {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {})
