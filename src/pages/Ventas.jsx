@@ -768,6 +768,7 @@ export default function Ventas() {
         : [venta];
 
       let restanteAbonoVes = montoVes;
+      let seLiquidoAlMenosUna = false;
       for (const ventaDestino of ventasDestino) {
         if (restanteAbonoVes <= 0.0001) break;
         const factorVenta = String(ventaDestino?.moneda_original || 'USD').toUpperCase() === 'USD' ? tasa : 1;
@@ -778,6 +779,9 @@ export default function Ventas() {
         const montoOriginalAplicado = abonoDraft.moneda === 'VES'
           ? montoAplicarVes
           : (montoAplicarVes / tasa);
+        // Si el abono cubre todo el saldo pendiente, marcar como pago total (venta pagada)
+        const liquidar = montoAplicarVes >= Math.max(0, saldoVentaVes - 0.02);
+        if (liquidar) seLiquidoAlMenosUna = true;
 
         const res = await fetch(`${API_URL}/ventas/${ventaDestino.id}/pagos`, {
           method: 'POST',
@@ -790,7 +794,8 @@ export default function Ventas() {
               : null,
             tasa_cambio: tasa,
             moneda_original: abonoDraft.moneda,
-            monto_original: Number(montoOriginalAplicado.toFixed(2))
+            monto_original: Number(montoOriginalAplicado.toFixed(2)),
+            liquidar: liquidar
           })
         });
         const data = await parseResponseBody(res);
@@ -825,7 +830,7 @@ export default function Ventas() {
         };
       });
       setAbonoDraft(prev => ({ ...prev, monto: '', referenciaPago: '' }));
-      showMessage('Abono guardado correctamente');
+      showMessage(seLiquidoAlMenosUna ? 'Pago registrado. Venta marcada como pagada.' : 'Abono guardado correctamente');
       setTimeout(() => { refresh(); }, 250);
     } catch (error) {
       showMessage(error.message || 'Error al registrar abono', 'error');
