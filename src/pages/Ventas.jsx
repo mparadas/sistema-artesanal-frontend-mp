@@ -1289,11 +1289,11 @@ export default function Ventas() {
         panelClass="max-w-4xl"
         bodyClass="p-3 sm:p-4"
       >
-        <div className="space-y-4 text-base text-gray-700">
+        <div className="space-y-3 sm:space-y-4 text-sm sm:text-base text-gray-700">
           <div ref={notaDetalleRef} className="relative space-y-4">
           {ES_VENTA_NO_CONTABILIZABLE(ui.modalDetalle?.estado_pago) && (
             <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-              <span className="text-red-600/20 font-black tracking-[0.25em] text-8xl rotate-[-24deg] select-none">
+              <span className="text-red-600/20 font-black tracking-[0.25em] text-6xl sm:text-8xl rotate-[-24deg] select-none">
                 ANULADO
               </span>
             </div>
@@ -1303,7 +1303,7 @@ export default function Ventas() {
               <img
                 src="/logo_agromae.png"
                 alt="AgroMAE"
-                className="h-20 w-auto object-contain"
+                className="h-14 sm:h-20 w-auto object-contain"
                 onError={(e) => {
                   e.currentTarget.onerror = null;
                   e.currentTarget.src = '/agromae_transparent.png';
@@ -1314,6 +1314,7 @@ export default function Ventas() {
                   <Button
                     type="button"
                     variant="outline"
+                    size="sm"
                     onClick={handleCompartirDetalle}
                     loading={isSharingDetalle}
                     disabled={detalleLoading || isSharingDetalle}
@@ -1324,8 +1325,8 @@ export default function Ventas() {
                   </Button>
                 </div>
                 <div>
-                  <p className="text-sm uppercase tracking-wide text-gray-500">Documento</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-xs sm:text-sm uppercase tracking-wide text-gray-500">Documento</p>
+                  <p className="text-xs sm:text-sm text-gray-500">
                     Nro: {formatNumeroNotaEntrega(
                       ui.modalDetalle?.fecha,
                       ui.modalDetalle?.cliente_id,
@@ -1337,17 +1338,17 @@ export default function Ventas() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <div className="border border-gray-200 rounded-lg p-3">
-              <p className="text-sm text-gray-500">Cliente</p>
+              <p className="text-xs sm:text-sm text-gray-500">Cliente</p>
               <p className="font-semibold text-gray-900">{ui.modalDetalle?.cliente_nombre || 'Cliente general'}</p>
-              <p className="text-sm text-gray-500 mt-2">Fecha</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-2">Fecha</p>
               <p>{formatDate(ui.modalDetalle?.fecha)}</p>
             </div>
             <div className="border border-gray-200 rounded-lg p-3">
-              <p className="text-sm text-gray-500">Estado</p>
+              <p className="text-xs sm:text-sm text-gray-500">Estado</p>
               <p className="font-semibold capitalize">{ui.modalDetalle?.estado_pago || 'N/A'}</p>
-              <p className="text-sm text-gray-500 mt-2">Tipo de venta</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-2">Tipo de venta</p>
               <p className="capitalize">{ui.modalDetalle?.tipo_venta || 'N/A'}</p>
             </div>
           </div>
@@ -1358,22 +1359,22 @@ export default function Ventas() {
               <p className="text-gray-500">Cargando desglose...</p>
             ) : Array.isArray(ui.modalDetalle?.items) && ui.modalDetalle.items.length > 0 ? (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[560px] text-sm">
+                <table className="w-full min-w-[560px] text-xs sm:text-sm">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="text-left px-2 py-2">Producto</th>
-                      <th className="text-right px-2 py-2">Cant.</th>
-                      <th className="text-right px-2 py-2">P. Unit</th>
-                      <th className="text-right px-2 py-2">Total</th>
+                      <th className="text-left px-2 py-1.5 sm:py-2">Producto</th>
+                      <th className="text-right px-2 py-1.5 sm:py-2">Cant.</th>
+                      <th className="text-right px-2 py-1.5 sm:py-2">P. Unit</th>
+                      <th className="text-right px-2 py-1.5 sm:py-2">Total</th>
                     </tr>
                   </thead>
                   <tbody>
                     {ui.modalDetalle.items.map((it, idx) => (
                       <tr key={`${it.producto_id || idx}-${idx}`} className="border-t border-gray-100">
-                        <td className="px-2 py-2">{it.producto_nombre || `Producto #${it.producto_id || idx}`}</td>
-                        <td className="px-2 py-2 text-right">{toNumber(it.cantidad).toFixed(2)}</td>
-                        <td className="px-2 py-2 text-right">{formatearMonto(it.precio_unitario, ui.modalDetalle?.moneda_original)}</td>
-                        <td className="px-2 py-2 text-right">{formatearMonto(it.total_linea, ui.modalDetalle?.moneda_original)}</td>
+                        <td className="px-2 py-1.5 sm:py-2">{it.producto_nombre || `Producto #${it.producto_id || idx}`}</td>
+                        <td className="px-2 py-1.5 sm:py-2 text-right">{toNumber(it.cantidad).toFixed(2)}</td>
+                        <td className="px-2 py-1.5 sm:py-2 text-right">{formatearMonto(it.precio_unitario, ui.modalDetalle?.moneda_original)}</td>
+                        <td className="px-2 py-1.5 sm:py-2 text-right">{formatearMonto(it.total_linea, ui.modalDetalle?.moneda_original)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1384,11 +1385,11 @@ export default function Ventas() {
             )}
             <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 gap-2">
               <div>
-                <p className="text-sm text-gray-500">Total venta</p>
+                <p className="text-xs sm:text-sm text-gray-500">Total venta</p>
                 <p className="font-semibold">{formatearMonto(ui.modalDetalle?.total, ui.modalDetalle?.moneda_original)}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-gray-500">Saldo pendiente</p>
+                <p className="text-xs sm:text-sm text-gray-500">Saldo pendiente</p>
                 <p className="font-semibold">{formatearMonto(ui.modalDetalle?.saldo_pendiente, ui.modalDetalle?.moneda_original)}</p>
               </div>
             </div>
@@ -1400,14 +1401,14 @@ export default function Ventas() {
               <p className="text-gray-500">Cargando historial...</p>
             ) : Array.isArray(ui.modalDetalle?.pagos) && ui.modalDetalle.pagos.length > 0 ? (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[560px] text-sm">
+                <table className="w-full min-w-[560px] text-xs sm:text-sm">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="text-left px-2 py-2">Fecha</th>
-                      <th className="text-right px-2 py-2">$</th>
-                      <th className="text-right px-2 py-2">Bs</th>
-                      <th className="text-left px-2 py-2">Método</th>
-                      <th className="text-left px-2 py-2">Ref</th>
+                      <th className="text-left px-2 py-1.5 sm:py-2">Fecha</th>
+                      <th className="text-right px-2 py-1.5 sm:py-2">$</th>
+                      <th className="text-right px-2 py-1.5 sm:py-2">Bs</th>
+                      <th className="text-left px-2 py-1.5 sm:py-2">Método</th>
+                      <th className="text-left px-2 py-1.5 sm:py-2">Ref</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1421,11 +1422,11 @@ export default function Ventas() {
                         : (bs / tasa);
                       return (
                         <tr key={`${p.id || idx}-${idx}`} className="border-t border-gray-100">
-                          <td className="px-2 py-2">{formatDateTime(p?.fecha)}</td>
-                          <td className="px-2 py-2 text-right">{formatearMonto(usd, 'USD')}</td>
-                          <td className="px-2 py-2 text-right">{formatearMonto(bs, 'VES')}</td>
-                          <td className="px-2 py-2 capitalize">{(p?.metodo_pago || 'N/A').replace('_', ' ')}</td>
-                          <td className="px-2 py-2">{p?.referencia_pago || '-'}</td>
+                          <td className="px-2 py-1.5 sm:py-2">{formatDateTime(p?.fecha)}</td>
+                          <td className="px-2 py-1.5 sm:py-2 text-right">{formatearMonto(usd, 'USD')}</td>
+                          <td className="px-2 py-1.5 sm:py-2 text-right">{formatearMonto(bs, 'VES')}</td>
+                          <td className="px-2 py-1.5 sm:py-2 capitalize">{(p?.metodo_pago || 'N/A').replace('_', ' ')}</td>
+                          <td className="px-2 py-1.5 sm:py-2">{p?.referencia_pago || '-'}</td>
                         </tr>
                       );
                     })}
@@ -1448,17 +1449,17 @@ export default function Ventas() {
       >
         <form onSubmit={handleAgregarAbonoLinea} className="space-y-3 text-sm text-gray-700">
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
-            <p className="text-sm text-gray-500 mb-1">Cliente: {ui.modalAbono?.cliente_nombre || 'Cliente general'}</p>
+            <p className="text-xs sm:text-sm text-gray-500 mb-1">Cliente: {ui.modalAbono?.cliente_nombre || 'Cliente general'}</p>
             <div className="grid grid-cols-2 gap-3 items-start">
               <div>
-                <p className="text-sm text-blue-700 font-medium">Monto de la venta</p>
-                <p className="text-xl sm:text-2xl font-bold text-blue-800">
+                <p className="text-xs sm:text-sm text-blue-700 font-medium">Monto de la venta</p>
+                <p className="text-lg sm:text-2xl font-bold text-blue-800">
                   {formatearMonto(montoVentaTopUsd, 'USD')}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-orange-700 font-medium">Saldo pendiente</p>
-                <p className="text-lg sm:text-xl font-semibold text-orange-800">
+                <p className="text-xs sm:text-sm text-orange-700 font-medium">Saldo pendiente</p>
+                <p className="text-base sm:text-xl font-semibold text-orange-800">
                   {formatearMonto(saldoPendienteTopUsd, 'USD')}
                 </p>
               </div>
@@ -1472,7 +1473,7 @@ export default function Ventas() {
               <button
                 type="button"
                 onClick={() => setAbonoDraft(prev => ({ ...prev, moneda: 'USD' }))}
-                className={`rounded-lg border px-3 py-2 font-medium transition-colors ${
+                className={`rounded-lg border px-2.5 sm:px-3 py-2 text-sm font-medium transition-colors ${
                   abonoDraft.moneda === 'USD' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300'
                 }`}
               >
@@ -1481,7 +1482,7 @@ export default function Ventas() {
               <button
                 type="button"
                 onClick={() => setAbonoDraft(prev => ({ ...prev, moneda: 'VES' }))}
-                className={`rounded-lg border px-3 py-2 font-medium transition-colors ${
+                className={`rounded-lg border px-2.5 sm:px-3 py-2 text-sm font-medium transition-colors ${
                   abonoDraft.moneda === 'VES' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300'
                 }`}
               >
@@ -1499,7 +1500,7 @@ export default function Ventas() {
               placeholder={abonoDraft.moneda === 'USD' ? '$ 0.00' : 'Bs 0.00'}
               value={abonoDraft.monto}
               onChange={(e) => setAbonoDraft(prev => ({ ...prev, monto: e.target.value }))}
-              className="w-full px-3 py-3 border-2 border-orange-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="w-full px-3 py-2.5 sm:py-3 text-sm border-2 border-orange-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               required
             />
           </div>
@@ -1529,11 +1530,11 @@ export default function Ventas() {
                     key={m.value}
                     type="button"
                     onClick={() => setAbonoDraft(prev => ({ ...prev, metodoPago: m.value }))}
-                    className={`rounded-lg border p-2 text-center transition-colors ${
+                    className={`rounded-lg border p-1.5 sm:p-2 text-center transition-colors ${
                       active ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 bg-white text-gray-700'
                     }`}
                   >
-                    <Icon className="w-4 h-4 mx-auto mb-1" />
+                    <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mx-auto mb-1" />
                     <span className="text-xs">{m.label}</span>
                   </button>
                 );
@@ -1558,12 +1559,12 @@ export default function Ventas() {
           )}
 
           <div className="flex flex-wrap justify-end gap-2 pt-1">
-            <Button type="button" variant="outline" onClick={handleVerDetalleDesdeAbono}>
+            <Button type="button" size="sm" variant="outline" onClick={handleVerDetalleDesdeAbono}>
               <Eye className="w-4 h-4 mr-1" />
               Ver detalle
             </Button>
-            <Button type="button" variant="outline" onClick={handlePagarTotal}>Pagar restante</Button>
-            <Button type="submit" variant="success" loading={isSubmitting} disabled={isSubmitting}>Agregar abono</Button>
+            <Button type="button" size="sm" variant="outline" onClick={handlePagarTotal}>Pagar restante</Button>
+            <Button type="submit" size="sm" variant="success" loading={isSubmitting} disabled={isSubmitting}>Agregar abono</Button>
           </div>
 
           {Array.isArray(ui.modalAbono?._ventasPendientes) && (
