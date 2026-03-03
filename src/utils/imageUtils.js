@@ -1,57 +1,43 @@
 import { IMAGES_BASE_URL } from '../config'
 
-// Función para obtener URL de imagen correcta
+const DEFAULT_PRODUCT_IMAGE = '/logo_agromae.png'
+const BACKEND_ORIGIN = IMAGES_BASE_URL.replace(/\/uploads\/?$/, '')
+
 export const getImageUrl = (imagePath) => {
-  console.log('🔍 getImageUrl llamada con:', imagePath)
-  
-  if (!imagePath) {
-    console.log('❌ imagePath vacío, usando placeholder')
-    return 'https://placehold.co/320x220/F97316/FFFFFF?text=Producto'
-  }
-  
-  // Si ya es una URL completa, verificar si necesita corrección
-  if (imagePath.startsWith('http')) {
-    console.log('🌐 URL completa detectada:', imagePath)
-    
-    // Reemplazar URLs locales por URLs de producción
-    if (imagePath.includes('192.168.100.224') || imagePath.includes('localhost')) {
-      const converted = imagePath.replace(/http:\/\/(localhost|192\.168\.100\.224):\d+/, 'https://agromae-b.onrender.com')
-      console.log('🔄 URL local convertida:', converted)
-      return converted
-    }
-    
-    // Convertir HTTP a HTTPS para URLs de agromae-b.onrender.com con cache-busting
-    if (imagePath.includes('agromae-b.onrender.com')) {
-      if (imagePath.startsWith('http://')) {
-        const converted = imagePath.replace('http://', 'https://')
-        // Agregar timestamp para evitar caché de versión HTTP
-        const cacheBusted = converted.includes('?') 
-          ? `${converted}&v=${Date.now()}` 
-          : `${converted}?v=${Date.now()}`
-        console.log('🔒 HTTP→HTTPS convertida con cache-busting:', cacheBusted)
-        return cacheBusted
-      } else if (imagePath.startsWith('https://')) {
-        console.log('✅ URL HTTPS ya correcta:', imagePath)
-        return imagePath
+  const raw = String(imagePath || '').trim()
+  if (!raw) return DEFAULT_PRODUCT_IMAGE
+
+  if (/^data:image\//i.test(raw)) return raw
+
+  if (/^https?:\/\//i.test(raw)) {
+    if (/localhost|127\.0\.0\.1|192\.168\./i.test(raw)) {
+      try {
+        const source = new URL(raw)
+        return `${BACKEND_ORIGIN}${source.pathname}${source.search || ''}`
+      } catch {
+        return raw
       }
     }
-    
-    console.log('⚠️ URL externa sin cambios:', imagePath)
-    return imagePath
+    if (/^http:\/\//i.test(raw) && /agromae-b\.onrender\.com/i.test(raw)) {
+      return raw.replace(/^http:\/\//i, 'https://')
+    }
+    return raw
   }
-  
-  // Si es una ruta relativa, combinar con base URL evitando duplicar "/uploads"
-  const rawPath = String(imagePath || '').trim()
-  const normalizedPath = rawPath
-    .replace(/^\/+/, '')
-    .replace(/^uploads\//i, '')
-  const finalUrl = `${IMAGES_BASE_URL.replace(/\/+$/, '')}/${normalizedPath}`
-  console.log('📂 Ruta relativa combinada:', finalUrl)
-  return finalUrl
+
+  const normalized = raw.replace(/^\/+/, '')
+  if (normalized.startsWith('uploads/')) {
+    return `${BACKEND_ORIGIN}/${normalized}`
+  }
+
+  if (raw.startsWith('/')) {
+    return `${BACKEND_ORIGIN}${raw}`
+  }
+
+  return `${IMAGES_BASE_URL.replace(/\/+$/, '')}/${normalized}`
 }
 
-// Función para verificar si una imagen es válida
 export const isValidImageUrl = (url) => {
-  if (!url) return false
-  return url.startsWith('https://agromae-b.onrender.com') || url.startsWith('/placeholder')
+  const value = String(url || '').trim()
+  if (!value) return false
+  return /^https?:\/\//i.test(value) || value.startsWith('/') || /^data:image\//i.test(value)
 }

@@ -222,171 +222,9 @@ const obtenerImagenAnimal = (producto) => {
   return 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=80&h=96&fit=crop&crop=center'
 }
 
-const obtenerImagenProducto = (producto, idx) => {
-  // Debug especial para hamburguesas
-  const nombre = String(producto?.nombre || '').toLowerCase()
-  if (nombre.includes('hamburguesa') || nombre.includes('hamburgues')) {
-    console.log('🍔 HAMBURGUESA DETECTADA:', {
-      nombre: producto?.nombre,
-      imagen_url: producto?.imagen_url,
-      animal_origen: producto?.animal_origen,
-      categoria: producto?.categoria
-    })
-  }
-  
-  // Debug especial para chistorra
-  if (nombre.includes('chistorra')) {
-    console.log('🥓 CHISTORRA DETECTADA:', {
-      nombre: producto?.nombre,
-      imagen_url: producto?.imagen_url,
-      animal_origen: producto?.animal_origen,
-      categoria: producto?.categoria
-    })
-  }
-  
-  // Debug: Ver qué datos tenemos
-  console.log('🔍 Producto:', {
-    nombre: producto?.nombre,
-    imagen_url: producto?.imagen_url,
-    animal_origen: producto?.animal_origen,
-    categoria: producto?.categoria
-  })
-  
-  // Prioridad 1: Imagen personalizada del producto con procesamiento
-  if (producto?.imagen_url) {
-    const processedUrl = getImageUrl(producto.imagen_url)
-    console.log('🖼️ Imagen personalizada procesada:', {
-      original: producto.imagen_url,
-      procesada: processedUrl
-    })
-
-    // Aceptar cualquier URL HTTPS/HTTP o ruta relativa válida.
-    const esUrlAbsoluta = /^https?:\/\//i.test(processedUrl)
-    const esRutaRelativa = typeof processedUrl === 'string' && processedUrl.startsWith('/')
-    if (esUrlAbsoluta || esRutaRelativa) {
-      console.log('✅ URL de imagen aceptada:', processedUrl)
-      return processedUrl
-    }
-    console.log('⚠️ URL procesada no válida, aplicando fallback:', processedUrl)
-  }
-
-  // Prioridad 2: Imagen según animal de origen
-  const animal = String(producto?.animal_origen || '').toLowerCase()
-  const nombreLower = String(producto?.nombre || '').toLowerCase()
-  const categoria = String(producto?.categoria || '').toLowerCase()
-  
-  console.log('🔍 Buscando imagen para:', { nombre: nombreLower, animal, categoria })
-  
-  // Imágenes específicas por animal de origen
-  const imagenesAnimales = {
-    'pollo': 'https://images.unsplash.com/photo-1587513863556-992c39b90c1b?w=600&h=400&fit=crop&crop=center',
-    'cerdo': 'https://images.unsplash.com/photo-1603054739162-dae7846d1d9b?w=600&h=400&fit=crop&crop=center',
-    'res': 'https://images.unsplash.com/photo-1586441379954-f2126101b354?w=600&h=400&fit=crop&crop=center',
-    'vaca': 'https://images.unsplash.com/photo-1586441379954-f2126101b354?w=600&h=400&fit=crop&crop=center',
-    'cordero': 'https://images.unsplash.com/photo-1628700992732-9f5f7b6e2b8c?w=600&h=400&fit=crop&crop=center',
-    'pescado': 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=400&fit=crop&crop=center',
-    'camarón': 'https://images.unsplash.com/photo-1594394907818-4bda41b2d7b2?w=600&h=400&fit=crop&crop=center'
-  }
-  
-  // Verificar si hay animal de origen específico
-  if (imagenesAnimales[animal]) {
-    console.log('🐾 Imagen por animal:', imagenesAnimales[animal])
-    return imagenesAnimales[animal]
-  }
-  
-  // Detectar animal por nombre si no está en animal_origen
-  if (nombreLower.includes('pollo') || nombreLower.includes('chicken')) {
-    console.log('🐔 Detectado pollo por nombre')
-    return imagenesAnimales['pollo']
-  }
-  
-  // Cortes específicos de cerdo
-  if (nombreLower.includes('lomo') || nombreLower.includes('costilla') || nombreLower.includes('chuleta') || 
-      nombreLower.includes('panceta') || nombreLower.includes('tocino') || nombreLower.includes('matambre') ||
-      nombreLower.includes('bondiola') || nombreLower.includes('paleta')) {
-    console.log('🐷 Detectado corte de cerdo')
-    return imagenesAnimales['cerdo']
-  }
-  
-  // Cortes específicos de res
-  if (nombreLower.includes('bife') || nombreLower.includes('cuadril') || nombreLower.includes('picaña') || 
-      nombreLower.includes('vacío') || nombreLower.includes('ojo de bife') || nombreLower.includes('tapa de cuadril') ||
-      nombreLower.includes('lomo') || nombreLower.includes('carne') || nombreLower.includes('beef')) {
-    console.log('🐄 Detectado corte de res')
-    return imagenesAnimales['res']
-  }
-  
-  // General de cerdo
-  if (nombreLower.includes('cerdo') || nombreLower.includes('cochino') || nombreLower.includes('puerco') || nombreLower.includes('chancho')) {
-    console.log('🐷 Detectado cerdo general')
-    return imagenesAnimales['cerdo']
-  }
-  
-  // General de res
-  if (nombreLower.includes('res') || nombreLower.includes('vaca')) {
-    console.log('🐄 Detectado res general')
-    return imagenesAnimales['res']
-  }
-  
-  if (nombreLower.includes('cordero') || nombreLower.includes('oveja') || nombreLower.includes('lamb')) {
-    console.log('🐑 Detectado cordero')
-    return imagenesAnimales['cordero']
-  }
-  if (nombreLower.includes('pescado') || nombreLower.includes('fish')) {
-    console.log('🐟 Detectado pescado')
-    return imagenesAnimales['pescado']
-  }
-  if (nombreLower.includes('camarón') || nombreLower.includes('shrimp')) {
-    console.log('🦐 Detectado camarón')
-    return imagenesAnimales['camarón']
-  }
-
-  // Prioridad 3: Categorías específicas
-  const referencias = [
-    {
-      test: /chorizo|salchicha|embutido|morcilla|chistorra/,
-      url: 'https://images.unsplash.com/photo-1587513863556-992c39b90c1b?w=600&h=400&fit=crop&crop=center'
-    },
-    {
-      test: /hamburguesa|hamburgues/,
-      url: 'https://images.unsplash.com/photo-1568901346408-3a254d4fd9f5?w=600&h=400&fit=crop&crop=center'
-    },
-    {
-      test: /queso|lacteo|lácteo|mantequilla/,
-      url: 'https://images.unsplash.com/photo-1586441379954-f2126101b354?w=600&h=400&fit=crop&crop=center'
-    },
-    {
-      test: /jamón|jamon|ham/,
-      url: 'https://images.unsplash.com/photo-1603054739162-dae7846d1d9b?w=600&h=400&fit=crop&crop=center'
-    },
-    {
-      test: /verdura|vegetal|hortaliza|ensalada/,
-      url: 'https://images.unsplash.com/photo-1566393028639-d108a42c46a7?w=600&h=400&fit=crop&crop=center'
-    },
-    {
-      test: /grano|harina|arroz|maiz|maíz/,
-      url: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&h=400&fit=crop&crop=center'
-    }
-  ]
-
-  const texto = `${nombreLower} ${categoria}`
-  const match = referencias.find((r) => r.test.test(texto))
-  if (match?.url) {
-    console.log('🥩 Imagen por referencia:', match.url)
-    // Log especial para hamburguesas
-    if (match.url.includes('1568901346408-3a254d4fd9f5')) {
-      console.log('🍔 HAMBURGUESA: Usando imagen específica de hamburguesa')
-    }
-    // Log especial para chistorra
-    if (match.url.includes('1587513863556-992c39b90c1b')) {
-      console.log('🥓 CHISTORRA: Usando imagen de embutidos')
-    }
-    return match.url
-  }
-
-  // Prioridad 4: Imagen genérica de comida
-  console.log('🍽️ Usando imagen genérica')
-  return `https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop&crop=center`
+const obtenerImagenProducto = (producto) => {
+  const imagenNormalizada = getImageUrl(producto?.imagen_url)
+  return imagenNormalizada || '/logo_agromae.png'
 }
 
 export default function Catalogo() {
@@ -420,11 +258,11 @@ export default function Catalogo() {
   }, [])
 
   const catalogoCompleto = useMemo(() => {
-    return (Array.isArray(productos) ? productos : []).map((p, idx) => ({
+    return (Array.isArray(productos) ? productos : []).map((p) => ({
       id: p.id,
       nombre: p.nombre,
       precio: parseFloat(p.precio) || 0,
-      imagen: obtenerImagenProducto(p, idx),
+      imagen: obtenerImagenProducto(p),
       imagenOriginal: p.imagen_url || '',
       categoria: (p.categoria || 'Sin categoría').trim(),
       stock: parseFloat(p.stock) || 0,
@@ -652,31 +490,9 @@ export default function Catalogo() {
                   src={p.imagen}
                   alt={p.nombre}
                   className="w-full h-32 sm:h-40 md:h-48 lg:h-56 object-cover"
-                  onLoad={() => console.log('✅ Imagen cargada:', p.imagen)}
                   onError={(e) => {
-                    console.log('❌ Error cargando imagen:', p.imagen)
-                    
-                    // Evitar bucles infinitos
-                    if (e.currentTarget.dataset.fallbackUsed === 'true') {
-                      console.log('🔄 Fallback ya usado, usando logo final')
-                      e.currentTarget.src = '/logo_agromae.png'
-                      e.currentTarget.dataset.fallbackUsed = 'final'
-                      return
-                    }
-                    
-                    // Reintentar una vez usando la URL original de BD normalizada.
-                    const processedUrl = getImageUrl(p.imagenOriginal || p.imagen)
-                    console.log('🖼️ URL procesada:', processedUrl)
-                    
-                    if (processedUrl && processedUrl !== e.currentTarget.src) {
-                      console.log('🔄 Intentando con URL procesada...')
-                      e.currentTarget.src = processedUrl
-                      e.currentTarget.dataset.fallbackUsed = 'true'
-                    } else {
-                      console.log('📦 Usando logo directamente')
-                      e.currentTarget.src = '/logo_agromae.png'
-                      e.currentTarget.dataset.fallbackUsed = 'final'
-                    }
+                    if (e.currentTarget.src.endsWith('/logo_agromae.png')) return
+                    e.currentTarget.src = '/logo_agromae.png'
                   }}
                 />
                 <button
