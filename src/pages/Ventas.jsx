@@ -433,6 +433,7 @@ export default function Ventas() {
     referenciaPago: ''
   });
   const [abonoGeneralVentasDetalle, setAbonoGeneralVentasDetalle] = useState([]);
+  const [abonoGeneralAccordionOpen, setAbonoGeneralAccordionOpen] = useState([]);
   const [abonosHistorial, setAbonosHistorial] = useState([]);
   const [abonosPendientes, setAbonosPendientes] = useState([]);
 
@@ -675,6 +676,7 @@ export default function Ventas() {
       referenciaPago: ''
     });
     setAbonoGeneralVentasDetalle([]);
+    setAbonoGeneralAccordionOpen([]);
     setAbonosHistorial([]);
     setAbonosPendientes([]);
     setTasaActual(tasa);
@@ -687,6 +689,7 @@ export default function Ventas() {
   const cerrarModalAbono = useCallback(() => {
     setUi(prev => ({ ...prev, modalAbono: null }));
     setAbonoGeneralVentasDetalle([]);
+    setAbonoGeneralAccordionOpen([]);
     setAbonosHistorial([]);
     setAbonosPendientes([]);
     setAbonoDraft({ monto: '', moneda: 'USD', metodoPago: 'efectivo', referenciaPago: '' });
@@ -929,6 +932,14 @@ export default function Ventas() {
     });
   }, []);
 
+  const toggleVentaAbonoGeneralAccordion = useCallback((ventaId) => {
+    setAbonoGeneralAccordionOpen((prev) => (
+      prev.includes(ventaId)
+        ? prev.filter((id) => id !== ventaId)
+        : [...prev, ventaId]
+    ));
+  }, []);
+
   const handleAbonarCliente = useCallback(async (clienteItem) => {
     const ventasPendientes = ventasOrdenadasMasAntiguaPrimero(
       (clienteItem?.ventasDetalle || []).filter(v => toNumber(v?.saldo_pendiente) > 0)
@@ -941,6 +952,7 @@ export default function Ventas() {
     }, 0);
     setAbonoDraft({ monto: '', moneda: 'VES', metodoPago: 'efectivo', referenciaPago: '' });
     setAbonoGeneralVentasDetalle([]);
+    setAbonoGeneralAccordionOpen([]);
     setAbonosHistorial([]);
     setAbonosPendientes([]);
     setTasaActual(tasa);
@@ -975,8 +987,10 @@ export default function Ventas() {
           return toNumber(a?.id) - toNumber(b?.id);
         });
       setAbonoGeneralVentasDetalle(detalle);
+      setAbonoGeneralAccordionOpen(detalle.length > 0 ? [detalle[0].id] : []);
     }).catch(() => {
       setAbonoGeneralVentasDetalle([]);
+      setAbonoGeneralAccordionOpen([]);
     });
   }, [showMessage, obtenerTasaActual, cargarHistorialAbonos]);
 
@@ -1510,68 +1524,85 @@ export default function Ventas() {
             <div className="border border-gray-200 rounded-xl p-3 bg-white space-y-3">
               <p className="font-semibold text-gray-800">Ventas incluidas (productos y abonos)</p>
               <div className="max-h-[32vh] sm:max-h-[38vh] overflow-auto space-y-2 pr-1">
-                {abonoGeneralVentasDetalle.map((v) => (
-                  <div key={`general-venta-${v.id}`} className="border rounded-lg p-2 bg-gray-50">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between">
-                      <p className="font-medium text-gray-800">Venta #{v.id}</p>
-                      <p className="text-xs text-gray-500">{formatDate(v.fecha)}</p>
-                    </div>
-                    <p className="text-xs text-gray-600 mt-1">
-                      Saldo: {formatearMonto(v.saldo_pendiente, v.moneda_original)}
-                    </p>
-
-                    <div className="mt-2">
-                      <p className="text-xs font-medium text-gray-700 mb-1">Productos</p>
-                      {Array.isArray(v.items) && v.items.length > 0 ? (
-                        <div className="overflow-x-auto">
-                          <table className="w-full min-w-[420px] text-xs">
-                            <thead>
-                              <tr className="text-gray-500">
-                                <th className="text-left py-1">Producto</th>
-                                <th className="text-right py-1">Cant.</th>
-                                <th className="text-right py-1">Total</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {v.items.map((it, idx) => (
-                                <tr key={`it-${v.id}-${idx}`} className="border-t border-gray-200">
-                                  <td className="py-1">{it.producto_nombre || `Producto #${it.producto_id || idx}`}</td>
-                                  <td className="py-1 text-right">{toNumber(it.cantidad).toFixed(2)}</td>
-                                  <td className="py-1 text-right">{formatearMonto(it.total_linea, v.moneda_original)}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                {abonoGeneralVentasDetalle.map((v) => {
+                  const isOpen = abonoGeneralAccordionOpen.includes(v.id);
+                  return (
+                    <div key={`general-venta-${v.id}`} className="border rounded-lg p-2 bg-gray-50">
+                      <button
+                        type="button"
+                        onClick={() => toggleVentaAbonoGeneralAccordion(v.id)}
+                        className="w-full flex items-center justify-between gap-2 text-left"
+                      >
+                        <div>
+                          <p className="font-medium text-gray-800">Venta #{v.id}</p>
+                          <p className="text-xs text-gray-500">{formatDate(v.fecha)}</p>
                         </div>
-                      ) : (
-                        <p className="text-xs text-gray-500">Sin productos disponibles.</p>
-                      )}
-                    </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] text-gray-600">{isOpen ? 'Ocultar' : 'Ver detalle'}</span>
+                          {isOpen ? <ChevronUp className="w-4 h-4 text-gray-600" /> : <ChevronDown className="w-4 h-4 text-gray-600" />}
+                        </div>
+                      </button>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Saldo: {formatearMonto(v.saldo_pendiente, v.moneda_original)}
+                      </p>
 
-                    <div className="mt-2">
-                      <p className="text-xs font-medium text-gray-700 mb-1">Abonos de esta venta</p>
-                      {Array.isArray(v.pagos) && v.pagos.length > 0 ? (
-                        <div className="space-y-1">
-                          {v.pagos.map((p, idx) => {
-                            const tasa = Math.max(toNumber(p?.tasa_cambio) || toNumber(tasaActual), 1);
-                            const bs = toNumber(p?.monto_bs) > 0
-                              ? toNumber(p?.monto_bs)
-                              : (toNumber(p?.monto_ves) > 0 ? toNumber(p?.monto_ves) : (toNumber(p?.monto_usd || p?.monto_original || p?.monto) * tasa));
-                            const usd = toNumber(p?.monto_usd) > 0 ? toNumber(p?.monto_usd) : (bs / tasa);
-                            return (
-                              <div key={`pago-${v.id}-${idx}`} className="flex items-center justify-between text-xs border-t border-gray-200 pt-1">
-                                <span className="text-gray-500">{formatDate(p?.fecha)}</span>
-                                <span>{formatearMonto(usd, 'USD')} / {formatearMonto(bs, 'VES')}</span>
+                      {isOpen && (
+                        <>
+                          <div className="mt-2">
+                            <p className="text-xs font-medium text-gray-700 mb-1">Productos</p>
+                            {Array.isArray(v.items) && v.items.length > 0 ? (
+                              <div className="overflow-x-auto">
+                                <table className="w-full min-w-[420px] text-xs">
+                                  <thead>
+                                    <tr className="text-gray-500">
+                                      <th className="text-left py-1">Producto</th>
+                                      <th className="text-right py-1">Cant.</th>
+                                      <th className="text-right py-1">Total</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {v.items.map((it, idx) => (
+                                      <tr key={`it-${v.id}-${idx}`} className="border-t border-gray-200">
+                                        <td className="py-1">{it.producto_nombre || `Producto #${it.producto_id || idx}`}</td>
+                                        <td className="py-1 text-right">{toNumber(it.cantidad).toFixed(2)}</td>
+                                        <td className="py-1 text-right">{formatearMonto(it.total_linea, v.moneda_original)}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
                               </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-gray-500">Sin abonos registrados.</p>
+                            ) : (
+                              <p className="text-xs text-gray-500">Sin productos disponibles.</p>
+                            )}
+                          </div>
+
+                          <div className="mt-2">
+                            <p className="text-xs font-medium text-gray-700 mb-1">Abonos de esta venta</p>
+                            {Array.isArray(v.pagos) && v.pagos.length > 0 ? (
+                              <div className="space-y-1">
+                                {v.pagos.map((p, idx) => {
+                                  const tasa = Math.max(toNumber(p?.tasa_cambio) || toNumber(tasaActual), 1);
+                                  const bs = toNumber(p?.monto_bs) > 0
+                                    ? toNumber(p?.monto_bs)
+                                    : (toNumber(p?.monto_ves) > 0 ? toNumber(p?.monto_ves) : (toNumber(p?.monto_usd || p?.monto_original || p?.monto) * tasa));
+                                  const usd = toNumber(p?.monto_usd) > 0 ? toNumber(p?.monto_usd) : (bs / tasa);
+                                  return (
+                                    <div key={`pago-${v.id}-${idx}`} className="flex items-center justify-between text-xs border-t border-gray-200 pt-1">
+                                      <span className="text-gray-500">{formatDate(p?.fecha)}</span>
+                                      <span>{formatearMonto(usd, 'USD')} / {formatearMonto(bs, 'VES')}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <p className="text-xs text-gray-500">Sin abonos registrados.</p>
+                            )}
+                          </div>
+                        </>
                       )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {abonoGeneralVentasDetalle.length === 0 && (
                   <p className="text-xs text-gray-500">Cargando detalle de ventas...</p>
                 )}
