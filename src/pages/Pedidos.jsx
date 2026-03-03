@@ -38,9 +38,34 @@ export default function Pedidos() {
     setTotalForm(items.length)
   }, [items])
 
+  const getAuthHeaders = () => {
+    let token = null
+    if (typeof localStorage !== 'undefined') {
+      token = localStorage.getItem('token')
+      if (!token) {
+        try {
+          const usuario = localStorage.getItem('usuario')
+          if (usuario) {
+            const data = JSON.parse(usuario)
+            token = data?.token || data?.accessToken || null
+          }
+        } catch (_) {}
+      }
+    }
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }
+  }
+
   const cargar = async () => {
     try {
-      const [rP, rPr, rC] = await Promise.all([fetch(`${API_URL}/pedidos`), fetch(`${API_URL}/productos`), fetch(`${API_URL}/clientes`)])
+      const headers = getAuthHeaders()
+      const [rP, rPr, rC] = await Promise.all([
+        fetch(`${API_URL}/pedidos`, { headers }),
+        fetch(`${API_URL}/productos`, { headers }),
+        fetch(`${API_URL}/clientes`, { headers })
+      ])
       setPedidos(await rP.json()); setProductos(await rPr.json()); setClientes(await rC.json())
     } catch { msg('❌ Error al cargar') }
   }
@@ -58,7 +83,7 @@ export default function Pedidos() {
     e.preventDefault()
     if (!items.length) { msg('❌ Agrega al menos un producto'); return }
     try {
-      const r = await fetch(`${API_URL}/pedidos`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      const r = await fetch(`${API_URL}/pedidos`, { method: 'POST', headers: getAuthHeaders(),
         body: JSON.stringify({ cliente_id: clienteSel?.id || null, cliente_nombre: clienteSel?.nombre || '', notas, fecha_entrega: fechaEntrega || null,
           items: items.map(i => ({ producto_id: i.producto_id, cantidad_pedida: parseFloat(i.cantidad) })) }) })
       const d = await r.json()
@@ -88,7 +113,7 @@ export default function Pedidos() {
     try {
       const r = await fetch(`${API_URL}/pedidos/${pedido.id}/despachar`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           items_despachados: itemsDespachados,
           metodo_pago: 'efectivo',
@@ -134,7 +159,7 @@ export default function Pedidos() {
 
   const eliminar = async (id) => {
     if (!confirm('¿Eliminar pedido?')) return
-    await fetch(`${API_URL}/pedidos/${id}`, { method: 'DELETE' }); msg('🗑️ Eliminado'); cargar()
+    await fetch(`${API_URL}/pedidos/${id}`, { method: 'DELETE', headers: getAuthHeaders() }); msg('🗑️ Eliminado'); cargar()
   }
 
   const pedidosFiltrados = filtro ? pedidos.filter(p => p.estado === filtro) : pedidos

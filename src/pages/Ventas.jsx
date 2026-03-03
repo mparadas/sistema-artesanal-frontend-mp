@@ -119,8 +119,16 @@ const formatNumeroNotaEntrega = (fecha, clienteId, ventaId) => {
 
 const _estaPagada = (venta) => ['pagado', 'liquidado', 'cancelado', 'anulado'].includes(venta?.estado_pago);
 
+// Para ocultar Abonar y Devolver a pedidos: considerar pagada si el estado lo dice o si no hay deuda (tolerancia 0.01)
+const ventaPagadaParaBotones = (venta) => {
+  if (!venta) return true;
+  if (['pagado', 'liquidado', 'cancelado', 'anulado'].includes(String(venta?.estado_pago || '').toLowerCase())) return true;
+  if (toNumber(venta?.saldo_pendiente) <= 0.01) return true;
+  return false;
+};
+
 const puedeDevolverAPedidos = (venta) => {
-  // Permitir devolver a pedidos solo ventas pendientes o parciales
+  if (ventaPagadaParaBotones(venta)) return false;
   const puedeAnular = ['pendiente', 'parcial'].includes(venta?.estado_pago);
   const noEstaAnulada = !['anulada', 'devuelta_a_pedidos'].includes(venta?.estado_pago);
   return puedeAnular && noEstaAnulada;
@@ -128,9 +136,9 @@ const puedeDevolverAPedidos = (venta) => {
 
 const puedeAbonarVenta = (venta) => {
   if (!venta) return false;
+  if (ventaPagadaParaBotones(venta)) return false;
   if (ES_VENTA_NO_CONTABILIZABLE(venta?.estado_pago)) return false;
-  if (['pagado', 'liquidado', 'cancelado', 'anulado'].includes(String(venta?.estado_pago || '').toLowerCase())) return false;
-  return toNumber(venta?.saldo_pendiente) > 0;
+  return toNumber(venta?.saldo_pendiente) > 0.01;
 };
 
 const puedeReabrirVentaPagada = (venta) => {
@@ -158,6 +166,15 @@ const getEstadoColor = (estado) => {
     devuelta_a_pedidos: 'bg-orange-100 text-orange-700 border-orange-200'
   };
   return map[estado] || 'bg-gray-100 text-gray-700 border-gray-200';
+};
+
+// En la lista: si no hay deuda (saldo <= 0) pero el backend devolvió "parcial" o null, mostrar "pagado"
+const estadoPagoParaMostrar = (venta) => {
+  if (!venta) return 'N/A';
+  const estado = venta.estado_pago == null || venta.estado_pago === '' ? null : String(venta.estado_pago).toLowerCase();
+  const saldo = toNumber(venta.saldo_pendiente);
+  if (saldo <= 0.01 && (estado === null || estado === 'parcial')) return 'pagado';
+  return (venta.estado_pago != null && String(venta.estado_pago).trim() !== '') ? String(venta.estado_pago) : 'N/A';
 };
 
 const _getOrigenVenta = (venta) => {
@@ -254,8 +271,8 @@ const VistaCompacta = memo(({ ventas, onVerDetalle, onAbonar, onDevolverAPedidos
           <div className="flex-1">
             <div className="font-medium text-gray-900">
               Venta #{venta.id}
-              <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${getEstadoColor(venta.estado_pago)}`}>
-                {venta.estado_pago}
+              <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${getEstadoColor(estadoPagoParaMostrar(venta))}`}>
+                {estadoPagoParaMostrar(venta)}
               </span>
             </div>
             <div className="text-sm text-gray-600">{venta.cliente_nombre}</div>
@@ -291,10 +308,10 @@ const VistaCompacta = memo(({ ventas, onVerDetalle, onAbonar, onDevolverAPedidos
               onClick={() => onReabrirPendiente(venta)}
               disabled={submitting}
               loading={submitting}
-              title="Devolver venta a pendiente por error (max 2 dias)"
+              title="Reabrir venta como pendiente para corregir (máx. 2 días)"
             >
               <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="ml-1">Devolver</span>
+              <span className="ml-1">Reabrir</span>
             </Button>
           )}
           {esAdmin && puedeDevolverAPedidos(venta) && (
@@ -304,10 +321,10 @@ const VistaCompacta = memo(({ ventas, onVerDetalle, onAbonar, onDevolverAPedidos
               onClick={() => onDevolverAPedidos(venta)}
               disabled={submitting}
               loading={submitting}
-              title="Devolver a pedidos (montos en cero)"
+              title="Anula la venta y la envía al módulo Pedidos. No usar para revertir pagos."
             >
-              <Ban className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline ml-1">Devolver</span>
+              <Ban className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="ml-1 whitespace-nowrap">Devolver a pedidos</span>
             </Button>
           )}
 
@@ -571,19 +588,17 @@ export default function Ventas() {
       return;
     }
 
-    // Crear diálogo simple con confirmación
     const confirmacion = confirm(
-      `¿Está seguro que desea devolver a pedidos la venta #${venta.id}?\n\n` +
-      `Cliente: ${venta.cliente_nombre || 'Cliente general'}\n` +
+      `⚠️ DEVOLVER A PEDIDOS (anula la venta)\n\n` +
+      `Venta #${venta.id} · Cliente: ${venta.cliente_nombre || 'Cliente general'}\n` +
       `Monto: ${formatearMonto(venta.total, venta.moneda_original)}\n\n` +
-      `Esta acción:\n` +
-      `• Pondrá los montos en cero\n` +
-      `• Cambiará el estado a "devuelta a pedidos"\n` +
-      `• No afectará las estadísticas`
+      `Esta acción ANULARÁ la venta y la enviará al módulo Pedidos.\n` +
+      `No use este botón para "revertir un pago". Para eso use "Reabrir" en ventas pagadas.\n\n` +
+      `¿Continuar con Devolver a pedidos?`
     );
 
     if (!confirmacion) {
-      showMessage('Operación cancelada por el usuario');
+      showMessage('Operación cancelada');
       return;
     }
 
@@ -734,6 +749,21 @@ export default function Ventas() {
     () => Math.max(0, montoVentaActualVes - subtotalAbonosVes),
     [montoVentaActualVes, subtotalAbonosVes]
   );
+  // Restante en VES según saldo_pendiente del backend (evita desfase con lo que muestra "Saldo pendiente" / total abonos)
+  const restanteVesDesdeSaldo = useMemo(() => {
+    const venta = ui.modalAbono;
+    if (!venta) return 0;
+    const saldo = toNumber(venta.saldo_pendiente);
+    if (saldo <= 0) return 0;
+    const moneda = String(venta.moneda_original || 'USD').toUpperCase();
+    const tasa = Math.max(toNumber(tasaActual), 1);
+    return moneda === 'VES' ? saldo : saldo * tasa;
+  }, [ui.modalAbono, tasaActual]);
+  // Techo para validación y "Pagar restante": el mayor entre restante calculado y restante desde backend
+  const techoRestanteVes = useMemo(
+    () => Math.max(restanteVes, restanteVesDesdeSaldo),
+    [restanteVes, restanteVesDesdeSaldo]
+  );
   const montoVentaActualUsd = useMemo(
     () => montoVentaActualVes / Math.max(toNumber(tasaActual), 1),
     [montoVentaActualVes, tasaActual]
@@ -756,7 +786,8 @@ export default function Ventas() {
     const montoVes = abonoDraft.moneda === 'VES' ? monto : monto * toNumber(tasaActual);
     const tasaDelDia = toNumber(tasaActual);
     const montoUsd = abonoDraft.moneda === 'USD' ? monto : (monto / Math.max(tasaDelDia, 1));
-    if (montoVes > (restanteVes + 0.01)) {
+    // Validar contra el techo (saldo_pendiente en Bs o restante calculado); tolerancia 0.50 VES por redondeos
+    if (montoVes > (techoRestanteVes + 0.50)) {
       return showMessage('Los abonos no pueden superar el saldo total', 'error');
     }
 
@@ -769,6 +800,7 @@ export default function Ventas() {
 
       let restanteAbonoVes = montoVes;
       let seLiquidoAlMenosUna = false;
+      const ventasLiquidadasIds = [];
       for (const ventaDestino of ventasDestino) {
         if (restanteAbonoVes <= 0.0001) break;
         const factorVenta = String(ventaDestino?.moneda_original || 'USD').toUpperCase() === 'USD' ? tasa : 1;
@@ -800,8 +832,14 @@ export default function Ventas() {
         });
         const data = await parseResponseBody(res);
         if (!res.ok) throw new Error(getApiErrorMessage(res, data, `No se pudo registrar abono en venta #${ventaDestino.id}`));
+        if (liquidar) ventasLiquidadasIds.push(ventaDestino.id);
         restanteAbonoVes -= montoAplicarVes;
       }
+
+      // Actualizar estado en la lista de inmediato (por si el backend aún no devuelve estado_pago actualizado)
+      ventasLiquidadasIds.forEach((id) => {
+        dispatch({ type: 'UPDATE_VENTA', payload: { id, changes: { estado_pago: 'pagado', saldo_pendiente: 0 } } });
+      });
 
       setAbonosPendientes(prev => [
         ...prev,
@@ -821,11 +859,14 @@ export default function Ventas() {
         if (!modal) return prev;
         const monedaVenta = String(modal.moneda_original || 'USD').toUpperCase();
         const descuento = monedaVenta === 'VES' ? montoVes : montoUsd;
+        const nuevoSaldo = Math.max(0, toNumber(modal.saldo_pendiente) - descuento);
+        const fueLiquidada = ventasLiquidadasIds.includes(modal.id);
         return {
           ...prev,
           modalAbono: {
             ...modal,
-            saldo_pendiente: Math.max(0, toNumber(modal.saldo_pendiente) - descuento)
+            saldo_pendiente: nuevoSaldo,
+            ...(fueLiquidada ? { estado_pago: 'pagado' } : {})
           }
         };
       });
@@ -837,14 +878,15 @@ export default function Ventas() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [ui.modalAbono, abonoDraft, showMessage, tasaActual, restanteVes, obtenerTasaActual, refresh]);
+  }, [ui.modalAbono, abonoDraft, showMessage, tasaActual, techoRestanteVes, obtenerTasaActual, refresh, dispatch]);
 
   const handlePagarTotal = useCallback(() => {
-    if (restanteVes <= 0) return;
+    if (techoRestanteVes <= 0) return;
     const moneda = abonoDraft.moneda;
-    const monto = moneda === 'VES' ? restanteVes : (restanteVes / toNumber(tasaActual));
+    const tasa = Math.max(toNumber(tasaActual), 1);
+    const monto = moneda === 'VES' ? techoRestanteVes : techoRestanteVes / tasa;
     setAbonoDraft(prev => ({ ...prev, monto: Number(monto.toFixed(2)).toString() }));
-  }, [restanteVes, abonoDraft.moneda, tasaActual]);
+  }, [techoRestanteVes, abonoDraft.moneda, tasaActual]);
 
   const ventasMesActual = useMemo(() => {
     const ahora = new Date();
@@ -1410,7 +1452,7 @@ export default function Ventas() {
             </div>
             <div className="border border-gray-200 rounded-lg p-3">
               <p className="text-xs sm:text-sm text-gray-500">Estado</p>
-              <p className="font-semibold capitalize">{ui.modalDetalle?.estado_pago || 'N/A'}</p>
+              <p className="font-semibold capitalize">{estadoPagoParaMostrar(ui.modalDetalle)}</p>
               <p className="text-xs sm:text-sm text-gray-500 mt-2">Tipo de venta</p>
               <p className="capitalize">{ui.modalDetalle?.tipo_venta || 'N/A'}</p>
             </div>
@@ -1751,8 +1793,8 @@ export default function Ventas() {
             <div className="border rounded p-2">
               <p className="font-medium text-gray-700">Restante</p>
               <div className="flex items-baseline justify-between gap-2">
-                <p className="font-semibold">{formatearMonto(restanteUsd, 'USD')}</p>
-                <p className="text-gray-600">{formatearMonto(restanteVes, 'VES')}</p>
+                <p className="font-semibold">{formatearMonto(techoRestanteVes / Math.max(toNumber(tasaActual), 1), 'USD')}</p>
+                <p className="text-gray-600">{formatearMonto(techoRestanteVes, 'VES')}</p>
               </div>
             </div>
           </div>

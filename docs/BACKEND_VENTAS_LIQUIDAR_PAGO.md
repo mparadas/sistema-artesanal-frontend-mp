@@ -20,3 +20,12 @@ En el endpoint que registra el pago (por ejemplo `POST /api/ventas/:id/pagos`):
    - `saldo_pendiente = 0` (si no se calcula solo)
 
 Así, cuando el usuario paga el restante desde el botón verde "Pagar", la venta queda marcada como **pagada** y no solo con un abono parcial.
+
+## Importante para la UI
+
+Tras registrar el pago, el frontend hace **refresh** de la lista. El backend debe devolver en `GET /ventas` (y en el detalle) el registro ya actualizado:
+
+- **`saldo_pendiente`**: 0 cuando la venta quedó liquidada.
+- **`estado_pago`**: `'pagado'` cuando la venta quedó liquidada.
+
+Si solo se actualiza el saldo pero no `estado_pago`, la venta seguirá mostrando "parcial" y el botón "Devolver a pedidos" no se ocultará hasta que haya saldo 0. Para que los botones (Abonar, Devolver a pedidos) y el badge cambien correctamente, **ambos** campos deben actualizarse al liquidar.
