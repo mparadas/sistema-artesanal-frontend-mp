@@ -1121,6 +1121,10 @@ export default function Ventas() {
     ? (toNumber(ui.modalAbono?.saldo_pendiente) / Math.max(toNumber(tasaActual), 1))
     : toNumber(ui.modalAbono?.saldo_pendiente);
   const isTypingMonto = String(abonoDraft.monto || '').trim().length > 0;
+  const equivalenteMoneda = abonoDraft.moneda === 'VES' ? 'USD' : 'VES';
+  const equivalenteMonto = abonoDraft.moneda === 'VES'
+    ? (toNumber(abonoDraft.monto) / Math.max(toNumber(tasaActual), 1))
+    : (toNumber(abonoDraft.monto) * Math.max(toNumber(tasaActual), 1));
 
   return (
     <div className="space-y-6">
@@ -1300,15 +1304,20 @@ export default function Ventas() {
           )}
           <div className="space-y-2 border-b border-gray-200 pb-3 -mt-2">
             <div className="flex items-start justify-between gap-3">
-              <img
-                src="/logo_agromae.png"
-                alt="AgroMAE"
-                className="h-14 sm:h-20 w-auto object-contain"
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.src = '/agromae_transparent.png';
-                }}
-              />
+              <div className="flex flex-col items-center">
+                <img
+                  src="/logo_agromae.png"
+                  alt="AgroMAE"
+                  className="h-14 sm:h-20 w-auto object-contain"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = '/agromae_transparent.png';
+                  }}
+                />
+                <p className="mt-1 text-xs sm:text-sm font-semibold text-blue-700 text-center">
+                  ESTADO DE CUENTA
+                </p>
+              </div>
               <div className="flex flex-col items-start gap-2">
                 <div data-html2canvas-ignore="true">
                   <Button
@@ -1510,14 +1519,8 @@ export default function Ventas() {
               <label className="block text-sm font-medium text-gray-700">Método de Pago</label>
               <p className="text-xs text-right">
                 <span className="text-gray-500 mr-1">Equivalente:</span>
-                <span className={isTypingMonto ? 'text-blue-700 font-semibold mr-1' : 'text-gray-500 mr-1'}>USD</span>
                 <span className={isTypingMonto ? 'text-blue-700 font-semibold' : 'text-gray-600'}>
-                  {formatearMonto(
-                    abonoDraft.moneda === 'VES'
-                      ? (toNumber(abonoDraft.monto) / Math.max(toNumber(tasaActual), 1))
-                      : toNumber(abonoDraft.monto),
-                    'USD'
-                  )}
+                  {formatearMonto(equivalenteMonto, equivalenteMoneda)}
                 </span>
               </p>
             </div>
