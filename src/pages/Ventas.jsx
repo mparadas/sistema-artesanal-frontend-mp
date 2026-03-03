@@ -299,15 +299,6 @@ const VistaCompacta = memo(({ ventas, onVerDetalle, onAbonar, onDevolverAPedidos
 // ==========================================
 // HOOKS
 // ==========================================
-// Forzar actualización en móvil (temporal)
-if ('serviceWorker' in navigator && window.location.hostname === 'sistema-artesanal-frontend-mp.vercel.app') {
-  navigator.serviceWorker.getRegistrations().then(function(registrations) {
-    registrations.forEach(function(registration) {
-      registration.unregister();
-      console.log('🔄 Service Worker desregistrado para forzar actualización');
-    });
-  });
-}
 
 // ==========================================
 // COMPONENTE PRINCIPAL
