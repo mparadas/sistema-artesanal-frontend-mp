@@ -142,9 +142,15 @@ export default function TasasCambio() {
 
   // Editar tasa
   const editarTasa = (tasa) => {
+    const fechaIso = (() => {
+      const raw = String(tasa?.fecha || '').trim()
+      if (!raw) return ''
+      if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10)
+      return ''
+    })()
     setEditando(tasa)
     setFormulario({
-      fecha: tasa.fecha,
+      fecha: fechaIso,
       tasa_bcv: (tasa.tasa || tasa.tasa_bcv || 0).toString(),
       fuente: tasa.fuente
     })
