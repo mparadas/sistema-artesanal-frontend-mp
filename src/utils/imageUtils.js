@@ -40,8 +40,12 @@ export const getImageUrl = (imagePath) => {
     return imagePath
   }
   
-  // Si es una ruta relativa, combinar con base URL
-  const finalUrl = `${IMAGES_BASE_URL}/${imagePath.startsWith('/') ? imagePath.slice(1) : imagePath}`
+  // Si es una ruta relativa, combinar con base URL evitando duplicar "/uploads"
+  const rawPath = String(imagePath || '').trim()
+  const normalizedPath = rawPath
+    .replace(/^\/+/, '')
+    .replace(/^uploads\//i, '')
+  const finalUrl = `${IMAGES_BASE_URL.replace(/\/+$/, '')}/${normalizedPath}`
   console.log('📂 Ruta relativa combinada:', finalUrl)
   return finalUrl
 }

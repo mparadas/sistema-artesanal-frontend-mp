@@ -207,7 +207,7 @@ export default function Productos() {
       })
       
       setProductos(datosConvertidos)
-    } catch (error) {
+    } catch {
       setMensaje('❌ Error al cargar productos')
     } finally {
       setCargando(false)
@@ -277,7 +277,7 @@ export default function Productos() {
       cargarProductos()
       setMensaje('✅ Producto agregado')
       setTimeout(() => setMensaje(''), 3000)
-    } catch (error) {
+    } catch {
       setMensaje('❌ Error al guardar')
     }
   }
@@ -287,7 +287,7 @@ export default function Productos() {
     try {
       await fetch(`${API_URL}/productos/${id}`, { method: 'DELETE' })
       cargarProductos()
-    } catch (error) {
+    } catch {
       setMensaje('❌ Error al eliminar')
     }
   }
@@ -324,7 +324,7 @@ export default function Productos() {
       setTimeout(() => setMensaje(''), 3000)
       cerrarModificarCorte()
       cargarProductos()
-    } catch (error) {
+    } catch {
       setMensaje('❌ Error al modificar corte')
     }
   }
@@ -361,7 +361,7 @@ export default function Productos() {
       setTimeout(() => setMensaje(''), 3000)
       cerrarAgregarExistencia()
       cargarProductos()
-    } catch (error) {
+    } catch {
       setMensaje('❌ Error al agregar existencia')
     }
   }
@@ -385,7 +385,7 @@ export default function Productos() {
       }
       setGananciaPorProducto(Array.isArray(data) ? data : [])
       setMostrarGanancia(true)
-    } catch (error) {
+    } catch {
       setMensaje('❌ Error al calcular ganancia por producto')
     } finally {
       setCargandoGanancia(false)
@@ -422,7 +422,7 @@ export default function Productos() {
         setMensaje('ℹ️ No hay historial de modificaciones registrado')
         setTimeout(() => setMensaje(''), 3000)
       }
-    } catch (error) {
+    } catch {
       setMensaje('❌ Error al cargar historial de mantenimiento')
     }
   }
@@ -506,7 +506,7 @@ export default function Productos() {
       
       await cargarProductos()
       await abrirMantenimiento()
-    } catch (error) {
+    } catch {
       // Intentar método alternativo si el método principal falla
       await intentarMantenimientoAlternativo(productoMantenimientoId, precio, precio_canal, imagen_url, precioCambiado, precioCanalCambiado, imagenCambiada);
     }
@@ -518,8 +518,6 @@ export default function Productos() {
       setMensaje('🔄 Intentando método alternativo de actualización...');
       
       const token = localStorage.getItem('token');
-      const productoActual = productos.find(p => String(p.id) === String(productoId));
-      
       // Construir objeto de actualización con los campos que cambiaron
       const updateData = {};
       if (precioCambiado && precio !== null) {
@@ -558,7 +556,7 @@ export default function Productos() {
       await cargarProductos();
       await abrirMantenimiento();
       
-    } catch (error) {
+    } catch {
       setMensaje('❌ Error de conexión. Verifica tu internet e intenta nuevamente.');
     }
   }
@@ -609,8 +607,8 @@ export default function Productos() {
       setMantenimientoForm((prev) => ({ ...prev, imagen_url: urlImagen }))
       setMensaje('✅ Imagen subida y URL aplicada en mantenimiento')
       setTimeout(() => setMensaje(''), 3000)
-    } catch {
-      setMensaje('❌ Error al subir imagen al servidor')
+    } catch (error) {
+      setMensaje(`❌ ${error?.message || 'Error al subir imagen al servidor'}`)
     } finally {
       setSubiendoImagenMantenimiento(false)
       e.target.value = ''
@@ -637,8 +635,8 @@ export default function Productos() {
       setNuevoProducto((prev) => ({ ...prev, imagen_url: urlImagen }))
       setMensaje('✅ Imagen subida y lista para crear producto')
       setTimeout(() => setMensaje(''), 3000)
-    } catch {
-      setMensaje('❌ Error al subir imagen del nuevo producto')
+    } catch (error) {
+      setMensaje(`❌ ${error?.message || 'Error al subir imagen del nuevo producto'}`)
     } finally {
       setSubiendoImagenNuevo(false)
       e.target.value = ''
@@ -1233,7 +1231,7 @@ export default function Productos() {
               onSubmit={aplicarMantenimiento} 
               className="grid grid-cols-1 md:grid-cols-2 gap-3 border rounded-lg p-3 bg-slate-50"
               id="mantenimiento-form"
-              onInvalid={(e) => {
+              onInvalid={() => {
                 setMensaje('❌ Por favor completa todos los campos requeridos');
               }}
             >
@@ -1316,7 +1314,7 @@ export default function Productos() {
               <div className="md:col-span-2 flex justify-end gap-2">
                 <button 
                   type="button"  
-                  onClick={async (e) => {
+                  onClick={async () => {
                     if (!productoMantenimientoId) {
                       setMensaje('❌ Por favor, selecciona un producto');
                       return;
@@ -1394,7 +1392,7 @@ export default function Productos() {
                       await cargarProductos();
                       await abrirMantenimiento();
                       
-                    } catch (error) {
+                    } catch {
                       setMensaje('❌ Error de conexión. Verifica tu internet e intenta nuevamente');
                     }
                   }}
@@ -1422,7 +1420,7 @@ export default function Productos() {
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {historialMantenimiento.map((h, index) => {
+                    {historialMantenimiento.map((h) => {
                       return (
                         <tr key={h.id}>
                           <td className="px-3 py-2">{new Date(h.fecha).toLocaleString('es-VE')}</td>

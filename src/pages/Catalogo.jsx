@@ -259,14 +259,15 @@ const obtenerImagenProducto = (producto, idx) => {
       original: producto.imagen_url,
       procesada: processedUrl
     })
-    
-    // Verificar si la URL es válida
-    if (processedUrl.includes('https://agromae-b.onrender.com')) {
-      console.log('✅ URL válida detectada:', processedUrl)
+
+    // Aceptar cualquier URL HTTPS/HTTP o ruta relativa válida.
+    const esUrlAbsoluta = /^https?:\/\//i.test(processedUrl)
+    const esRutaRelativa = typeof processedUrl === 'string' && processedUrl.startsWith('/')
+    if (esUrlAbsoluta || esRutaRelativa) {
+      console.log('✅ URL de imagen aceptada:', processedUrl)
       return processedUrl
-    } else {
-      console.log('⚠️ URL procesada no parece válida:', processedUrl)
     }
+    console.log('⚠️ URL procesada no válida, aplicando fallback:', processedUrl)
   }
 
   // Prioridad 2: Imagen según animal de origen
@@ -406,6 +407,9 @@ export default function Catalogo() {
     const cargarDatos = async () => {
       try {
         const rProductos = await fetch(`${API_URL}/public/catalogo`)
+        if (!rProductos.ok) {
+          throw new Error(`HTTP ${rProductos.status}`)
+        }
         const dataProductos = await rProductos.json()
         setProductos(Array.isArray(dataProductos?.data) ? dataProductos.data : [])
       } catch {
@@ -421,6 +425,7 @@ export default function Catalogo() {
       nombre: p.nombre,
       precio: parseFloat(p.precio) || 0,
       imagen: obtenerImagenProducto(p, idx),
+      imagenOriginal: p.imagen_url || '',
       categoria: (p.categoria || 'Sin categoría').trim(),
       stock: parseFloat(p.stock) || 0,
       cantidad_piezas: parseInt(p.cantidad_piezas, 10) || 0,
@@ -508,12 +513,30 @@ export default function Catalogo() {
   }
 
   const guardarPedidoAutomatico = async () => {
-    const items = catalogo
+    if (loading) return
+
+    // Construir desde el catálogo completo para no perder selecciones
+    // cuando el usuario cambia filtros o búsqueda.
+    const itemsIniciales = catalogoCompleto
       .map((p) => ({
         producto_id: p.id,
         cantidad_pedida: parseFloat(cantidades[p.id] || 0) || 0
       }))
       .filter((i) => i.cantidad_pedida > 0)
+
+    // Normalizar/agrupaar por producto para evitar líneas duplicadas manipuladas.
+    const itemsMap = new Map()
+    for (const it of itemsIniciales) {
+      const id = parseInt(it.producto_id, 10)
+      const qty = parseFloat(it.cantidad_pedida)
+      if (!Number.isInteger(id) || id <= 0 || !Number.isFinite(qty) || qty <= 0) continue
+      const acumulado = parseFloat(itemsMap.get(id) || 0)
+      itemsMap.set(id, acumulado + qty)
+    }
+    const items = Array.from(itemsMap.entries()).map(([producto_id, cantidad_pedida]) => ({
+      producto_id,
+      cantidad_pedida: Number(cantidad_pedida.toFixed(3))
+    }))
 
     for (const item of items) {
       const producto = catalogoCompleto.find((p) => p.id === item.producto_id) || {}
@@ -528,6 +551,10 @@ export default function Catalogo() {
 
     if (items.length === 0) {
       setMensaje('❌ Debes seleccionar al menos 1 producto con cantidad mayor a 0')
+      return
+    }
+    if (items.length > 40) {
+      setMensaje('❌ El pedido supera el máximo de 40 líneas permitidas')
       return
     }
 
@@ -631,23 +658,23 @@ export default function Catalogo() {
                     
                     // Evitar bucles infinitos
                     if (e.currentTarget.dataset.fallbackUsed === 'true') {
-                      console.log('🔄 Fallback ya usado, usando placeholder final')
-                      e.currentTarget.src = 'https://placehold.co/600x400/F97316/FFFFFF?text=Producto'
+                      console.log('🔄 Fallback ya usado, usando logo final')
+                      e.currentTarget.src = '/logo_agromae.png'
                       e.currentTarget.dataset.fallbackUsed = 'final'
                       return
                     }
                     
-                    // Intentar con getImageUrl solo si la URL original es diferente
-                    const processedUrl = getImageUrl(p.imagen)
+                    // Reintentar una vez usando la URL original de BD normalizada.
+                    const processedUrl = getImageUrl(p.imagenOriginal || p.imagen)
                     console.log('🖼️ URL procesada:', processedUrl)
                     
-                    if (processedUrl !== p.imagen && processedUrl !== p.imagen) {
+                    if (processedUrl && processedUrl !== e.currentTarget.src) {
                       console.log('🔄 Intentando con URL procesada...')
                       e.currentTarget.src = processedUrl
                       e.currentTarget.dataset.fallbackUsed = 'true'
                     } else {
-                      console.log('📦 Usando placeholder directamente')
-                      e.currentTarget.src = 'https://placehold.co/600x400/F97316/FFFFFF?text=Producto'
+                      console.log('📦 Usando logo directamente')
+                      e.currentTarget.src = '/logo_agromae.png'
                       e.currentTarget.dataset.fallbackUsed = 'final'
                     }
                   }}
@@ -777,6 +804,7 @@ export default function Catalogo() {
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">Formato requerido: 04xx1234567</p>
+            <p className="text-xs text-blue-600 mt-1">Nota: el número telefónico será el referenciador principal para identificar clientes.</p>
           </div>
           <div>
             <label className="text-sm text-gray-600 mb-1 block">Correo</label>
