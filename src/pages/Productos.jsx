@@ -623,7 +623,7 @@ export default function Productos() {
     if (!response.ok) {
       throw new Error(data?.error || 'No se pudo subir la imagen')
     }
-    return data?.url || data?.relative_url || ''
+    return data?.relative_url || data?.url || ''
   }
   const cargarArchivoMantenimiento = async (e) => {
     const archivo = e.target.files?.[0]
