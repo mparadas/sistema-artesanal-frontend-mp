@@ -1314,9 +1314,6 @@ export default function Ventas() {
                     e.currentTarget.src = '/agromae_transparent.png';
                   }}
                 />
-                <p className="mt-1 text-xs sm:text-sm font-semibold text-blue-700 text-center">
-                  ESTADO DE CUENTA
-                </p>
               </div>
               <div className="flex flex-col items-start gap-2">
                 <div data-html2canvas-ignore="true">
@@ -1345,6 +1342,9 @@ export default function Ventas() {
                 </div>
               </div>
             </div>
+            <p className="w-full text-center text-xs sm:text-sm font-semibold text-blue-700 pt-1">
+              ESTADO DE CUENTA
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
