@@ -1000,7 +1000,14 @@ export default function Ventas() {
       const res = await fetch(`${API_URL}/ventas/${ventaBase.id}`);
       const data = await parseResponseBody(res);
       if (!res.ok) throw new Error(getApiErrorMessage(res, data, `No se pudo cargar detalle de venta #${ventaBase.id}`));
-      setUi(prev => ({ ...prev, modalDetalle: { ...ventaBase, ...data } }));
+      const pagosOrdenados = Array.isArray(data?.pagos)
+        ? [...data.pagos].sort((a, b) => {
+          const fa = Date.parse(a?.fecha || 0) || 0;
+          const fb = Date.parse(b?.fecha || 0) || 0;
+          return fa - fb;
+        })
+        : [];
+      setUi(prev => ({ ...prev, modalDetalle: { ...ventaBase, ...data, pagos: pagosOrdenados } }));
     } catch (error) {
       showMessage(error.message || 'No se pudo cargar el detalle completo', 'error');
       setUi(prev => ({ ...prev, modalDetalle: ventaBase }));
@@ -1008,6 +1015,21 @@ export default function Ventas() {
       setDetalleLoading(false);
     }
   }, [showMessage]);
+
+  const handleVerDetalleDesdeAbono = useCallback(() => {
+    const ventasBase = Array.isArray(ui.modalAbono?._ventasPendientes) && ui.modalAbono._ventasPendientes.length > 0
+      ? ventasOrdenadasMasAntiguaPrimero(ui.modalAbono._ventasPendientes)
+      : (ui.modalAbono?.id ? [ui.modalAbono] : []);
+    const ventaObjetivo = ventasBase[0];
+    if (!ventaObjetivo?.id || String(ventaObjetivo.id).startsWith('cliente-')) {
+      showMessage('No se encontró una venta válida para mostrar el detalle.', 'error');
+      return;
+    }
+    if (ventasBase.length > 1) {
+      showMessage(`Mostrando detalle de la venta #${ventaObjetivo.id} (la más antigua con saldo).`, 'info');
+    }
+    handleVerDetalle(ventaObjetivo);
+  }, [ui.modalAbono, showMessage, handleVerDetalle]);
 
   const handleCompartirDetalle = useCallback(async () => {
     if (!ui.modalDetalle?.id || !notaDetalleRef.current) return;
@@ -1087,6 +1109,18 @@ export default function Ventas() {
       </div>
     );
   }
+
+  const monedaModalAbono = String(ui.modalAbono?.moneda_original || 'USD').toUpperCase();
+  const montoVentaTop = toNumber(ui.modalAbono?.total) > 0
+    ? toNumber(ui.modalAbono?.total)
+    : toNumber(ui.modalAbono?.saldo_pendiente);
+  const montoVentaTopUsd = monedaModalAbono === 'VES'
+    ? (montoVentaTop / Math.max(toNumber(tasaActual), 1))
+    : montoVentaTop;
+  const saldoPendienteTopUsd = monedaModalAbono === 'VES'
+    ? (toNumber(ui.modalAbono?.saldo_pendiente) / Math.max(toNumber(tasaActual), 1))
+    : toNumber(ui.modalAbono?.saldo_pendiente);
+  const isTypingMonto = String(abonoDraft.monto || '').trim().length > 0;
 
   return (
     <div className="space-y-6">
@@ -1256,17 +1290,17 @@ export default function Ventas() {
           <div ref={notaDetalleRef} className="relative space-y-4">
           {ES_VENTA_NO_CONTABILIZABLE(ui.modalDetalle?.estado_pago) && (
             <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-              <span className="text-red-600/20 font-black tracking-[0.25em] text-6xl sm:text-8xl rotate-[-24deg] select-none">
+              <span className="text-red-600/20 font-black tracking-[0.25em] text-8xl rotate-[-24deg] select-none">
                 ANULADO
               </span>
             </div>
           )}
           <div className="space-y-2 border-b border-gray-200 pb-3 -mt-2">
-            <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+            <div className="flex items-start justify-between gap-3">
               <img
                 src="/logo_agromae.png"
                 alt="AgroMAE"
-                className="h-14 sm:h-20 w-auto object-contain"
+                className="h-20 w-auto object-contain"
                 onError={(e) => {
                   e.currentTarget.onerror = null;
                   e.currentTarget.src = '/agromae_transparent.png';
@@ -1280,15 +1314,15 @@ export default function Ventas() {
                     onClick={handleCompartirDetalle}
                     loading={isSharingDetalle}
                     disabled={detalleLoading || isSharingDetalle}
-                    className="w-full sm:w-auto"
+                    className="w-auto"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
                     Compartir nota
                   </Button>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-gray-500">Documento</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm uppercase tracking-wide text-gray-500">Documento</p>
+                  <p className="text-sm text-gray-500">
                     Nro: {formatNumeroNotaEntrega(
                       ui.modalDetalle?.fecha,
                       ui.modalDetalle?.cliente_id,
@@ -1300,17 +1334,17 @@ export default function Ventas() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <div className="border border-gray-200 rounded-lg p-3">
-              <p className="text-xs text-gray-500">Cliente</p>
+              <p className="text-sm text-gray-500">Cliente</p>
               <p className="font-semibold text-gray-900">{ui.modalDetalle?.cliente_nombre || 'Cliente general'}</p>
-              <p className="text-xs text-gray-500 mt-2">Fecha</p>
+              <p className="text-sm text-gray-500 mt-2">Fecha</p>
               <p>{formatDate(ui.modalDetalle?.fecha)}</p>
             </div>
             <div className="border border-gray-200 rounded-lg p-3">
-              <p className="text-xs text-gray-500">Estado</p>
+              <p className="text-sm text-gray-500">Estado</p>
               <p className="font-semibold capitalize">{ui.modalDetalle?.estado_pago || 'N/A'}</p>
-              <p className="text-xs text-gray-500 mt-2">Tipo de venta</p>
+              <p className="text-sm text-gray-500 mt-2">Tipo de venta</p>
               <p className="capitalize">{ui.modalDetalle?.tipo_venta || 'N/A'}</p>
             </div>
           </div>
@@ -1321,7 +1355,7 @@ export default function Ventas() {
               <p className="text-gray-500">Cargando desglose...</p>
             ) : Array.isArray(ui.modalDetalle?.items) && ui.modalDetalle.items.length > 0 ? (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[560px] text-xs sm:text-sm">
+                <table className="w-full min-w-[560px] text-sm">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="text-left px-2 py-2">Producto</th>
@@ -1347,11 +1381,11 @@ export default function Ventas() {
             )}
             <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 gap-2">
               <div>
-                <p className="text-xs text-gray-500">Total venta</p>
+                <p className="text-sm text-gray-500">Total venta</p>
                 <p className="font-semibold">{formatearMonto(ui.modalDetalle?.total, ui.modalDetalle?.moneda_original)}</p>
               </div>
               <div className="text-right">
-                <p className="text-xs text-gray-500">Saldo pendiente</p>
+                <p className="text-sm text-gray-500">Saldo pendiente</p>
                 <p className="font-semibold">{formatearMonto(ui.modalDetalle?.saldo_pendiente, ui.modalDetalle?.moneda_original)}</p>
               </div>
             </div>
@@ -1363,7 +1397,7 @@ export default function Ventas() {
               <p className="text-gray-500">Cargando historial...</p>
             ) : Array.isArray(ui.modalDetalle?.pagos) && ui.modalDetalle.pagos.length > 0 ? (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[560px] text-xs sm:text-sm">
+                <table className="w-full min-w-[560px] text-sm">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="text-left px-2 py-2">Fecha</th>
@@ -1409,24 +1443,24 @@ export default function Ventas() {
         onClose={cerrarModalAbono}
         zIndexClass="z-[70]"
       >
-        <form onSubmit={handleAgregarAbonoLinea} className="space-y-4 text-sm text-gray-700">
-          <div>
-            <p className="text-sm text-gray-500">Cliente: {ui.modalAbono?.cliente_nombre || 'Cliente general'}</p>
-          </div>
-
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-            <p className="text-sm text-blue-700 font-medium">Monto de la venta</p>
-            <p className="text-2xl font-bold text-blue-800">
-              {formatearMonto(
-                toNumber(ui.modalAbono?.total) > 0 ? ui.modalAbono?.total : ui.modalAbono?.saldo_pendiente,
-                ui.modalAbono?.moneda_original
-              )}
-            </p>
-            <p className="text-sm text-orange-700 font-medium mt-2">Saldo pendiente</p>
-            <p className="text-xl font-semibold text-orange-800">
-              {formatearMonto(ui.modalAbono?.saldo_pendiente, ui.modalAbono?.moneda_original)}
-            </p>
-            <p className="text-xs text-gray-600 mt-1">Tasa actual: {toNumber(tasaActual).toFixed(4)} Bs/USD</p>
+        <form onSubmit={handleAgregarAbonoLinea} className="space-y-3 text-sm text-gray-700">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
+            <p className="text-sm text-gray-500 mb-1">Cliente: {ui.modalAbono?.cliente_nombre || 'Cliente general'}</p>
+            <div className="grid grid-cols-2 gap-3 items-start">
+              <div>
+                <p className="text-sm text-blue-700 font-medium">Monto de la venta</p>
+                <p className="text-xl sm:text-2xl font-bold text-blue-800">
+                  {formatearMonto(montoVentaTopUsd, 'USD')}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-orange-700 font-medium">Saldo pendiente</p>
+                <p className="text-lg sm:text-xl font-semibold text-orange-800">
+                  {formatearMonto(saldoPendienteTopUsd, 'USD')}
+                </p>
+              </div>
+            </div>
+            <p className="text-xs text-gray-600 mt-0.5">Tasa actual: {toNumber(tasaActual).toFixed(4)} Bs/USD</p>
           </div>
 
           <div>
@@ -1465,18 +1499,24 @@ export default function Ventas() {
               className="w-full px-3 py-3 border-2 border-orange-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               required
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Equivalente a: {formatearMonto(
-                abonoDraft.moneda === 'VES'
-                  ? (toNumber(abonoDraft.monto) / Math.max(toNumber(tasaActual), 1))
-                  : toNumber(abonoDraft.monto),
-                'USD'
-              )}
-            </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Método de Pago</label>
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <label className="block text-sm font-medium text-gray-700">Método de Pago</label>
+              <p className="text-xs text-right">
+                <span className="text-gray-500 mr-1">Equivalente:</span>
+                <span className={isTypingMonto ? 'text-blue-700 font-semibold mr-1' : 'text-gray-500 mr-1'}>USD</span>
+                <span className={isTypingMonto ? 'text-blue-700 font-semibold' : 'text-gray-600'}>
+                  {formatearMonto(
+                    abonoDraft.moneda === 'VES'
+                      ? (toNumber(abonoDraft.monto) / Math.max(toNumber(tasaActual), 1))
+                      : toNumber(abonoDraft.monto),
+                    'USD'
+                  )}
+                </span>
+              </p>
+            </div>
             <div className="grid grid-cols-3 gap-2">
               {METODOS_PAGO.map((m) => {
                 const Icon = m.icon;
@@ -1514,8 +1554,14 @@ export default function Ventas() {
             </div>
           )}
 
-          <div className="flex flex-wrap justify-end gap-2 pt-1">
-            <Button type="button" variant="outline" onClick={handlePagarTotal}>Pagar restante</Button>
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button type="button" variant="outline" onClick={handleVerDetalleDesdeAbono}>
+                <Eye className="w-4 h-4 mr-1" />
+                Ver detalle
+              </Button>
+              <Button type="button" variant="outline" onClick={handlePagarTotal}>Pagar restante</Button>
+            </div>
             <Button type="submit" variant="success" loading={isSubmitting} disabled={isSubmitting}>Agregar abono</Button>
           </div>
 
@@ -1533,22 +1579,23 @@ export default function Ventas() {
                         className="w-full flex items-center justify-between gap-2 text-left"
                       >
                         <div>
-                          <p className="font-medium text-gray-800">Venta #{v.id}</p>
-                          <p className="text-xs text-gray-500">{formatDate(v.fecha)}</p>
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                            <p className="font-medium text-gray-800">Venta #{v.id}</p>
+                            <p className="text-xs text-gray-500">{formatDate(v.fecha)}</p>
+                            <p className="text-xs text-gray-600">
+                              Saldo: {formatearMonto(v.saldo_pendiente, v.moneda_original)}
+                            </p>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-[11px] text-gray-600">{isOpen ? 'Ocultar' : 'Ver detalle'}</span>
                           {isOpen ? <ChevronUp className="w-4 h-4 text-gray-600" /> : <ChevronDown className="w-4 h-4 text-gray-600" />}
                         </div>
                       </button>
-                      <p className="text-xs text-gray-600 mt-1">
-                        Saldo: {formatearMonto(v.saldo_pendiente, v.moneda_original)}
-                      </p>
 
                       {isOpen && (
                         <>
                           <div className="mt-2">
-                            <p className="text-xs font-medium text-gray-700 mb-1">Productos</p>
                             {Array.isArray(v.items) && v.items.length > 0 ? (
                               <div className="overflow-x-auto">
                                 <table className="w-full min-w-[420px] text-xs">
@@ -1637,13 +1684,17 @@ export default function Ventas() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
             <div className="border rounded p-2">
               <p className="font-medium text-gray-700">Total abonos</p>
-              <p className="font-semibold">{formatearMonto(subtotalAbonosUsd, 'USD')}</p>
-              <p className="text-gray-600">{formatearMonto(subtotalAbonosVes, 'VES')}</p>
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="font-semibold">{formatearMonto(subtotalAbonosUsd, 'USD')}</p>
+                <p className="text-gray-600">{formatearMonto(subtotalAbonosVes, 'VES')}</p>
+              </div>
             </div>
             <div className="border rounded p-2">
               <p className="font-medium text-gray-700">Restante</p>
-              <p className="font-semibold">{formatearMonto(restanteUsd, 'USD')}</p>
-              <p className="text-gray-600">{formatearMonto(restanteVes, 'VES')}</p>
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="font-semibold">{formatearMonto(restanteUsd, 'USD')}</p>
+                <p className="text-gray-600">{formatearMonto(restanteVes, 'VES')}</p>
+              </div>
             </div>
           </div>
 
