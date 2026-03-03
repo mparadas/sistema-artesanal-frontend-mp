@@ -201,18 +201,18 @@ const Button = memo(({ children, onClick, variant = 'primary', size = 'md', load
   );
 });
 
-const SimpleModal = memo(({ open, title, onClose, children, zIndexClass = 'z-50' }) => {
+const SimpleModal = memo(({ open, title, onClose, children, zIndexClass = 'z-50', panelClass = 'max-w-xl', bodyClass = 'p-4' }) => {
   if (!open) return null;
   return (
-    <div className={`fixed inset-0 ${zIndexClass} flex items-center justify-center bg-black/40 p-4`}>
-      <div className="w-full max-w-xl rounded-lg bg-white shadow-xl border border-gray-200">
+    <div className={`fixed inset-0 ${zIndexClass} flex items-start sm:items-center justify-center overflow-y-auto bg-black/40 p-4`}>
+      <div className={`w-full ${panelClass} rounded-lg bg-white shadow-xl border border-gray-200`}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
           <button onClick={onClose} className="p-1 rounded hover:bg-gray-100" type="button">
             <X className="w-5 h-5 text-gray-600" />
           </button>
         </div>
-        <div className="p-4">{children}</div>
+        <div className={bodyClass}>{children}</div>
       </div>
     </div>
   );
@@ -250,7 +250,7 @@ const VistaCompacta = memo(({ ventas, onVerDetalle, onAbonar, onDevolverAPedidos
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => onVerDetalle(venta)}>
             <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Ver</span>
+            <span className="ml-1">Ver</span>
           </Button>
           {puedeAbonarVenta(venta) ? (
             <Button
@@ -1285,8 +1285,11 @@ export default function Ventas() {
         open={Boolean(ui.modalDetalle)}
         title=""
         onClose={() => handleModalToggle('detalle', null)}
+        zIndexClass="z-[90]"
+        panelClass="max-w-4xl"
+        bodyClass="p-3 sm:p-4"
       >
-        <div className="space-y-4 text-sm text-gray-700">
+        <div className="space-y-4 text-base text-gray-700">
           <div ref={notaDetalleRef} className="relative space-y-4">
           {ES_VENTA_NO_CONTABILIZABLE(ui.modalDetalle?.estado_pago) && (
             <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
@@ -1554,14 +1557,12 @@ export default function Ventas() {
             </div>
           )}
 
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <Button type="button" variant="outline" onClick={handleVerDetalleDesdeAbono}>
-                <Eye className="w-4 h-4 mr-1" />
-                Ver detalle
-              </Button>
-              <Button type="button" variant="outline" onClick={handlePagarTotal}>Pagar restante</Button>
-            </div>
+          <div className="flex flex-wrap justify-end gap-2 pt-1">
+            <Button type="button" variant="outline" onClick={handleVerDetalleDesdeAbono}>
+              <Eye className="w-4 h-4 mr-1" />
+              Ver detalle
+            </Button>
+            <Button type="button" variant="outline" onClick={handlePagarTotal}>Pagar restante</Button>
             <Button type="submit" variant="success" loading={isSubmitting} disabled={isSubmitting}>Agregar abono</Button>
           </div>
 
